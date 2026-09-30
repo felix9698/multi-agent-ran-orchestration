@@ -1,0 +1,11 @@
+--- a/openair1/PHY/NR_REFSIG/sss_nr.h
++++ b/openair1/PHY/NR_REFSIG/sss_nr.h
+@@ -41,7 +41,7 @@
+ #define  SSS_START_IDX                (3)      /* [0:PSBCH 1:PSS0 2:PSS1 3:SSS0 4:SSS1] */
+ #define  NUM_SSS_SYMBOLS              (2)
+ 
+-#define SSS_METRIC_FLOOR_NR   (30000)
++#define SSS_METRIC_FLOOR_NR   (10000)  /* 2026-09-24 testbed: the true cell measured 24340 on 38 PRB, noise ~1400 */
+ 
+ typedef struct {
+   int nb_antennas_rx;

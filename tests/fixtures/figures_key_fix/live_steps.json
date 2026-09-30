@@ -1,0 +1,398 @@
+[
+  {
+    "trial_id": 1,
+    "method": "llm_with_history",
+    "phase": "Nominal",
+    "step_idx": 0,
+    "t_s": 0.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": null,
+        "gnb_ul_snr_db": null,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      },
+      "ue2": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": -95.0,
+        "gnb_ul_snr_db": 26.0,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 0,
+    "phase_label": "p0:Nominal"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_with_history",
+    "phase": "Nominal",
+    "step_idx": 1,
+    "t_s": 15.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": null,
+        "gnb_ul_snr_db": null,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      },
+      "ue2": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": -93.0,
+        "gnb_ul_snr_db": 25.0,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 0,
+    "phase_label": "p0:Nominal"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_with_history",
+    "phase": "Nominal",
+    "step_idx": 2,
+    "t_s": 30.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": null,
+        "gnb_ul_snr_db": null,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      },
+      "ue2": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": -91.0,
+        "gnb_ul_snr_db": 22.0,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 0,
+    "phase_label": "p0:Nominal"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_with_history",
+    "phase": "Nominal",
+    "step_idx": 3,
+    "t_s": 45.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": null,
+        "gnb_ul_snr_db": null,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      },
+      "ue2": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": -93.0,
+        "gnb_ul_snr_db": 28.5,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 0,
+    "phase_label": "p0:Nominal"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_with_history",
+    "phase": "Congestion",
+    "step_idx": 4,
+    "t_s": 60.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": null,
+        "gnb_ul_snr_db": null,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      },
+      "ue2": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": -92.0,
+        "gnb_ul_snr_db": 29.0,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 1,
+    "phase_label": "p1:Congestion"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_with_history",
+    "phase": "Congestion",
+    "step_idx": 5,
+    "t_s": 75.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": null,
+        "gnb_ul_snr_db": null,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      },
+      "ue2": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": -92.0,
+        "gnb_ul_snr_db": 30.0,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 1,
+    "phase_label": "p1:Congestion"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_with_history",
+    "phase": "Congestion",
+    "step_idx": 6,
+    "t_s": 90.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": null,
+        "gnb_ul_snr_db": null,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      },
+      "ue2": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": -93.0,
+        "gnb_ul_snr_db": 28.5,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 1,
+    "phase_label": "p1:Congestion"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_with_history",
+    "phase": "Congestion",
+    "step_idx": 7,
+    "t_s": 105.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": null,
+        "gnb_ul_snr_db": null,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      },
+      "ue2": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": -92.0,
+        "gnb_ul_snr_db": 28.0,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 1,
+    "phase_label": "p1:Congestion"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_with_history",
+    "phase": "Recovery",
+    "step_idx": 8,
+    "t_s": 120.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": null,
+        "gnb_ul_snr_db": null,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      },
+      "ue2": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": -96.0,
+        "gnb_ul_snr_db": 21.5,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 2,
+    "phase_label": "p2:Recovery"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_with_history",
+    "phase": "Recovery",
+    "step_idx": 9,
+    "t_s": 135.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": null,
+        "gnb_ul_snr_db": null,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      },
+      "ue2": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": -93.0,
+        "gnb_ul_snr_db": 24.5,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 2,
+    "phase_label": "p2:Recovery"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_with_history",
+    "phase": "Recovery",
+    "step_idx": 10,
+    "t_s": 150.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": null,
+        "gnb_ul_snr_db": null,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      },
+      "ue2": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": -93.0,
+        "gnb_ul_snr_db": 24.5,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 2,
+    "phase_label": "p2:Recovery"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_with_history",
+    "phase": "Recovery",
+    "step_idx": 11,
+    "t_s": 165.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": null,
+        "gnb_ul_snr_db": null,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      },
+      "ue2": {
+        "throughput_mbps": 0.0,
+        "gnb_ul_avg_rsrp_dbm": -92.0,
+        "gnb_ul_snr_db": 24.0,
+        "ue_dl_ss_rsrp_dbm": null,
+        "ue_dl_sinr_db": null,
+        "radio_source": "gnb_ul_mac",
+        "radio_direction": "uplink"
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 2,
+    "phase_label": "p2:Recovery"
+  }
+]

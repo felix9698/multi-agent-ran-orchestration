@@ -1,0 +1,20 @@
+--- a/openair2/LAYER2/nr_pdcp/nr_pdcp_entity.c	2026-08-14 22:39:39.587442749 +0900
++++ b/openair2/LAYER2/nr_pdcp/nr_pdcp_entity.c	2026-09-25 00:54:54.920326889 +0900
+@@ -650,6 +650,17 @@
+   uint32_t count = (pdcp_count.hfn << sn_size) | (pdcp_count.sn & sn_mask);
+ 
+   // Apply the COUNT values
++  /* 2026-09-25: at a handover target the DRB entity is created with tx_next 0 and PDUs can be
++   * numbered from SN 0 before this COUNT arrives.  The UE reads such an SN far below its
++   * RX_DELIV as the next HFN (38.323 5.2.2.1), so every PDU sent at the transferred COUNT is
++   * then discarded as old (ue2 rx_deliv stuck at 262145, ue1 at 1048585 = HFN 4 SN 9 while the
++   * gNB sent HFN 3 SN 235610): the downlink is dead until the UE leaves.  Continue on the HFN
++   * the UE has moved to instead. */
++  const uint32_t sent_before = entity->tx_next;
++  if (sent_before > 0 && sent_before < (1u << (sn_size - 1)) && (pdcp_count.sn & sn_mask) >= (1u << (sn_size - 1)))
++    count = ((pdcp_count.hfn + 1) << sn_size) | sent_before;
++  LOG_W(PDCP, "DRB %d: handover COUNT: %u PDUs already numbered from SN 0 before it arrived -> tx_next %u\n",
++        entity->rb_id, sent_before, count);
+   entity->tx_next = count;
+ 
+   LOG_I(PDCP,

@@ -1,0 +1,19 @@
+{
+  "case": "undeclared-property",
+  "expect": {
+    "detailContains": [
+      "operatorAnnotation"
+    ],
+    "kind": "SCHEMA_MISMATCH"
+  },
+  "mutations": [
+    {
+      "op": "set",
+      "pointer": "/operatorAnnotation",
+      "value": {
+        "note": "added by hand"
+      }
+    }
+  ],
+  "why": "The capture schema is additionalProperties:false; an operator annotation added by hand is not a capture."
+}

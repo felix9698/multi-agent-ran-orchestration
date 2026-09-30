@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+"""Launch the packaged LO1 runtime from its archive-relative library path."""
+
+import os
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+LIB = ROOT / "lib"
+while str(LIB) in sys.path:
+    sys.path.remove(str(LIB))
+sys.path.insert(0, str(LIB))
+os.environ.setdefault("ORAN_CONTRACT_AUTHORITY", str(ROOT / "contracts" / "oran-aic" / "1.0.1"))
+
+from oran.release.lo1.cli import main
+
+raise SystemExit(main(sys.argv[1 : ]))

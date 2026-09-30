@@ -1,0 +1,44 @@
+diff --git a/openair2/LAYER2/nr_pdcp/nr_pdcp_entity.c b/openair2/LAYER2/nr_pdcp/nr_pdcp_entity.c
+index 2d83588c25..cbef914120 100644
+--- a/openair2/LAYER2/nr_pdcp/nr_pdcp_entity.c
++++ b/openair2/LAYER2/nr_pdcp/nr_pdcp_entity.c
+@@ -108,6 +108,27 @@ static void nr_pdcp_entity_recv_pdu(nr_pdcp_entity_t *entity,
+ 
+   rcvd_count = (rcvd_hfn << entity->sn_size) | rcvd_sn;
+ 
++  /* aic 2026-09-25: a DRB without integrity cannot tell a garbage PDU from a real one, and
++   * one false pass far ahead moves the window past every later real PDU (UE: RX_DELIV 0 -> 82022;
++   * gNB uplink 15793 vs 32161).  Drop a PDU more than 2048 beyond RX_NEXT, unless it continues
++   * the far PDU dropped just before (within 64): a garbage PDU has no successor, a real jump does
++   * (a handover target restarting SN 0 = next HFN; the first rule lost 79 PDUs per handover). */
++  if (!entity->is_gnb && entity->type != NR_PDCP_SRB && !entity->has_integrity
++      && rcvd_count > entity->rx_next + 2048) {
++    if (entity->far_ahead_last && rcvd_count > entity->far_ahead_last
++        && rcvd_count <= entity->far_ahead_last + 64) {
++      LOG_W(PDCP, "accepting far-ahead count %u (continues %u)\n", rcvd_count, entity->far_ahead_last);
++    } else {
++      LOG_W(PDCP, "drop far-ahead PDU rb %d rcvd_count=%u rx_next=%u size %d\n",
++            entity->rb_id, rcvd_count, entity->rx_next, size);
++      entity->far_ahead_last = rcvd_count;
++      entity->stats.rxpdu_dd_pkts++;
++      entity->stats.rxpdu_dd_bytes += size;
++      return;
++    }
++  }
++  entity->far_ahead_last = 0;
++
+   nr_pdcp_integrity_data_t msg_integrity = { 0 };
+ 
+   /* the MAC-I/header/rcvd_count is needed by some RRC procedures, store it */
+diff --git a/openair2/LAYER2/nr_pdcp/nr_pdcp_entity.h b/openair2/LAYER2/nr_pdcp/nr_pdcp_entity.h
+index e349bc6357..e7c03a1fc6 100644
+--- a/openair2/LAYER2/nr_pdcp/nr_pdcp_entity.h
++++ b/openair2/LAYER2/nr_pdcp/nr_pdcp_entity.h
+@@ -128,6 +128,7 @@ typedef struct nr_pdcp_entity_s {
+   uint32_t rx_next;
+   uint32_t rx_deliv;
+   uint32_t rx_reord;
++  uint32_t far_ahead_last;  /* aic: COUNT of the far-ahead DRB PDU dropped last, 0 = none */
+ 
+   /* set to the latest know time by the user of the module. Unit: ms */
+   uint64_t t_current;

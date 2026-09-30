@@ -1,0 +1,213 @@
+{
+  "contractVersion": "oran-aic-scenario-runner/1.0.0",
+  "normative": true,
+  "catalogRef": "scenario-catalog.1.0.0.json",
+  "deploymentVectorSchemaRef": "deployment-test-vector.1.0.0.schema.json",
+  "e2CapabilityInventorySchemaRef": "e2-capability-inventory.1.0.0.schema.json",
+  "o1NetconfYangProfileRef": "o1-netconf-yang-profile.1.0.0.json",
+  "purpose": "A complete, implementation-neutral execution contract for independently running the Section 18 scenario catalog without source imports or out-of-band decisions.",
+  "preflight": {
+    "mustCompleteBeforeAnyNetworkSideEffect": true,
+    "failureDisposition": "FAIL_SCENARIO_WITHOUT_TARGET_CALL",
+    "checksInOrder": [
+      "PARSE_ALL_MACHINE_ARTIFACTS",
+      "VALIDATE_DEPLOYMENT_VECTOR_DRAFT_2020_12",
+      "VALIDATE_E2_INVENTORY_READY_IMPLIES_ACTIVE_CONNECTIONS_ACTIVE_REQUIRED_RAN_FUNCTIONS_AND_UNIQUE_STRUCTURED_NODE_IDS",
+      "VERIFY_REFERENCED_FILE_DIGESTS_WHEN_DECLARED",
+      "VERIFY_POLICY_EVIDENCE_SCHEMA_CANONICAL_TEXT_AND_JCS_DIGEST",
+      "VERIFY_O1_NETCONF_PROFILE_AND_EVERY_LIFECYCLE_RPC_FIXTURE_RESOLVE",
+      "VERIFY_DEPLOYMENT_FILE_INFO_READY_BEFORE_EXPIRATION",
+      "VERIFY_SCENARIO_AND_REQUIREMENT_LINKS",
+      "VERIFY_SUITE_OPERATION_INITIAL_STATE_AND_FAULT_NAMES",
+      "RESOLVE_FIXTURE_REFERENCES_AND_STATIC_EXPRESSIONS",
+      "TYPECHECK_ENDPOINT_AND_BODY_EXPRESSIONS",
+      "VERIFY_EVERY_STEP_OUTPUT_REFERENCE_TARGETS_AN_EARLIER_STEP_AND_A_DECLARED_OUTPUT",
+      "VERIFY_FAULT_BOUNDARIES_NAME_EXISTING_STEPS",
+      "VERIFY_NO_UNRESOLVED_STATIC_EXPRESSION_REMAINS",
+      "VERIFY_EACH_R1_DME_PUBLISH_HAS_EXACTLY_ONE_EVIDENCE_RECORD"
+    ],
+    "staticExpressionPattern": "\\$\\{(?:deployment|constants)\\.[^}]+\\}",
+    "stepOutputExpressionPattern": "\\$\\{steps\\.([A-Za-z0-9_-]+)\\.outputs\\.([A-Za-z0-9_-]+)(?:\\[[0-9]+\\])?\\}",
+    "unresolvedExpressionError": "AIC_RUNNER_UNRESOLVED_EXPRESSION",
+    "undefinedOutputError": "AIC_RUNNER_UNDEFINED_OUTPUT",
+    "forwardOutputReferenceError": "AIC_RUNNER_FORWARD_OUTPUT_REFERENCE",
+    "runtimeMissingOutputRule": "If an earlier executed step does not produce a statically declared output referenced by a later step, fail before the later step and before any further network side effect."
+  },
+  "expressionLanguage": {
+    "canonicalSyntax": "${namespace.path}",
+    "pathGrammar": "dot-separated object members with an optional zero-based [index] after an array member",
+    "namespaces": {
+      "deployment": "The deployment vector after JSON Schema validation.",
+      "constants": "The catalog constants object.",
+      "steps": "Outputs of earlier steps in the same scenario only."
+    },
+    "wholeValueSubstitution": "If a JSON string consists of exactly one expression, replace it with a deep copy of the referenced value and preserve its JSON type.",
+    "embeddedSubstitution": "If an expression is embedded in a larger string, its value must be a string, number or boolean and is converted to its JSON lexical form.",
+    "noImplicitDefaults": true,
+    "endpointTemplateSyntax": "{name}",
+    "endpointTemplateResolution": {
+      "rootMappings": {
+        "r1ApiRoot": "${deployment.r1.apiRoot}",
+        "a1ApiRoot": "${deployment.a1.apiRoot}",
+        "a1StatusCallbackRoot": "${deployment.a1.statusCallbackRoot}",
+        "rAppCallbackRoot": "${deployment.r1.callbackApi.rootUri}",
+        "MnSRoot": "${deployment.o1.fileDataReporting.mnsRoot}",
+        "MnSVersion": "${deployment.o1.fileDataReporting.mnsVersion}",
+        "o1ConsumerRoot": "${deployment.o1.fileDataReporting.consumerReference}",
+        "configured.r1.dme.policyEvidencePushBaseUri": "${deployment.r1.dme.policyEvidencePushBaseUri}"
+      },
+      "otherNames": "Resolve from the step bindings object after canonical expression substitution; an absent or non-scalar binding is a pre-network failure."
+    },
+    "legacyBodyTemplateSyntax": "{qualified.name}",
+    "legacyBodyTemplateRule": "Existing non-endpoint brace templates resolve only from declared materialization.time.windowVariables or the documented deployment mappings. They never read process environment variables implicitly.",
+    "resolutionOrder": ["FIXTURE_URI", "EMBEDDED_FIXTURE_OBJECT", "JSON_OR_XML_EDITS", "CANONICAL_STATIC_EXPRESSIONS", "STEP_OUTPUT_EXPRESSIONS_JUST_BEFORE_THE_CONSUMING_STEP", "ENDPOINT_AND_LEGACY_TEMPLATES"]
+  },
+  "outputBindings": {
+    "captureObject": "A step capture member maps output names to {from, transform, validate}; captured values are stored below steps.<stepId>.outputs.",
+    "sources": ["response.status", "response.headers.<name>", "response.body", "response.body.<RFC6901-pointer>", "operation.<declared-output>"],
+    "transforms": {
+      "IDENTITY": "Deep-copy the source value.",
+      "LOCATION_LAST_PATH_SEGMENT": "Parse an absolute or relative URI and return the final non-empty percent-decoded path segment.",
+      "JSON_POINTER": "Apply the capture pointer to a JSON body.",
+      "JCS_SHA256": "RFC 8785 canonicalize a JSON value and return lowercase SHA-256."
+    },
+    "validationPredicates": ["NON_EMPTY_STRING", "ABSOLUTE_OR_RELATIVE_URI", "UUID", "OPAQUE_ID", "JSON_OBJECT", "JSON_ARRAY", "SEMVER"],
+    "responseAssignedIdentifiers": "A client must not predict or substitute an assigned identifier. Later steps reference the capture output from the creating response."
+  },
+  "timeSemantics": {
+    "FIXED_LOGICAL": {
+      "atMs": "A non-negative integer measured from the scenario origin. Steps run in array order; array order breaks equal atMs ties.",
+      "nullAllowed": false
+    },
+    "LIVE_OBSERVED": {
+      "atMsInteger": "Earliest monotonic offset at which the step may start.",
+      "atMsNull": "Start immediately after the preceding step completes and its outputs are captured; wait only for the operation's declared observable event and never use a hidden delay.",
+      "firstStepNull": "Equivalent to offset 0.",
+      "timeout": "Use step.timeoutMs when present, otherwise deployment.timeouts.liveCaptureMs for live capture operations and deployment.timeouts.defaultStepMs for all other operations."
+    },
+    "timeoutFailure": "A timeout is a deterministic failed step; it cannot be converted to an inferred success."
+  },
+  "scenarioApplicability": {
+    "expression": "A scenario applicability.when expression must resolve during preflight to a JSON boolean.",
+    "trueDisposition": "Execute the scenario normally.",
+    "falseDisposition": "SKIPPED_NOT_APPLICABLE is a passing conformance disposition. Do not install scenario initial state, inject faults or make any target call.",
+    "conditionalServiceRegistration": "RAPP_PUBLISHES_GENERAL_REQUEST_RESPONSE_R1_API is true only for an rApp that intentionally publishes such an API. R1 consumer onboarding/authentication, service discovery and the DME dataPushUri callback are not a published ServiceAPIDescription and cannot activate the condition."
+  },
+  "suiteCatalog": {
+    "a1p-producer-conformance": {"target": "A1_P_PRODUCER", "counterpart": "A1_CONSUMER_BLACK_BOX_HARNESS", "boundary": "A1-P v2 HTTP plus standard status callback"},
+    "end-to-end-contract": {"target": "INTEGRATED_RAPP_FRAMEWORK_XAPP", "counterpart": "R1_A1_E2_O1_BLACK_BOX_HARNESS", "boundary": "Only standard R1, A1, E2 and O1 interfaces"},
+    "o1-consumer-normalizer-conformance": {"target": "O1_CONSUMER_NORMALIZER", "counterpart": "O1_PROVIDER_AND_DME_HARNESS", "boundary": "Notification, SFTP bytes, normalization and R1 DME push"},
+    "o1-provider-profile-conformance": {"target": "O1_PROVIDER", "counterpart": "O1_CONSUMER_HARNESS", "boundary": "NETCONF/YANG, FileDataReportingMnS, notification and SFTP"},
+    "o1-lifecycle-contract": {"target": "BOTH_O1_OWNERSHIP_DIRECTIONS", "counterpart": "RECIPROCAL_BLACK_BOX_HARNESS", "boundary": "Identical subscription, PerfMetricJob, recovery and teardown recipe bound to o1-netconf-yang-profile.1.0.0.json"},
+    "r1-service-conformance": {"target": "NON_RT_RIC_FRAMEWORK_R1_SERVICE", "counterpart": "RAPP_R1_HARNESS", "boundary": "Pinned service management, A1 policy management and DME REST resources"}
+  },
+  "operations": {
+    "HTTP": {"kind": "NETWORK_OR_CAPTURE", "required": ["method"], "declaredOutputs": ["status", "headers", "body", "locationLastSegment"], "semantics": "Invoke or capture the declared HTTP boundary, validate status, headers and body, then apply capture bindings."},
+    "A1_SEED_RESOURCE": {"kind": "HARNESS_SETUP", "required": ["policyRef"], "declaredOutputs": [], "semantics": "Install a policy and declared status without executing an episode."},
+    "A1_EMIT_STATUS": {"kind": "NETWORK_TRIGGER", "requiredAny": [["statusRef", "status"]], "declaredOutputs": ["statusSnapshot", "callbackStatus"], "semantics": "Persist and emit a standard A1 policy status snapshot."},
+    "KPM_SNAPSHOT": {"kind": "HARNESS_INPUT", "required": ["fresh"], "declaredOutputs": ["snapshot", "servingCellNcI", "selectedTargetNcI"], "semantics": "Deliver one coherent KPM decision snapshot."},
+    "E2_CONTROL_RESULT": {"kind": "HARNESS_INPUT", "required": ["result", "effectApplied"], "declaredOutputs": ["result", "effectApplied"], "semantics": "Return the declared deterministic E2 control outcome and effect count."},
+    "READBACK": {"kind": "HARNESS_OBSERVATION", "required": ["quality"], "declaredOutputs": ["servingCellNcI", "quality"], "semantics": "Return external readback without causing a write."},
+    "SET_DEPENDENCY": {"kind": "HARNESS_CONTROL", "required": ["dependency", "ready"], "declaredOutputs": ["dependencyState"], "semantics": "Set the named externally observable dependency state."},
+    "DECISION_RESULT": {"kind": "HARNESS_INPUT", "required": ["selectedCellNcI"], "declaredOutputs": ["selectedCellNcI"], "semantics": "Inject only the selected-cell result at the documented safety-guard boundary."},
+    "E2_STUB_LOG": {"kind": "HARNESS_OBSERVATION", "required": ["assert"], "declaredOutputs": ["boundaryLog"], "semantics": "Read the external E2 stub boundary log; internal process state is forbidden."},
+    "E2_INVENTORY_VALIDATE": {"kind": "PURE_COMPUTATION", "required": ["inventoryRef"], "declaredOutputs": ["ready", "errorCode", "canonicalGlobalE2NodeIds", "validationErrors"], "semantics": "Deep-copy the schema-valid deployment inventory, apply declared RFC 6902 edits, validate e2-capability-inventory.1.0.0.schema.json including x-oran-aic semantic constraints, and emit a deterministic fail-closed result without issuing an E2 request."},
+    "PROCESS_RESTART": {"kind": "HARNESS_CONTROL", "required": ["component"], "declaredOutputs": ["restartCompleted"], "semantics": "Restart the named component using durable state only."},
+    "O1_NOTIFY": {"kind": "NETWORK_OR_CAPTURE", "requiredAny": [["notificationRef", "input"]], "declaredOutputs": ["status", "notification", "fileInfoList"], "semantics": "Deliver or capture one standard O1 notification and return 204 only after durable acceptance."},
+    "O1_RETRIEVE": {"kind": "NETWORK_OR_FIXTURE", "requiredAny": [["artifactRef", "source", "fileInfoFromStep"]], "declaredOutputs": ["bytes", "byteSha256", "fileInfo", "parsedPm"], "semantics": "Retrieve exact SFTP bytes with authority and host-key checks; parsing is explicit, never implied publication."},
+    "O1_FILE_LIST": {"kind": "NETWORK", "required": ["method", "query"], "declaredOutputs": ["status", "fileInfoList"], "semantics": "GET the standard files collection and expose its raw array(FileInfo) body."},
+    "PERF_METRIC_JOB": {"kind": "NETWORK", "required": ["action"], "declaredOutputs": ["administrativeState", "operationalState", "readback"], "semantics": "Execute the matching lifecycle or teardown transition from o1-netconf-yang-profile.1.0.0.json with its exact registered XML RPC fixture. Before mutation verify the pinned schema mount, module revisions, required feature and NETCONF capabilities. Hold the running datastore lock during mutation; use the profile RPC options; unlock the job only after the FileDataReportingMnS subscription is durable; accept completion only after the profile-required readback."},
+    "O1_NORMALIZE": {"kind": "PURE_COMPUTATION", "required": ["inputFromStep"], "declaredOutputs": ["records", "commitEligibleRecords", "rejectedRecords", "duplicateRecords", "samples"], "semantics": "Parse and normalize O1 bytes or parsed PM context into an ordered array of individual policy-evidence records; it performs no network call."},
+    "R1_DME_REGISTER": {"kind": "NETWORK", "required": ["method", "body"], "declaredOutputs": ["status", "body", "registrationId"], "semantics": "Register exactly one DmeTypeRelatedCapabilities body whose only outer members are dmeTypeDefinition, dataAccessEndpoint and dataDeliveryModes. dmeTypeDefinition contains the structured dmeTypeId, metadata, inline dataProductionSchema object, dataDeliverySchemas and dataDeliveryMechanisms. Capture the Location-assigned registrationId."},
+    "R1_DME_DISCOVER": {"kind": "NETWORK", "required": ["method"], "declaredOutputs": ["status", "dmeTypes"], "semantics": "Discover the authoritative DME type with GET data-discovery/v2/dme-types/{percent-encoded dmeTypeId}; the profile forbids substituting a dme-type-id collection query."},
+    "R1_DME_DATA_JOB": {"kind": "NETWORK", "required": ["action", "method"], "declaredOutputs": ["status", "body", "dataJobId", "dataJobInfoStatus"], "semantics": "Create, query, update, status-query or cancel a standard DataJobInfo resource."},
+    "R1_DME_PUBLISH": {"kind": "NETWORK", "required": ["endpointRef", "evidenceRecordRef"], "declaredOutputs": ["status", "accepted", "deduplicated"], "semantics": "POST exactly one schema-valid policy-evidence record as application/json to the active PUSH_HTTP dataPushUri. One expansion equals one POST and one response; arrays and envelopes are forbidden."},
+    "R1_DME_QUERY": {"kind": "NETWORK", "required": ["endpointRef"], "declaredOutputs": ["status", "body"], "semantics": "Query DataJobInfo/status or a negotiated ONE_TIME PULL_HTTP URI only."},
+    "COORDINATOR_TRANSITION": {"kind": "HARNESS_OBSERVATION", "required": ["from", "to"], "declaredOutputs": ["state", "outcome"], "semantics": "Assert one rApp S0-S6 transition using only standard captured evidence."}
+  },
+  "initialStateOperations": {
+    "A1_SEED_RESOURCE": {"required": ["policyRef", "status"], "effects": "Install exactly one A1 policy resource and its declared external status."},
+    "INSTALL_NON_RT_DESIRED_POLICY": {"required": ["policyRef"], "effects": "Persist exactly one Non-RT desired policy without invoking A1."},
+    "INSTALL_R1_STATUS_SUBSCRIPTION": {"required": ["subscriptionId"], "effects": "Install one active standard R1 PolicyStatusSubscription."},
+    "INSTALL_STATUS_DESTINATION": {"required": ["url"], "effects": "Configure one standard A1 status notification destination."},
+    "LOAD_CAPABILITY": {"required": ["manifestRef"], "effects": "Load the declared digest-validated capability manifest."},
+    "SET_RAN_STATE": {"required": ["servingCellNcI"], "effects": "Set only the deterministic external RAN stub serving-cell state."}
+  },
+  "initialStates": {
+    "INSTALL_AIC_POLICY_TYPE": {"adapterAction": "A1_INSTALL_POLICY_TYPE", "inputs": ["catalog.constants.policyTypeId", "golden policy/status schema digests"], "postcondition": "GET policy type returns the pinned schemas."},
+    "LOAD_CAPABILITY": {"adapterAction": "LOAD_CAPABILITY", "inputs": ["fixture://capabilityManifest or deployment topology"], "postcondition": "Bijection and neighbour checks pass."},
+    "SET_ALL_DEPENDENCIES_READY": {"adapterAction": "SET_DEPENDENCIES", "inputs": ["all profile dependencies"], "postcondition": "Readiness, freshness, lock and connectivity are ready."},
+    "INSTALL_R1_A1_POLICY_MANAGEMENT": {"adapterAction": "START_R1_A1_SERVICE", "inputs": ["deployment.r1.apiRoot"], "postcondition": "Pinned v1 resources are reachable."},
+    "REGISTER_DME_TYPE_AIC_POLICY_EVIDENCE_1_0_0": {"adapterAction": "INSTALL_DME_REGISTRATION", "inputs": ["policy-evidence filter schema", "policy-evidence record schema", "deployment.r1.dme.dataAccessEndpoint"], "postcondition": "Discovery returns the exact registered DME type."},
+    "INSTALL_ACTIVE_PUSH_HTTP_DATA_JOB_AIC_POLICY_EVIDENCE_1_0_0": {"adapterAction": "INSTALL_ACTIVE_DATA_JOB", "inputs": ["deployment.r1.dme.activeDataJobId", "deployment.r1.dme.activeDeliveryBindingId", "canonical productionJobDefinition"], "postcondition": "A RUNNING CONTINUOUS PUSH_HTTP job and durable binding mapping exist."},
+    "INSTALL_O1_PROFILE": {"adapterAction": "LOAD_O1_PROFILE", "inputs": ["fixture://o1Profile", "fixture://o1NetconfYangProfile"], "postcondition": "The exact file-reporting and NETCONF/YANG profiles are active; every lifecycle requestFixture resolves to the registered immutable XML bytes."},
+    "INSTALL_ACTIVE_O1_SUBSCRIPTION": {"adapterAction": "INSTALL_O1_SUBSCRIPTION", "inputs": ["deployment.o1.fileDataReporting.subscriptionId", "deployment.o1.fileDataReporting.consumerReference"], "postcondition": "One durable provider subscription exists."},
+    "CONFIGURE_UNIQUE_LIVE_DN_CELL_MAPPING": {"adapterAction": "LOAD_LIVE_CELL_MAPPING", "inputs": ["deployment.topology.cellMappings"], "postcondition": "CellId and managedObjectDn are bijective."},
+    "KEEP_PERF_METRIC_JOB_LOCKED": {"adapterAction": "SET_PERF_METRIC_JOB", "inputs": ["fixture://o1NetconfYangProfile", "deployment.o1.perfMetricJob.jobId", "LOCKED"], "postcondition": "Profile-pinned NETCONF readback is LOCKED."},
+    "CLEAR_DURABLE_SUBSCRIPTION_STATE": {"adapterAction": "CLEAR_SUBSCRIPTION_LEDGER", "inputs": [], "postcondition": "No local subscription identifier is stored."},
+    "LOAD_DURABLE_SUBSCRIPTION_FROM_PREVIOUS_201": {"adapterAction": "LOAD_SUBSCRIPTION_LEDGER", "inputs": ["deployment.o1.fileDataReporting.subscriptionId"], "postcondition": "Stored representation and Location-derived identifier exist."},
+    "PROVIDER_PERSISTS_SAME_SUBSCRIPTION": {"adapterAction": "INSTALL_PROVIDER_SUBSCRIPTION", "inputs": ["deployment.o1.fileDataReporting.subscriptionId"], "postcondition": "Provider has the same subscription identifier."},
+    "LOAD_UNCERTAIN_DURABLE_SUBSCRIPTION_ID": {"adapterAction": "LOAD_UNCERTAIN_SUBSCRIPTION_LEDGER", "inputs": ["deployment.o1.fileDataReporting.subscriptionId"], "postcondition": "Local state is explicitly uncertain."},
+    "SET_PERF_METRIC_JOB_UNLOCKED": {"adapterAction": "SET_PERF_METRIC_JOB", "inputs": ["fixture://o1NetconfYangProfile", "deployment.o1.perfMetricJob.jobId", "UNLOCKED"], "postcondition": "Profile-pinned NETCONF readback is UNLOCKED and operationalState reaches ENABLED within the profile timeout."},
+    "LOAD_ACTIVE_DURABLE_SUBSCRIPTION": {"adapterAction": "LOAD_SUBSCRIPTION_LEDGER", "inputs": ["deployment.o1.fileDataReporting.subscriptionId"], "postcondition": "Subscription is active and durable."},
+    "CONFIGURE_UNTRUSTED_CLIENT_CERTIFICATE": {"adapterAction": "SELECT_SECURITY_FIXTURE", "inputs": ["UNTRUSTED_CLIENT_CERTIFICATE"], "postcondition": "TLS fails before HTTP dispatch."},
+    "CONFIGURE_INVALID_BEARER_TOKEN": {"adapterAction": "SELECT_SECURITY_FIXTURE", "inputs": ["INVALID_BEARER_TOKEN"], "postcondition": "Authentication fails before resource mutation."},
+    "CONFIGURE_VALID_TOKEN_WITHOUT_POLICY_WRITE_SCOPE": {"adapterAction": "SELECT_SECURITY_FIXTURE", "inputs": ["VALID_TOKEN_WITHOUT_POLICY_WRITE_SCOPE"], "postcondition": "Authorization fails before resource mutation."},
+    "PROVIDER_HAS_NO_SUCH_SUBSCRIPTION": {"adapterAction": "DELETE_PROVIDER_SUBSCRIPTION_IF_PRESENT", "inputs": ["deployment.o1.fileDataReporting.subscriptionId"], "postcondition": "DELETE of the item converges to 404."},
+    "INSTALL_R1_STATUS_SUBSCRIPTION": {"adapterAction": "INSTALL_R1_STATUS_SUBSCRIPTION", "inputs": ["deployment.r1.statusSubscriptionId"], "postcondition": "One standard status subscription is active."},
+    "CONFIGURE_LIVE_O1_OK_RECORD_FOR_EACH_POLICY_CELL": {"adapterAction": "CONFIGURE_LIVE_PM_PROFILE", "inputs": ["deployment.topology.servingCell", "deployment.topology.targetCell", "deployment.o1.live.expectedMeasurementWindow"], "postcondition": "One commit-eligible record can be captured per policy cell without fixing values or timestamps."},
+    "INSTALL_R1_SERVICE_REGISTRATION_1_2_0": {"adapterAction": "START_SERVICE_REGISTRATION_API", "inputs": ["deployment.r1.apiRoot"], "postcondition": "CAPIF-derived v1 resource with full version 1.2.0 is reachable."},
+    "INSTALL_ALL_PINNED_R1_SERVICE_PROFILES": {"adapterAction": "INSTALL_PINNED_SERVICE_DESCRIPTIONS", "inputs": ["catalog expected version map"], "postcondition": "Discovery exposes every pinned full SemVer through VersionExtensions."},
+    "INSTALL_R1_DME_REGISTRATION_DISCOVERY_ACCESS": {"adapterAction": "START_R1_DME_APIS", "inputs": ["deployment.r1.apiRoot"], "postcondition": "Pinned data registration, discovery and access APIs are reachable."}
+  },
+  "faults": {
+    "CRASH_PROCESS": {"required": ["component"], "boundary": "afterStep or beforeStep", "effect": "Terminate only the named process after durable effects at the boundary."},
+    "DROP_CALLBACK_DELIVERY": {"requiredAny": [["afterStep", "beforeStep"]], "boundary": "named callback delivery", "effect": "Discard only the declared callback attempt."},
+    "DROP_HTTP_RESPONSE": {"required": ["afterStep"], "boundary": "after target commit and before client receives response", "effect": "Preserve target effects and discard only the response."},
+    "DROP_O1_NOTIFICATION": {"required": ["beforeStep", "windowRef"], "boundary": "expected O1 notification", "effect": "Suppress only the notification for the declared window; the file may still exist."},
+    "FLIP_RETRIEVED_BYTE": {"required": ["afterStep"], "boundary": "after SFTP retrieval and before digest validation", "effect": "Flip exactly one declared byte and preserve metadata."},
+    "TLS_HANDSHAKE_REJECT": {"required": ["beforeStep"], "boundary": "before HTTP parsing", "effect": "Reject TLS and guarantee zero HTTP/resource side effects."}
+  },
+  "dmeRecordAtomicity": {
+    "wireContentType": "application/json",
+    "requestBodyCardinality": 1,
+    "arrayOrEnvelopeForbidden": true,
+    "successStatusPerRecord": 204,
+    "forEachExpansion": "A step may use forEachRecordRef pointing to an earlier declared records array. The runner expands it in ascending index order into one R1_DME_PUBLISH invocation per element; each invocation has its own 204 assertion and result entry.",
+    "replay": "A replay repeats the same single-record canonical payload and delivery identity. Dedupe occurs per record; a multi-record file is never treated as one payload."
+  },
+  "r1WireContracts": {
+    "serviceRegistration": {
+      "postRequest": "ServiceAPIDescription omits apiId and includes apiName, apiVersion=v1, aefProfiles, communicationType=REQUEST_RESPONSE and vendorSpecific-o-ran.org.fullApiVersions containing full SemVer 1.0.0.",
+      "postResponse": "201 returns a representation containing server-assigned apiId and Location whose final path segment is byte-equal to apiId. Persist that representation and identifier before query, update or delete.",
+      "discovery": "GET the case-sensitive /service-apis/v1/allServiceAPIs resource with api-invoker-id; api-version is the URI-major v1, while every discovered fullApiVersions entry is validated by the strict SemVer 2.0.0 grammar.",
+      "fullSemVerPattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "dmeRegistration": {
+      "outerExactKeys": ["dmeTypeDefinition", "dataAccessEndpoint", "dataDeliveryModes"],
+      "dmeTypeDefinitionExactKeys": ["dmeTypeId", "metadata", "dataProductionSchema", "dataDeliverySchemas", "dataDeliveryMechanisms"],
+      "dmeTypeId": {"namespace": "aic", "name": "policy-evidence", "version": "1.0.0"},
+      "deliverySchema": {"type": "JSON_SCHEMA", "deliverySchemaId": "aic.policy-evidence.record.schema.1.0.0", "schemaRepresentation": "RFC_8785_CANONICAL_JSON_TEXT"},
+      "deliveryMechanism": {"dataDeliveryMethod": "PUSH_HTTP"},
+      "discoveryItemId": "aic%3Apolicy-evidence%3A1.0.0"
+    },
+    "dataJobInfoCreate": {
+      "exactKeys": ["dataDeliveryMode", "dmeTypeId", "productionJobDefinition", "dataDeliveryMethod", "dataDeliverySchemaId", "pushDeliveryDetailsHttp"],
+      "productionJobDefinitionExactKeys": ["policyTypeId", "policyId", "minimumPolicyRevision", "nearRtRicId"],
+      "responseOnlyForbiddenInRequest": ["dataJobInfoStatus"],
+      "assignedIdRule": "Capture dataJobId from the 201 Location and atomically associate it with the pre-persisted deliveryBindingId."
+    }
+  },
+  "resultCollection": {
+    "httpSequence": "Append one status for each actual HTTP request or captured HTTP callback in execution order, including every forEach expansion.",
+    "httpExpectationBinding": "Before execution, expand all statically known requests and callbacks in step order. An invocation-level expectedHttpStatus, callbackExpectedHttpStatus or expectedOutcome binds directly; otherwise consume the next entry of expected.httpSequence. The resulting ordered vector must equal expected.httpSequence exactly or preflight fails. LIVE capture operations still contribute their protocol-defined status (O1 notify 204 and files GET 200).",
+    "ranWriteCounts": "Count state-changing effects reported by the external deterministic RAN stub.",
+    "evidenceCommitCount": "Count unique accepted individual evidence records after durable dedupe.",
+    "noHiddenInspection": true
+  },
+  "e2InventoryFailClosed": {
+    "readyImplication": "status READY requires every connection active and every required KPM function 2 and RC function 3 active.",
+    "identityUniqueness": "RFC 8785 canonical JSON of each structured globalE2NodeId must be pairwise distinct; display strings, associationId and connectionEpoch cannot substitute for structured identity.",
+    "failureDisposition": "AIC_E2_INVENTORY_NOT_READY, zero E2 control requests, zero normal writes and zero rollback writes."
+  }
+}

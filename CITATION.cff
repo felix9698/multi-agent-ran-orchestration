@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "Please cite this artifact when using the implementation."
+type: software
+title: "Automating Multi-Intent RAN Orchestration through Multi-Agent Live Resolution"
+authors:
+  - family-names: Lee
+    given-names: Wookjin
+    alias: mekdugi
+    affiliation: Korea University
+  - family-names: Lee
+    given-names: Jungbum
+    alias: felix9698
+    affiliation: Korea University
+  - family-names: Kim
+    given-names: Gun
+    alias: imgunkim99
+    affiliation: Korea University
+  - family-names: Byun
+    given-names: Seungeui
+    alias: seungeuibyun
+    affiliation: Korea University
+  - family-names: Kang
+    given-names: Won Young
+    alias: dogs0667LICS
+    affiliation: Korea University
+  - family-names: Lee
+    given-names: Sang Hyun
+    affiliation: Korea University
+repository-code: "https://github.com/felix9698/multi-agent-ran-orchestration"
+url: "https://github.com/felix9698/multi-agent-ran-orchestration"
+license: MIT
+keywords:
+  - O-RAN
+  - multi-agent systems
+  - intent-based networking
+  - radio access networks
+  - over-the-air experimentation

@@ -1,0 +1,12 @@
+--- a/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_primitives.c
++++ b/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_primitives.c
+@@ -3732,6 +3732,9 @@
+     cell_group->rlc_BearerToReleaseList = NULL;
+   }
+   /* remove reestablishRLC, we don't need it anymore */
++  /* 2026-09-25: a re-established UE with SRB1 only has no rlc-BearerToAddModList (it is set to
++   * NULL so UPER can encode it); reading list.count here segfaulted gnb2 (TASK_RRC_GNB, 06:46). */
++  if (cell_group->rlc_BearerToAddModList)
+   for (int i = 0; i < cell_group->rlc_BearerToAddModList->list.count; ++i)
+     free_and_zero(cell_group->rlc_BearerToAddModList->list.array[i]->reestablishRLC);
+ }

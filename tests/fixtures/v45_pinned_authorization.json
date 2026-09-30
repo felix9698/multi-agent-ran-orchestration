@@ -1,0 +1,162 @@
+{
+ "T": {
+  "authorization": {
+   "I0c.r1": {
+    "bound": 12.0,
+    "kpi": "cellGoodputMbps",
+    "levels": [
+     14.0,
+     12.0
+    ],
+    "limit": 12.0,
+    "op": ">=",
+    "original": 14.0,
+    "owner": "operator-gnb2",
+    "scope": "cell@87654321",
+    "steps": 1,
+    "unit": "Mbps",
+    "weight": 4.0
+   },
+   "I1d.r1": {
+    "bound": 0.85,
+    "deadlineBound": 3000.0,
+    "deadlineLevels": [
+     3000.0
+    ],
+    "deadlineMs": 3000.0,
+    "deadlineSteps": 0,
+    "kpi": "deadlineSuccessRatio",
+    "levels": [
+     0.85
+    ],
+    "limit": 0.85,
+    "op": ">=",
+    "original": 0.85,
+    "owner": "ue1-video",
+    "scope": "ue@ue1",
+    "steps": 0,
+    "unit": "ratio",
+    "weight": 3.0
+   },
+   "I1g.r1": {
+    "bound": 6.0,
+    "kpi": "dlGoodputMbps",
+    "levels": [
+     7.5,
+     6.75,
+     6.0
+    ],
+    "limit": 6.0,
+    "op": ">=",
+    "original": 7.5,
+    "owner": "ue1-video",
+    "scope": "ue@ue1",
+    "steps": 2,
+    "unit": "Mbps",
+    "weight": 3.0
+   },
+   "I2d.r1": {
+    "bound": 0.6,
+    "deadlineBound": 3000.0,
+    "deadlineLevels": [
+     3000.0
+    ],
+    "deadlineMs": 3000.0,
+    "deadlineSteps": 0,
+    "kpi": "deadlineSuccessRatio",
+    "levels": [
+     0.9,
+     0.75,
+     0.6
+    ],
+    "limit": 0.6,
+    "op": ">=",
+    "original": 0.9,
+    "owner": "ue2-map",
+    "scope": "ue@ue2",
+    "steps": 2,
+    "unit": "ratio",
+    "weight": 2.0
+   },
+   "I2g.r1": {
+    "bound": 8.0,
+    "kpi": "dlGoodputMbps",
+    "levels": [
+     8.0
+    ],
+    "limit": 8.0,
+    "op": ">=",
+    "original": 8.0,
+    "owner": "ue2-map",
+    "scope": "ue@ue2",
+    "steps": 0,
+    "unit": "Mbps",
+    "weight": 2.0
+   },
+   "I3d.r1": {
+    "bound": 0.4,
+    "deadlineBound": 4000.0,
+    "deadlineLevels": [
+     3000.0,
+     4000.0
+    ],
+    "deadlineMs": 3000.0,
+    "deadlineSteps": 1,
+    "kpi": "deadlineSuccessRatio",
+    "levels": [
+     0.6,
+     0.4
+    ],
+    "limit": 0.4,
+    "op": ">=",
+    "original": 0.6,
+    "owner": "ue3-incumbent",
+    "scope": "ue@ue3",
+    "steps": 1,
+    "unit": "ratio",
+    "weight": 1.0
+   },
+   "I3g.r1": {
+    "bound": 3.0,
+    "kpi": "dlGoodputMbps",
+    "levels": [
+     4.0,
+     3.0
+    ],
+    "limit": 3.0,
+    "op": ">=",
+    "original": 4.0,
+    "owner": "ue3-incumbent",
+    "scope": "ue@ue3",
+    "steps": 1,
+    "unit": "Mbps",
+    "weight": 1.0
+   }
+  },
+  "jointConditions": [],
+  "modeConstraints": [],
+  "preference": {
+   "costRule": "normalized-concession",
+   "ownerPriority": [
+    "operator-gnb2",
+    "ue1-video",
+    "ue2-map",
+    "ue3-incumbent"
+   ],
+   "rule": "P1: lexicographic(D_operator-gnb2, D_ue1-video, D_ue2-map, D_ue3-incumbent)",
+   "tieBreak": "lexicographic(D_max, D_mean) then intent order"
+  }
+ },
+ "budget": {
+  "binDeltaMs": 5000,
+  "deadlineBMs": 480000,
+  "horizonHMs": 480000,
+  "qualityThresholdsA": [
+   0.0,
+   0.25,
+   0.5,
+   1.0
+  ],
+  "trialsK": 8
+ }
+}

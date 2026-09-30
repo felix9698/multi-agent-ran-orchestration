@@ -1,0 +1,123 @@
+--- openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_kpm_subs.c.bak-kpm-ueslot-20260924	2026-09-02 06:37:27.986659782 +0900
++++ openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_kpm_subs.c	2026-09-24 22:39:18.672805497 +0900
+@@ -34,6 +34,36 @@
+ 
+ static uldlcounter_t last_pdcp_sdu_total_bytes[MAX_MOBILES_PER_GNB] = {0};
+ 
++/* 2026-09-24: the previous-period totals were kept by ue_idx, the UE's position in THIS
++   indication's list.  gnb2 sends one indication per UE (one UE per list), so every UE was
++   ue_idx 0 and two UEs overwrote one slot: each reported "its total minus the other UE's
++   total" (ue1 + ue3 summed to a constant while real traffic moved).  Key the slot by the
++   MAC uid instead, and re-baseline (report 0 once) when the slot's owner RNTI changes. */
++enum { KPM_F_PDCP_DL = 1, KPM_F_PDCP_UL = 2, KPM_F_RLC_DL = 4, KPM_F_RLC_UL = 8, KPM_F_PRB_DL = 16, KPM_F_PRB_UL = 32 };
++static uint16_t kpm_slot_rnti[MAX_MOBILES_PER_GNB];
++static uint8_t kpm_slot_seen[MAX_MOBILES_PER_GNB];
++
++static size_t kpm_ue_slot(cudu_ue_info_pair_t ue_info, size_t ue_idx)
++{
++  if (ue_info.ue == NULL || ue_info.ue->uid >= MAX_MOBILES_PER_GNB)
++    return ue_idx;
++  const size_t s = ue_info.ue->uid;
++  if (kpm_slot_rnti[s] != ue_info.ue->rnti) {
++    kpm_slot_rnti[s] = ue_info.ue->rnti;
++    kpm_slot_seen[s] = 0;
++  }
++  return s;
++}
++
++/* true the first time this measurement is read for the slot's current owner */
++static bool kpm_first_read(size_t s, uint8_t flag)
++{
++  if (s >= MAX_MOBILES_PER_GNB || (kpm_slot_seen[s] & flag))
++    return false;
++  kpm_slot_seen[s] |= flag;
++  return true;
++}
++
+ static nr_pdcp_statistics_t get_pdcp_stats_per_drb(const uint32_t rrc_ue_id, const int rb_id)
+ {
+   nr_pdcp_statistics_t pdcp = {0};
+@@ -63,8 +93,11 @@
+   meas_record.value = INTEGER_MEAS_VALUE;
+ 
+   // Get DL data volume delivered to PDCP layer
+-  meas_record.int_val = (pdcp.rxsdu_bytes - last_pdcp_sdu_total_bytes[ue_idx].dl)*8/1000000;   // [Mb]
+-  last_pdcp_sdu_total_bytes[ue_idx].dl = pdcp.rxsdu_bytes;
++  const size_t kpm_s = kpm_ue_slot(ue_info, ue_idx);
++  if (kpm_first_read(kpm_s, KPM_F_PDCP_DL))
++    last_pdcp_sdu_total_bytes[kpm_s].dl = pdcp.rxsdu_bytes;
++  meas_record.int_val = (pdcp.rxsdu_bytes - last_pdcp_sdu_total_bytes[kpm_s].dl)*8/1000000;   // [Mb]
++  last_pdcp_sdu_total_bytes[kpm_s].dl = pdcp.rxsdu_bytes;
+ 
+   return meas_record;
+ }
+@@ -86,8 +119,11 @@
+   meas_record.value = INTEGER_MEAS_VALUE;
+ 
+   // Get UL data volume delivered from PDCP layer
+-  meas_record.int_val = (pdcp.txsdu_bytes - last_pdcp_sdu_total_bytes[ue_idx].ul)*8/1000000;   // [Mb]
+-  last_pdcp_sdu_total_bytes[ue_idx].ul = pdcp.txsdu_bytes;
++  const size_t kpm_s = kpm_ue_slot(ue_info, ue_idx);
++  if (kpm_first_read(kpm_s, KPM_F_PDCP_UL))
++    last_pdcp_sdu_total_bytes[kpm_s].ul = pdcp.txsdu_bytes;
++  meas_record.int_val = (pdcp.txsdu_bytes - last_pdcp_sdu_total_bytes[kpm_s].ul)*8/1000000;   // [Mb]
++  last_pdcp_sdu_total_bytes[kpm_s].ul = pdcp.txsdu_bytes;
+ 
+   return meas_record;
+ }
+@@ -367,8 +403,11 @@
+   meas_record.value = REAL_MEAS_VALUE;
+ 
+   // Calculate DL Thp
+-  meas_record.real_val = (double)(rlc.txpdu_bytes - last_rlc_pdu_total_bytes[ue_idx].dl)*8/gran_period_ms;  // [kbps]
+-  last_rlc_pdu_total_bytes[ue_idx].dl = rlc.txpdu_bytes;
++  const size_t kpm_s = kpm_ue_slot(ue_info, ue_idx);
++  if (kpm_first_read(kpm_s, KPM_F_RLC_DL))
++    last_rlc_pdu_total_bytes[kpm_s].dl = rlc.txpdu_bytes;
++  meas_record.real_val = (double)(rlc.txpdu_bytes - last_rlc_pdu_total_bytes[kpm_s].dl)*8/gran_period_ms;  // [kbps]
++  last_rlc_pdu_total_bytes[kpm_s].dl = rlc.txpdu_bytes;
+ 
+   return meas_record;
+ }
+@@ -391,8 +430,11 @@
+   meas_record.value = REAL_MEAS_VALUE;
+ 
+   // Calculate UL Thp
+-  meas_record.real_val = (double)(rlc.rxpdu_bytes - last_rlc_pdu_total_bytes[ue_idx].ul)*8/gran_period_ms;  // [kbps]
+-  last_rlc_pdu_total_bytes[ue_idx].ul = rlc.rxpdu_bytes;
++  const size_t kpm_s = kpm_ue_slot(ue_info, ue_idx);
++  if (kpm_first_read(kpm_s, KPM_F_RLC_UL))
++    last_rlc_pdu_total_bytes[kpm_s].ul = rlc.rxpdu_bytes;
++  meas_record.real_val = (double)(rlc.rxpdu_bytes - last_rlc_pdu_total_bytes[kpm_s].ul)*8/gran_period_ms;  // [kbps]
++  last_rlc_pdu_total_bytes[kpm_s].ul = rlc.rxpdu_bytes;
+   
+   return meas_record;
+ }
+@@ -411,8 +453,11 @@
+ 
+   // Get the number of DL PRBs
+   const uint64_t tot_prb_dl_aggr = node_stats[1].mac_stats.dl.total_prb_aggregate - node_stats[0].mac_stats.dl.total_prb_aggregate;
+-  meas_record.int_val = (tot_prb_dl_aggr == 0) ? 0 : (ue_info.ue->mac_stats.dl.total_rbs - last_total_prbs[ue_idx].dl) * 100 / tot_prb_dl_aggr;   // [%]
+-  last_total_prbs[ue_idx].dl = ue_info.ue->mac_stats.dl.total_rbs;
++  const size_t kpm_s = kpm_ue_slot(ue_info, ue_idx);
++  if (kpm_first_read(kpm_s, KPM_F_PRB_DL))
++    last_total_prbs[kpm_s].dl = ue_info.ue->mac_stats.dl.total_rbs;
++  meas_record.int_val = (tot_prb_dl_aggr == 0) ? 0 : (ue_info.ue->mac_stats.dl.total_rbs - last_total_prbs[kpm_s].dl) * 100 / tot_prb_dl_aggr;   // [%]
++  last_total_prbs[kpm_s].dl = ue_info.ue->mac_stats.dl.total_rbs;
+ 
+   return meas_record;
+ }
+@@ -431,8 +476,11 @@
+ 
+   // Get the number of UL PRBs
+   const uint64_t tot_prb_ul_aggr = node_stats[1].mac_stats.ul.total_prb_aggregate - node_stats[0].mac_stats.ul.total_prb_aggregate;
+-  meas_record.int_val = (tot_prb_ul_aggr == 0) ? 0 : (ue_info.ue->mac_stats.ul.total_rbs - last_total_prbs[ue_idx].ul) * 100 / tot_prb_ul_aggr;   // [%]
+-  last_total_prbs[ue_idx].ul = ue_info.ue->mac_stats.ul.total_rbs;
++  const size_t kpm_s = kpm_ue_slot(ue_info, ue_idx);
++  if (kpm_first_read(kpm_s, KPM_F_PRB_UL))
++    last_total_prbs[kpm_s].ul = ue_info.ue->mac_stats.ul.total_rbs;
++  meas_record.int_val = (tot_prb_ul_aggr == 0) ? 0 : (ue_info.ue->mac_stats.ul.total_rbs - last_total_prbs[kpm_s].ul) * 100 / tot_prb_ul_aggr;   // [%]
++  last_total_prbs[kpm_s].ul = ue_info.ue->mac_stats.ul.total_rbs;
+ 
+   return meas_record;
+ }

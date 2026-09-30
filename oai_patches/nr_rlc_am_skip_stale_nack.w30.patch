@@ -1,0 +1,42 @@
+--- a/openair2/LAYER2/nr_rlc/nr_rlc_entity_am.c
++++ b/openair2/LAYER2/nr_rlc/nr_rlc_entity_am.c
+@@ -298,6 +298,18 @@
+   return 0;
+ }
+ 
++
++/* A NACK for an SN the peer already let us release (behind tx_next_ack): we cannot
++ * retransmit it any more.  Rejecting the whole STATUS PDU for it froze the UL window
++ * after a handover until RLF (2026-09-24, ue1/ue3: `bad NACK, bigger than ACK (nack 67
++ * ack 68) (tx_next_ack 68 ...)` repeated thousands of times).  Skip only that NACK.
++ */
++static int nack_is_stale(nr_rlc_entity_am_t *entity, int nack_sn)
++{
++  int behind = (entity->tx_next_ack - nack_sn + entity->sn_modulus) % entity->sn_modulus;
++  return behind >= 1 && behind <= entity->window_size;
++}
++
+ static void process_control_pdu(nr_rlc_entity_am_t *entity,
+                                 char *buffer, int size)
+ {
+@@ -406,6 +418,11 @@
+           goto err;
+         }
+       }
++      if (nack_is_stale(entity, cur_nack_sn)) {
++        LOG_W(RLC, "ignoring NACK %d for an SN already released (tx_next_ack %d)\n",
++              cur_nack_sn, entity->tx_next_ack);
++        continue;
++      }
+       if (sn_compare_tx(entity, cur_nack_sn, ack_sn) > 0) {
+         LOG_E(RLC, "bad NACK, bigger than ACK (nack %d ack %d) (tx_next_ack %d tx_next %d)\n",
+               cur_nack_sn, ack_sn, entity->tx_next_ack, entity->tx_next);
+@@ -478,6 +495,8 @@
+       int cur_so_start = i == 0 ?         so_start : 0;
+       int cur_so_end   = i == range - 1 ? so_end : -1;
+ 
++      if (nack_is_stale(entity, cur_nack_sn))
++        continue;       /* validated above: already released, nothing to retransmit */
+ 
+ process_next_pdu:
+       /* process smallest SN either from wait_list or retransmit list */

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:oran-aic:AIC_SliceSLATarget_1.0.0:status",
+  "title": "AIC Slice SLA Target policy status",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["policyTypeId", "policyId", "policyState", "enforceStatus", "policyDigest", "deliveryAcknowledged", "readbackVerified", "measurementCorrelated", "coreEvidenceCorrelated"],
+  "properties": {
+    "policyTypeId": {"const": "AIC_SliceSLATarget_1.0.0"},
+    "policyId": {"type": "string", "minLength": 1, "maxLength": 255},
+    "policyState": {"enum": ["ACTIVE", "DELETED", "FAILED"]},
+    "enforceStatus": {"enum": ["PENDING", "ENFORCED", "NOT_ENFORCED", "ROLLED_BACK"]},
+    "policyDigest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "deliveryAcknowledged": {"type": "boolean"},
+    "readbackVerified": {"type": "boolean"},
+    "measurementCorrelated": {"type": "boolean"},
+    "coreEvidenceCorrelated": {"type": "boolean"},
+    "reason": {"type": "string", "maxLength": 2048},
+    "previousQuota": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["minPrbPolicyRatio", "maxPrbPolicyRatio", "dedicatedPrbPolicyRatio"],
+      "properties": {
+        "minPrbPolicyRatio": {"type": "integer", "minimum": 0, "maximum": 100},
+        "maxPrbPolicyRatio": {"type": "integer", "minimum": 0, "maximum": 100},
+        "dedicatedPrbPolicyRatio": {"type": "integer", "minimum": 0, "maximum": 100}
+      }
+    }
+  }
+}

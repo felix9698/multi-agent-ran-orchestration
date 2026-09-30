@@ -1,0 +1,15 @@
+diff --git a/openair2/LAYER2/NR_MAC_gNB/nr_radio_config.c b/openair2/LAYER2/NR_MAC_gNB/nr_radio_config.c
+index 9ce6719848..d81ae9dd92 100644
+--- a/openair2/LAYER2/NR_MAC_gNB/nr_radio_config.c
++++ b/openair2/LAYER2/NR_MAC_gNB/nr_radio_config.c
+@@ -288,7 +288,9 @@ static NR_ControlResourceSet_t *get_coreset_config(int bwp_id,
+   coreset->frequencyDomainResources.buf = calloc(1,6);
+   uint64_t buf = 0;
+   if (eff_bwp_size < 48)
+-    buf = 0xf;
++    // aic 2026-09-25: 36 RB (12 CCE with 2 symbols) when the BWP fits it; 24 RB left only
++    // 8 CCE, and two UEs on one cell at AL4 filled it (ue1 CCE fail 0.0% alone vs 5.5% shared).
++    buf = (eff_bwp_size >= 36) ? 0x3f : 0xf;
+   else {
+     for (int i = 0; i < eff_bwp_size / 48; i++) {
+       buf <<= 8;

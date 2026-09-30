@@ -1,0 +1,280 @@
+Subject: [E2SM-KPM] key the cumulative-counter tables by UE, not by list position
+
+Three file-scope tables in ran_func_kpm_subs.c hold a UE's PREVIOUS cumulative counter
+so the next report can difference it:
+
+    last_pdcp_sdu_total_bytes[]   DRB.PdcpSduVolumeDL / UL
+    last_rlc_pdu_total_bytes[]    DRB.UEThpDl / UEThpUl
+    last_total_prbs[]             RRU.PrbTotDl / PrbTotUl
+
+All three were indexed by `ue_idx`, which is the UE's position in *this indication's*
+list -- ran_func_kpm.c::fill_kpm_ind_msg_frm_3() passes its loop counter -- and not the
+UE's identity.  Position is not stable: the matcher rebuilds the list every report, a
+subscription carrying a different S-NSSAI condition reports a different subset through
+these same tables, and a UE that leaves shifts every UE behind it.  When a slot changes
+owner the subtraction becomes one UE's lifetime counter minus another's, so the reported
+value is arbitrary.
+
+Measured on a two-cell OAI testbed (2026-09-23, 6000 indications, 38 PRB, band 78):
+
+    cell carrying ONE UE    slot 0 kept its owner for all 1306 samples
+                            RRU.PrbTotDl  median      61 [%]      -- correct
+                            DRB.UEThpDl   median    8397 [kbps]   -- correct
+                                          (~8.4 Mbps of real offered traffic)
+
+    cell carrying TWO UEs   slot 0 changed owner in 2133 of 2188 samples (97%)
+    under two S-NSSAI       RRU.PrbTotDl  up to 113020744
+    subscriptions           DRB.UEThpDl   median 5534274 (660x too large)
+
+The denominator of RRU.PrbTot* is NOT at fault: node_stats[0] is refreshed once after
+the whole UE loop (ran_func_kpm.c:158), so every UE in one indication divides by the same
+number, and the single-UE cell runs the same code and stays correct.
+
+This keys the slot on rrc_ue_id.  Both rrc_ue_id and the RNTI identify the UE, but the
+RNTI is reassigned on RRC re-establishment while rrc_ue_id is not, and rrc_ue_id is
+populated on every path here (the CU-UP path leaves ue_info.ue NULL).
+
+A slot that has just been assigned reports 0 for that one period instead of the UE's
+whole lifetime counter, and so does a counter that went backwards -- which is what a
+re-established RLC or PDCP entity looks like.  Division by a zero cell aggregate (a
+reporting period that carried no traffic) is undefined behaviour and is now guarded.
+
+DRB.RlcSduDelayDl is untouched: it never used ue_idx and reads an average the RLC keeps.
+Verified live on both cells -- median 2008.7 ms / 2146.7 ms against an independently
+measured 2038 ms application round trip.
+
+NOT APPLIED TO ANY TREE.  This repository never modifies or builds OAI; the patch is
+carried as text (see CLAUDE.md).
+
+---
+--- a/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_kpm_subs.c	2026-09-23 01:16:50.756472649 +0900
++++ b/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_kpm_subs.c	2026-09-23 01:16:50.757472671 +0900
+@@ -43,6 +43,73 @@
+ } uldlcounter_t;
+ 
+ static uldlcounter_t last_pdcp_sdu_total_bytes[MAX_MOBILES_PER_GNB] = {0};
++#if defined (NGRAN_GNB_DU)
++static uldlcounter_t last_rlc_pdu_total_bytes[MAX_MOBILES_PER_GNB] = {0};
++static uldlcounter_t last_total_prbs[MAX_MOBILES_PER_GNB] = {0};
++#endif
++
++/* The three tables above hold a UE's PREVIOUS cumulative counter so the next report can
++   difference it.  They were indexed by ue_idx, which is the UE's position in this
++   indication's list -- fill_kpm_ind_msg_frm_3() passes its loop counter -- and not the
++   UE's identity.  Position is not stable: the matcher rebuilds the list every report, a
++   subscription carrying a different S-NSSAI condition reports a different subset through
++   these same file-scope tables, and a UE that leaves shifts every UE behind it.  When a
++   slot changes owner the subtraction becomes one UE's lifetime counter minus another's,
++   and the reported value is arbitrary.
++
++   Measured on a two-cell testbed, 2026-09-23, 6000 indications:
++
++     cell with one UE   slot 0 kept its owner for all 1306 samples
++                        RRU.PrbTotDl median 61 [%], DRB.UEThpDl median 8397 [kbps]
++                        against ~8.4 Mbps of real traffic -- both correct
++     cell with two UEs  slot 0 changed owner in 2133 of 2188 samples (97%)
++                        RRU.PrbTotDl up to 113020744, DRB.UEThpDl median 5534274
++
++   The denominator is not at fault: node_stats[0] is refreshed once after the whole UE
++   loop, so every UE in one indication divides by the same number, and the single-UE cell
++   runs the same code and stays correct.
++
++   The slot is keyed on rrc_ue_id rather than on the RNTI: both identify the UE, but the
++   RNTI is reassigned on RRC re-establishment while rrc_ue_id is not, and rrc_ue_id is
++   populated on every path here (the CU-UP path leaves ue_info.ue NULL).
++
++   A slot that has just been assigned reports 0 for that one period instead of the UE's
++   whole lifetime counter, and so does a counter that went backwards -- which is what a
++   re-established RLC or PDCP entity looks like. */
++static uint32_t last_counter_ue_id[MAX_MOBILES_PER_GNB] = {0};
++static bool last_counter_taken[MAX_MOBILES_PER_GNB] = {0};
++
++static void clear_counter_slot(const size_t slot)
++{
++  last_pdcp_sdu_total_bytes[slot] = (uldlcounter_t){0};
++#if defined (NGRAN_GNB_DU)
++  last_rlc_pdu_total_bytes[slot] = (uldlcounter_t){0};
++  last_total_prbs[slot] = (uldlcounter_t){0};
++#endif
++}
++
++static size_t counter_slot_for_ue(const uint32_t rrc_ue_id)
++{
++  for (size_t i = 0; i < MAX_MOBILES_PER_GNB; i++)
++    if (last_counter_taken[i] && last_counter_ue_id[i] == rrc_ue_id)
++      return i;
++
++  for (size_t i = 0; i < MAX_MOBILES_PER_GNB; i++)
++    if (!last_counter_taken[i]) {
++      last_counter_taken[i] = true;
++      last_counter_ue_id[i] = rrc_ue_id;
++      clear_counter_slot(i);
++      return i;
++    }
++
++  /* The tables hold MAX_MOBILES_PER_GNB entries and the cell admits at most that many
++     UEs, so this is only reachable if a departed UE's slot was never released.  Reuse
++     slot 0 with a cleared baseline: one zero sample is honest, a cross-UE difference is
++     not. */
++  last_counter_ue_id[0] = rrc_ue_id;
++  clear_counter_slot(0);
++  return 0;
++}
+ 
+ static nr_pdcp_statistics_t get_pdcp_stats_per_drb(const uint32_t rrc_ue_id, const int rb_id)
+ {
+@@ -58,7 +125,7 @@
+ 
+ /* 3GPP TS 28.522 - section 5.1.2.1.1.1
+   note: this measurement is calculated as per spec */
+-static meas_record_lst_t fill_DRB_PdcpSduVolumeDL(__attribute__((unused))uint32_t gran_period_ms, cudu_ue_info_pair_t ue_info, const size_t ue_idx, __attribute__((unused))e2_node_level_stats_t* node_stats)
++static meas_record_lst_t fill_DRB_PdcpSduVolumeDL(__attribute__((unused))uint32_t gran_period_ms, cudu_ue_info_pair_t ue_info, __attribute__((unused))const size_t ue_idx, __attribute__((unused))e2_node_level_stats_t* node_stats)
+ {
+   meas_record_lst_t meas_record = {0};
+ 
+@@ -69,15 +136,19 @@
+   meas_record.value = INTEGER_MEAS_VALUE;
+ 
+   // Get DL data volume delivered to PDCP layer
+-  meas_record.int_val = (pdcp.rxsdu_bytes - last_pdcp_sdu_total_bytes[ue_idx].dl)*8/1000000;   // [Mb]
+-  last_pdcp_sdu_total_bytes[ue_idx].dl = pdcp.rxsdu_bytes;
++  const size_t slot = counter_slot_for_ue(ue_info.rrc_ue_id);
++  const uint64_t previous = last_pdcp_sdu_total_bytes[slot].dl;
++  last_pdcp_sdu_total_bytes[slot].dl = pdcp.rxsdu_bytes;
++  meas_record.int_val = (previous == 0 || pdcp.rxsdu_bytes < previous)
++                            ? 0
++                            : (int64_t)((pdcp.rxsdu_bytes - previous) * 8 / 1000000);   // [Mb]
+ 
+   return meas_record;
+ }
+ 
+ /* 3GPP TS 28.522 - section 5.1.2.1.2.1
+   note: this measurement is calculated as per spec */
+-static meas_record_lst_t fill_DRB_PdcpSduVolumeUL(__attribute__((unused))uint32_t gran_period_ms, cudu_ue_info_pair_t ue_info, const size_t ue_idx, __attribute__((unused))e2_node_level_stats_t* node_stats)
++static meas_record_lst_t fill_DRB_PdcpSduVolumeUL(__attribute__((unused))uint32_t gran_period_ms, cudu_ue_info_pair_t ue_info, __attribute__((unused))const size_t ue_idx, __attribute__((unused))e2_node_level_stats_t* node_stats)
+ {
+   meas_record_lst_t meas_record = {0};
+ 
+@@ -88,16 +159,17 @@
+   meas_record.value = INTEGER_MEAS_VALUE;
+ 
+   // Get UL data volume delivered from PDCP layer
+-  meas_record.int_val = (pdcp.txsdu_bytes - last_pdcp_sdu_total_bytes[ue_idx].ul)*8/1000000;   // [Mb]
+-  last_pdcp_sdu_total_bytes[ue_idx].ul = pdcp.txsdu_bytes;
++  const size_t slot = counter_slot_for_ue(ue_info.rrc_ue_id);
++  const uint64_t previous = last_pdcp_sdu_total_bytes[slot].ul;
++  last_pdcp_sdu_total_bytes[slot].ul = pdcp.txsdu_bytes;
++  meas_record.int_val = (previous == 0 || pdcp.txsdu_bytes < previous)
++                            ? 0
++                            : (int64_t)((pdcp.txsdu_bytes - previous) * 8 / 1000000);   // [Mb]
+ 
+   return meas_record;
+ }
+ 
+ #if defined (NGRAN_GNB_DU)
+-static uldlcounter_t last_rlc_pdu_total_bytes[MAX_MOBILES_PER_GNB] = {0};
+-static uldlcounter_t last_total_prbs[MAX_MOBILES_PER_GNB] = {0};
+-
+ static nr_rlc_statistics_t get_rlc_stats_per_drb(const rnti_t rnti, const int rb_id)
+ {
+   nr_rlc_statistics_t rlc = {0};
+@@ -134,7 +206,7 @@
+ /* 3GPP TS 28.522 - section 5.1.1.3.1
+   note: per spec, average UE throughput in DL (taken into consideration values from all UEs, and averaged)
+         here calculated as: UE specific throughput in DL */
+-static meas_record_lst_t fill_DRB_UEThpDl(uint32_t gran_period_ms, cudu_ue_info_pair_t ue_info, const size_t ue_idx, __attribute__((unused))e2_node_level_stats_t* node_stats)
++static meas_record_lst_t fill_DRB_UEThpDl(uint32_t gran_period_ms, cudu_ue_info_pair_t ue_info, __attribute__((unused))const size_t ue_idx, __attribute__((unused))e2_node_level_stats_t* node_stats)
+ {
+   meas_record_lst_t meas_record = {0};
+   
+@@ -144,8 +216,12 @@
+   meas_record.value = REAL_MEAS_VALUE;
+ 
+   // Calculate DL Thp
+-  meas_record.real_val = (double)(rlc.txpdu_bytes - last_rlc_pdu_total_bytes[ue_idx].dl)*8/gran_period_ms;  // [kbps]
+-  last_rlc_pdu_total_bytes[ue_idx].dl = rlc.txpdu_bytes;
++  const size_t slot = counter_slot_for_ue(ue_info.rrc_ue_id);
++  const uint64_t previous = last_rlc_pdu_total_bytes[slot].dl;
++  last_rlc_pdu_total_bytes[slot].dl = rlc.txpdu_bytes;
++  meas_record.real_val = (previous == 0 || rlc.txpdu_bytes < previous)
++                             ? 0.0
++                             : (double)(rlc.txpdu_bytes - previous) * 8 / gran_period_ms;  // [kbps]
+ 
+   return meas_record;
+ }
+@@ -153,7 +229,7 @@
+ /* 3GPP TS 28.522 - section 5.1.1.3.3
+   note: per spec, average UE throughput in UL (taken into consideration values from all UEs, and averaged)
+         here calculated as: UE specific throughput in UL */
+-static meas_record_lst_t fill_DRB_UEThpUl(uint32_t gran_period_ms, cudu_ue_info_pair_t ue_info, const size_t ue_idx, __attribute__((unused))e2_node_level_stats_t* node_stats)
++static meas_record_lst_t fill_DRB_UEThpUl(uint32_t gran_period_ms, cudu_ue_info_pair_t ue_info, __attribute__((unused))const size_t ue_idx, __attribute__((unused))e2_node_level_stats_t* node_stats)
+ {
+   meas_record_lst_t meas_record = {0};
+   
+@@ -164,38 +240,58 @@
+   meas_record.value = REAL_MEAS_VALUE;
+ 
+   // Calculate UL Thp
+-  meas_record.real_val = (double)(rlc.rxpdu_bytes - last_rlc_pdu_total_bytes[ue_idx].ul)*8/gran_period_ms;  // [kbps]
+-  last_rlc_pdu_total_bytes[ue_idx].ul = rlc.rxpdu_bytes;
++  const size_t slot = counter_slot_for_ue(ue_info.rrc_ue_id);
++  const uint64_t previous = last_rlc_pdu_total_bytes[slot].ul;
++  last_rlc_pdu_total_bytes[slot].ul = rlc.rxpdu_bytes;
++  meas_record.real_val = (previous == 0 || rlc.rxpdu_bytes < previous)
++                             ? 0.0
++                             : (double)(rlc.rxpdu_bytes - previous) * 8 / gran_period_ms;  // [kbps]
+   
+   return meas_record;
+ }
+ 
+ /* 3GPP TS 28.522 - section 5.1.1.2.1
+   note: this measurement is calculated as per spec */
+-static meas_record_lst_t fill_RRU_PrbTotDl(__attribute__((unused))uint32_t gran_period_ms, cudu_ue_info_pair_t ue_info, const size_t ue_idx, e2_node_level_stats_t* node_stats)
++static meas_record_lst_t fill_RRU_PrbTotDl(__attribute__((unused))uint32_t gran_period_ms, cudu_ue_info_pair_t ue_info, __attribute__((unused))const size_t ue_idx, e2_node_level_stats_t* node_stats)
+ {
+   meas_record_lst_t meas_record = {0};
+   
+   meas_record.value = INTEGER_MEAS_VALUE;
+ 
+   // Get the number of DL PRBs
+-  meas_record.int_val = (ue_info.ue->mac_stats.dl.total_rbs - last_total_prbs[ue_idx].dl) * 100 / (node_stats[1].mac_stats.dl.total_prb_aggregate - node_stats[0].mac_stats.dl.total_prb_aggregate);   // [%]
+-  last_total_prbs[ue_idx].dl = ue_info.ue->mac_stats.dl.total_rbs;
++  const size_t slot = counter_slot_for_ue(ue_info.rrc_ue_id);
++  const uint64_t previous = last_total_prbs[slot].dl;
++  const uint64_t now = ue_info.ue->mac_stats.dl.total_rbs;
++  last_total_prbs[slot].dl = now;
++  /* An integer division by zero is undefined behaviour, and the cell aggregate does not
++     advance in a reporting period that carried no DL traffic. */
++  const uint64_t cell_total = node_stats[1].mac_stats.dl.total_prb_aggregate
++                              - node_stats[0].mac_stats.dl.total_prb_aggregate;
++  meas_record.int_val = (previous == 0 || now < previous || cell_total == 0)
++                            ? 0
++                            : (int64_t)((now - previous) * 100 / cell_total);   // [%]
+ 
+   return meas_record;
+ }
+ 
+ /* 3GPP TS 28.522 - section 5.1.1.2.2
+   note: this measurement is calculated as per spec */
+-static meas_record_lst_t fill_RRU_PrbTotUl(__attribute__((unused))uint32_t gran_period_ms, cudu_ue_info_pair_t ue_info, const size_t ue_idx, e2_node_level_stats_t* node_stats)
++static meas_record_lst_t fill_RRU_PrbTotUl(__attribute__((unused))uint32_t gran_period_ms, cudu_ue_info_pair_t ue_info, __attribute__((unused))const size_t ue_idx, e2_node_level_stats_t* node_stats)
+ {
+   meas_record_lst_t meas_record = {0};
+ 
+   meas_record.value = INTEGER_MEAS_VALUE;
+ 
+   // Get the number of UL PRBs
+-  meas_record.int_val = (ue_info.ue->mac_stats.ul.total_rbs - last_total_prbs[ue_idx].ul) * 100 / (node_stats[1].mac_stats.ul.total_prb_aggregate - node_stats[0].mac_stats.ul.total_prb_aggregate);   // [%]
+-  last_total_prbs[ue_idx].ul = ue_info.ue->mac_stats.ul.total_rbs;
++  const size_t slot = counter_slot_for_ue(ue_info.rrc_ue_id);
++  const uint64_t previous = last_total_prbs[slot].ul;
++  const uint64_t now = ue_info.ue->mac_stats.ul.total_rbs;
++  last_total_prbs[slot].ul = now;
++  const uint64_t cell_total = node_stats[1].mac_stats.ul.total_prb_aggregate
++                              - node_stats[0].mac_stats.ul.total_prb_aggregate;
++  meas_record.int_val = (previous == 0 || now < previous || cell_total == 0)
++                            ? 0
++                            : (int64_t)((now - previous) * 100 / cell_total);   // [%]
+ 
+   return meas_record;
+ }

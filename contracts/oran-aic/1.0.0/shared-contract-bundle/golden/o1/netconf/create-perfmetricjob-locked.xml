@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
+     xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
+     message-id="102">
+  <edit-config>
+    <target><running/></target>
+    <default-operation>none</default-operation>
+    <test-option>test-then-set</test-option>
+    <error-option>rollback-on-error</error-option>
+    <config>
+      <sn:SubNetwork xmlns:sn="urn:3gpp:sa5:_3gpp-common-subnetwork">
+        <sn:id>oran-lab</sn:id>
+        <me:ManagedElement xmlns:me="urn:3gpp:sa5:_3gpp-common-managed-element">
+          <me:id>oai-gnb</me:id>
+          <me:PerfMetricJob nc:operation="create">
+            <me:id>oran-aic-nrcelldu-60s</me:id>
+            <me:attributes>
+              <me:administrativeState>LOCKED</me:administrativeState>
+              <me:jobId>oran-aic-nrcelldu-60s</me:jobId>
+              <me:performanceMetrics>RRU.PrbDl</me:performanceMetrics>
+              <me:performanceMetrics>DRB.UEThpDl</me:performanceMetrics>
+              <me:granularityPeriod>60</me:granularityPeriod>
+              <me:fileReportingPeriod>1</me:fileReportingPeriod>
+            </me:attributes>
+          </me:PerfMetricJob>
+        </me:ManagedElement>
+      </sn:SubNetwork>
+    </config>
+  </edit-config>
+</rpc>

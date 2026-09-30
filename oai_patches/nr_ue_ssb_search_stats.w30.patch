@@ -1,0 +1,77 @@
+--- a/openair1/PHY/NR_UE_TRANSPORT/nr_initial_sync.c
++++ b/openair1/PHY/NR_UE_TRANSPORT/nr_initial_sync.c
+@@ -192,7 +192,8 @@
+ /*
+  * Common SSB search function used by both initial sync and neighbor cell search
+  */
+-bool nr_search_ssb_common(nr_ssb_search_params_t *params)
++static int ssb_fail_stage;
++static bool nr_search_ssb_common_inner(nr_ssb_search_params_t *params)
+ {
+   const uint32_t pssTime_sz = params->ofdm_symbol_size;
+   c16_t(*pssTime)[pssTime_sz] = (c16_t(*)[pssTime_sz])params->pssTime;
+@@ -209,7 +210,7 @@
+   params->pss_res = pss_search_time_nr(&p_pss);
+ 
+   if (!params->pss_res.success)
+-    return false;
++    { ssb_fail_stage = 1; return false; }
+ 
+ #ifdef DEBUG_INITIAL_SYNCH
+   LOG_I(PHY, "Initial sync : Estimated PSS position %d, Nid2 %d, ssb offset %d\n", sync_pos, nid2, ssb_offset);
+@@ -217,7 +218,7 @@
+ 
+   if (params->ofdm_offset_divisor == 0) {
+     LOG_E(PHY, "Invalid OFDM offset divisor 0\n");
+-    return false;
++    { ssb_fail_stage = 2; return false; }
+   }
+ 
+   // Check the actual FFT input span, including the advance into the CP.
+@@ -232,7 +233,7 @@
+           "SSB FFT input extends beyond buffer boundary (PSS pos %d, buffer_size %u)\n",
+           params->pss_res.pos,
+           params->rxdata_size);
+-    return false;
++    { ssb_fail_stage = 3; return false; }
+   }
+ 
+   // Apply frequency offset compensation if requested
+@@ -257,16 +258,35 @@
+   params->sss_res = rx_sss_nr(&p_sss, &params->pss_res, -1, rxdataF);
+ 
+   if (!params->sss_res.success || params->sss_res.nid_cell < 0) {
+-    return false;
++    { ssb_fail_stage = 4; return false; }
+   }
+ 
+   // Check if we should exclude the serving cell
+   if (params->exclude_nid_cell >= 0 && params->sss_res.nid_cell == params->exclude_nid_cell)
+-    return false;
++    { ssb_fail_stage = 5; return false; }
+ 
+   return true;
+ }
+ 
++/* 2026-09-24 (O-RAN testbed): count where the SSB search fails -- the PSS gate, the FFT span,
++ * SSS or the serving-cell exclusion -- and print a line every 200 searches, to find why a UE
++ * needs thousands of attempts on some links.  Stage 1 = PSS (see pss_nr.c). */
++bool nr_search_ssb_common(nr_ssb_search_params_t *params)
++{
++  static int calls = 0, ok = 0, fails[8] = {0};
++  ssb_fail_stage = 0;
++  const bool found = nr_search_ssb_common_inner(params);
++  calls++;
++  if (found)
++    ok++;
++  else if (ssb_fail_stage > 0 && ssb_fail_stage < 8)
++    fails[ssb_fail_stage]++;
++  if (calls % 200 == 0)
++    LOG_I(PHY, "[UE] SSB search stats: calls %d ok %d fail pss %d ofdmdiv %d span %d sss %d excl %d other %d/%d\n",
++          calls, ok, fails[1], fails[2], fails[3], fails[4], fails[5], fails[6], fails[7]);
++  return found;
++}
++
+ static void nr_scan_ssb(void *arg)
+ {
+   /*   Initial synchronisation

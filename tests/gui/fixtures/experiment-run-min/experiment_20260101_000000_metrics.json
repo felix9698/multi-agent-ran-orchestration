@@ -1,0 +1,1287 @@
+{
+  "_meta": {
+    "config": {
+      "c_episode": 500.0,
+      "carry_calibration": false,
+      "intent_config": {
+        "power_bound_db": 3.0,
+        "power_bs": "bs2",
+        "throughput_target_mbps": 8.0,
+        "throughput_ue_ids": []
+      },
+      "kpi_interval_s": 15.0,
+      "phases": [
+        {
+          "name": "Nominal",
+          "neighbor_gain": 0,
+          "serving_gain": 3
+        },
+        {
+          "name": "Degradation",
+          "neighbor_gain": 1,
+          "serving_gain": -2
+        },
+        {
+          "name": "Impairment",
+          "neighbor_gain": 2,
+          "serving_gain": -5
+        },
+        {
+          "name": "Recovery",
+          "neighbor_gain": 0,
+          "serving_gain": 0
+        },
+        {
+          "name": "Nominal",
+          "neighbor_gain": 0,
+          "serving_gain": 3
+        }
+      ],
+      "skip_unwired": false,
+      "steps_per_phase": 4,
+      "tau_trial_s": null
+    },
+    "git_hash": "fixture",
+    "history": {
+      "no_history_mode": "disabled",
+      "pair_master_seed": 7,
+      "pair_seed_scheme": "sha1(experiment_seed|trial_id|model_config)/v1",
+      "paired_methods": [
+        "llm_no_history",
+        "llm_with_history"
+      ],
+      "paired_rng_state": true,
+      "policy": "online",
+      "reset_scope": "trial",
+      "shared_start_snapshot_size": 0,
+      "snapshot_id": "empty",
+      "synthetic_assumption": "in synthetic mode the with/no-history gap is drawn from the fixed METHOD_PROFILES, not the live history retrieval/append path (which is exercised only in live/emulated mode)",
+      "with_history_mode": "online_reservoir"
+    },
+    "mode": "synthetic",
+    "model_switch_audit": [],
+    "paper_export": "use PairedBlockRunner.paper_export over a paired attested live_ota run; a non-paired run is not paper data",
+    "paper_ready": false,
+    "probe": {
+      "capacity_saturation_floor_mbps": 100.0,
+      "direction": "downlink",
+      "duration_s": 2.0,
+      "mode": "goodput",
+      "offered_load_mbps": 12.0,
+      "protocol": "udp"
+    },
+    "seed": 7,
+    "theta_mode": "adaptive"
+  },
+  "llm_no_history": {
+    "component_latency": {
+      "action_ms": {
+        "mean_ms": 305.725,
+        "n_measured": 4,
+        "n_missing": 0,
+        "n_unknown": 0,
+        "status": "measured",
+        "unit": "ms"
+      },
+      "executor_write_ms": {
+        "mean_ms": null,
+        "n_measured": 0,
+        "n_missing": 4,
+        "n_unknown": 0,
+        "status": "not_instrumented",
+        "unit": "ms"
+      },
+      "inference_ms": {
+        "mean_ms": 1414.4,
+        "n_measured": 4,
+        "n_missing": 0,
+        "n_unknown": 0,
+        "status": "measured",
+        "unit": "ms"
+      },
+      "kpi_ms": {
+        "mean_ms": 214.925,
+        "n_measured": 4,
+        "n_missing": 0,
+        "n_unknown": 0,
+        "status": "measured",
+        "unit": "ms"
+      },
+      "linkage": {
+        "examples": [
+          "cycle-segment latency without evidence_episode_id",
+          "cycle-segment latency without evidence_cycle_id",
+          "cycle-segment latency without evidence_episode_id",
+          "cycle-segment latency without evidence_cycle_id",
+          "cycle-segment latency without evidence_episode_id"
+        ],
+        "n_episodes": 4,
+        "n_records_with_violations": 4,
+        "n_violations": 8,
+        "status": "violations"
+      },
+      "n": 4,
+      "negotiation_ms": {
+        "mean_ms": null,
+        "n_measured": 0,
+        "n_missing": 4,
+        "n_unknown": 0,
+        "status": "not_instrumented",
+        "unit": "ms"
+      },
+      "parse_ms": {
+        "mean_ms": null,
+        "n_measured": 0,
+        "n_missing": 4,
+        "n_unknown": 0,
+        "status": "not_instrumented",
+        "unit": "ms"
+      },
+      "prompt_ms": {
+        "mean_ms": 3.325,
+        "n_measured": 4,
+        "n_missing": 0,
+        "n_unknown": 0,
+        "status": "measured",
+        "unit": "ms"
+      },
+      "readback_ms": {
+        "mean_ms": null,
+        "n_measured": 0,
+        "n_missing": 4,
+        "n_unknown": 0,
+        "status": "not_instrumented",
+        "unit": "ms"
+      },
+      "recovery_ms": {
+        "mean_ms": null,
+        "n_measured": 0,
+        "n_missing": 4,
+        "n_unknown": 0,
+        "status": "not_instrumented",
+        "unit": "ms"
+      },
+      "rollback_ms": {
+        "mean_ms": null,
+        "n_measured": 0,
+        "n_missing": 4,
+        "n_unknown": 0,
+        "status": "not_instrumented",
+        "unit": "ms"
+      },
+      "schema_admission_ms": {
+        "mean_ms": null,
+        "n_measured": 0,
+        "n_missing": 4,
+        "n_unknown": 0,
+        "status": "not_instrumented",
+        "unit": "ms"
+      },
+      "total_ms": {
+        "mean_ms": 1938.375,
+        "n_measured": 4,
+        "n_missing": 0,
+        "n_unknown": 0,
+        "status": "measured",
+        "unit": "ms"
+      },
+      "validation_ms": {
+        "mean_ms": null,
+        "n_measured": 0,
+        "n_missing": 4,
+        "n_unknown": 0,
+        "status": "not_instrumented",
+        "unit": "ms"
+      }
+    },
+    "consecutive_rollback": {
+      "histogram": {},
+      "max_consecutive": 0,
+      "n_runs": 2
+    },
+    "cost_estimate": {
+      "assumption_ok": true,
+      "c_cont": 125.0,
+      "c_episode": 500.0,
+      "c_hard": 30.0,
+      "c_nego": 27.933333333333334,
+      "c_worst": 125.0,
+      "degenerate": {
+        "c_cont": false,
+        "c_hard": false,
+        "c_nego": false,
+        "r_success": false
+      },
+      "derived": {
+        "c_cont": false,
+        "c_hard": false,
+        "c_nego": true,
+        "r_success": true
+      },
+      "expected": {
+        "c_nego": 27.933333333333334,
+        "c_worst": 125.0,
+        "p_hard": 0.0,
+        "p_hard_definition": "per_trial_unconditional",
+        "r_success": 66.9
+      },
+      "expected_ci": {
+        "c_cont": {
+          "half_width": null,
+          "high": null,
+          "low": null,
+          "mean": null,
+          "n": 0,
+          "std": null
+        },
+        "c_hard": {
+          "half_width": null,
+          "high": null,
+          "low": null,
+          "mean": null,
+          "n": 0,
+          "std": null
+        },
+        "c_nego": {
+          "half_width": 26.212220923603123,
+          "high": 54.14555425693646,
+          "low": 1.7211124097302104,
+          "mean": 27.933333333333334,
+          "n": 3,
+          "std": 10.550987315570675
+        },
+        "c_worst": {
+          "half_width": null,
+          "high": null,
+          "low": null,
+          "mean": null,
+          "n": 0,
+          "std": null
+        },
+        "p_hard": {
+          "half_width": 0.0,
+          "high": 0.0,
+          "low": 0.0,
+          "mean": 0.0,
+          "n": 1,
+          "std": 0.0
+        },
+        "r_success": {
+          "half_width": 0.0,
+          "high": 66.9,
+          "low": 66.9,
+          "mean": 66.9,
+          "n": 1,
+          "std": 0.0
+        }
+      },
+      "n_max": 2,
+      "p_hard": 0.0,
+      "r_success": 66.9,
+      "samples": {
+        "n_failed": 0,
+        "n_hard": 0,
+        "n_hard_measured": 0,
+        "n_hard_unmeasured": 0,
+        "n_invalid": 0,
+        "n_nego": 3,
+        "n_success": 1,
+        "n_trials": 1
+      },
+      "theta_star": 0.5058190029529268,
+      "trajectory": {
+        "integrated": {
+          "c_cont": 0,
+          "c_nego": 0,
+          "r_success": 0
+        },
+        "legacy": {
+          "c_cont": 0,
+          "c_nego": 3,
+          "r_success": 1
+        }
+      },
+      "upper_bounds": {
+        "c_nego_ub": 50.0,
+        "c_trial_ub": 180.0,
+        "n_max_deterministic": 1,
+        "source": "deterministic_caps"
+      }
+    },
+    "cost_estimate_by_phase": {
+      "Degradation": {
+        "assumption_ok": true,
+        "c_cont": 125.0,
+        "c_episode": 500.0,
+        "c_hard": 30.0,
+        "c_nego": 22.400000000000002,
+        "c_worst": 125.0,
+        "degenerate": {
+          "c_cont": false,
+          "c_hard": false,
+          "c_nego": false,
+          "r_success": false
+        },
+        "derived": {
+          "c_cont": false,
+          "c_hard": false,
+          "c_nego": true,
+          "r_success": true
+        },
+        "expected": {
+          "c_nego": 22.400000000000002,
+          "c_worst": 125.0,
+          "p_hard": 0.0,
+          "p_hard_definition": "per_trial_unconditional",
+          "r_success": 66.9
+        },
+        "expected_ci": {
+          "c_cont": {
+            "half_width": null,
+            "high": null,
+            "low": null,
+            "mean": null,
+            "n": 0,
+            "std": null
+          },
+          "c_hard": {
+            "half_width": null,
+            "high": null,
+            "low": null,
+            "mean": null,
+            "n": 0,
+            "std": null
+          },
+          "c_nego": {
+            "half_width": 0.0,
+            "high": 22.400000000000002,
+            "low": 22.400000000000002,
+            "mean": 22.400000000000002,
+            "n": 1,
+            "std": 0.0
+          },
+          "c_worst": {
+            "half_width": null,
+            "high": null,
+            "low": null,
+            "mean": null,
+            "n": 0,
+            "std": null
+          },
+          "p_hard": {
+            "half_width": 0.0,
+            "high": 0.0,
+            "low": 0.0,
+            "mean": 0.0,
+            "n": 1,
+            "std": 0.0
+          },
+          "r_success": {
+            "half_width": 0.0,
+            "high": 66.9,
+            "low": 66.9,
+            "mean": 66.9,
+            "n": 1,
+            "std": 0.0
+          }
+        },
+        "n_max": 2,
+        "p_hard": 0.0,
+        "r_success": 66.9,
+        "samples": {
+          "n_failed": 0,
+          "n_hard": 0,
+          "n_hard_measured": 0,
+          "n_hard_unmeasured": 0,
+          "n_invalid": 0,
+          "n_nego": 1,
+          "n_success": 1,
+          "n_trials": 1
+        },
+        "theta_star": 0.5346534653465346,
+        "trajectory": {
+          "integrated": {
+            "c_cont": 0,
+            "c_nego": 0,
+            "r_success": 0
+          },
+          "legacy": {
+            "c_cont": 0,
+            "c_nego": 1,
+            "r_success": 1
+          }
+        },
+        "upper_bounds": {
+          "c_nego_ub": 50.0,
+          "c_trial_ub": 180.0,
+          "n_max_deterministic": 1,
+          "source": "deterministic_caps"
+        }
+      },
+      "Impairment": {
+        "assumption_ok": true,
+        "c_cont": 125.0,
+        "c_episode": 500.0,
+        "c_hard": 30.0,
+        "c_nego": 30.699999999999996,
+        "c_worst": 125.6,
+        "degenerate": {
+          "c_cont": false,
+          "c_hard": false,
+          "c_nego": false,
+          "r_success": false
+        },
+        "derived": {
+          "c_cont": false,
+          "c_hard": false,
+          "c_nego": true,
+          "r_success": false
+        },
+        "expected": {
+          "c_nego": 30.699999999999996,
+          "c_worst": 125.6,
+          "p_hard": 0.02,
+          "p_hard_definition": "per_trial_unconditional",
+          "r_success": 64.5
+        },
+        "expected_ci": {
+          "c_cont": {
+            "half_width": null,
+            "high": null,
+            "low": null,
+            "mean": null,
+            "n": 0,
+            "std": null
+          },
+          "c_hard": {
+            "half_width": null,
+            "high": null,
+            "low": null,
+            "mean": null,
+            "n": 0,
+            "std": null
+          },
+          "c_nego": {
+            "half_width": 119.43639999999998,
+            "high": 150.13639999999998,
+            "low": -88.73639999999997,
+            "mean": 30.699999999999996,
+            "n": 2,
+            "std": 13.293607486307092
+          },
+          "c_worst": {
+            "half_width": null,
+            "high": null,
+            "low": null,
+            "mean": null,
+            "n": 0,
+            "std": null
+          },
+          "p_hard": {
+            "half_width": null,
+            "high": null,
+            "low": null,
+            "mean": null,
+            "n": 0,
+            "std": null
+          },
+          "r_success": {
+            "half_width": null,
+            "high": null,
+            "low": null,
+            "mean": null,
+            "n": 0,
+            "std": null
+          }
+        },
+        "n_max": 2,
+        "p_hard": 0.02,
+        "r_success": 64.5,
+        "samples": {
+          "n_failed": 0,
+          "n_hard": 0,
+          "n_hard_measured": 0,
+          "n_hard_unmeasured": 0,
+          "n_invalid": 0,
+          "n_nego": 2,
+          "n_success": 0,
+          "n_trials": 0
+        },
+        "theta_star": 0.49921094160967916,
+        "trajectory": {
+          "integrated": {
+            "c_cont": 0,
+            "c_nego": 0,
+            "r_success": 0
+          },
+          "legacy": {
+            "c_cont": 0,
+            "c_nego": 2,
+            "r_success": 0
+          }
+        },
+        "upper_bounds": {
+          "c_nego_ub": 50.0,
+          "c_trial_ub": 180.0,
+          "n_max_deterministic": 1,
+          "source": "deterministic_caps"
+        }
+      }
+    },
+    "counts": {
+      "n_episodes": 4,
+      "n_steps": 40
+    },
+    "dual_intent_satisfaction": {
+      "by_phase": {
+        "p0:Nominal": {
+          "dual_satisfaction_rate": 1.0,
+          "dual_satisfaction_strict": 1.0,
+          "i1_satisfaction_rate": 1.0,
+          "n_pairs": 16,
+          "n_steps": 8
+        },
+        "p1:Degradation": {
+          "dual_satisfaction_rate": 0.5,
+          "dual_satisfaction_strict": 0.5,
+          "i1_satisfaction_rate": 1.0,
+          "n_pairs": 16,
+          "n_steps": 8
+        },
+        "p2:Impairment": {
+          "dual_satisfaction_rate": 0.0,
+          "dual_satisfaction_strict": 0.0,
+          "i1_satisfaction_rate": 1.0,
+          "n_pairs": 16,
+          "n_steps": 8
+        },
+        "p3:Recovery": {
+          "dual_satisfaction_rate": 1.0,
+          "dual_satisfaction_strict": 1.0,
+          "i1_satisfaction_rate": 1.0,
+          "n_pairs": 16,
+          "n_steps": 8
+        },
+        "p4:Nominal": {
+          "dual_satisfaction_rate": 1.0,
+          "dual_satisfaction_strict": 1.0,
+          "i1_satisfaction_rate": 1.0,
+          "n_pairs": 16,
+          "n_steps": 8
+        }
+      },
+      "by_ue": {
+        "ue1": {
+          "dual_satisfaction_rate": 0.7,
+          "n": 40
+        },
+        "ue2": {
+          "dual_satisfaction_rate": 0.7,
+          "n": 40
+        }
+      },
+      "ci95": {
+        "half_width": 1.2706000000000004,
+        "high": 1.0,
+        "low": 0.0,
+        "mean": 0.7,
+        "n": 2,
+        "std": 0.14142135623730956
+      },
+      "overall": {
+        "dual_satisfaction_rate": 0.7,
+        "dual_satisfaction_strict": 0.7,
+        "i1_satisfaction_rate": 1.0,
+        "n_pairs": 80,
+        "n_steps": 40
+      },
+      "per_trial_rates": [
+        0.6,
+        0.8
+      ]
+    },
+    "ece": {
+      "bins": [
+        {
+          "accuracy": 0.0,
+          "bin": 0,
+          "confidence": 0.0,
+          "count": 0,
+          "gap": 0.0,
+          "high": 0.2,
+          "low": 0.0
+        },
+        {
+          "accuracy": 0.0,
+          "bin": 1,
+          "confidence": 0.0,
+          "count": 0,
+          "gap": 0.0,
+          "high": 0.4,
+          "low": 0.2
+        },
+        {
+          "accuracy": 0.0,
+          "bin": 2,
+          "confidence": 0.0,
+          "count": 0,
+          "gap": 0.0,
+          "high": 0.6,
+          "low": 0.4
+        },
+        {
+          "accuracy": 0.0,
+          "bin": 3,
+          "confidence": 0.0,
+          "count": 0,
+          "gap": 0.0,
+          "high": 0.8,
+          "low": 0.6
+        },
+        {
+          "accuracy": 1.0,
+          "bin": 4,
+          "confidence": 0.972,
+          "count": 1,
+          "gap": 0.028000000000000025,
+          "high": 1.0,
+          "low": 0.8
+        }
+      ],
+      "confidence_source": "calibrated",
+      "ece": 0.028000000000000025,
+      "n": 1,
+      "n_bins": 5,
+      "n_executed": 1,
+      "n_invalid": 0,
+      "probability_field": "calibrated_probability"
+    },
+    "enforcement": {
+      "clip_fraction": 0.0,
+      "n_applied_proposals": 1,
+      "n_clip_events": 0,
+      "n_clipped_episodes": 0,
+      "n_episodes": 4,
+      "n_schema_rejects": 0,
+      "n_unknown_magnitude": 0,
+      "n_unnormalized_clip": 0,
+      "n_valid_clip_events": 0,
+      "normalized_clip": {
+        "definition": "abs(raw-clipped)/(upper-lower) per axis",
+        "max": null,
+        "mean": null,
+        "n": 0
+      },
+      "per_axis_native_clip": {},
+      "schema_reject_fraction": 0.0,
+      "unit_mixing": "none"
+    },
+    "hard_failures": {
+      "count": 0,
+      "n_trials": 1,
+      "p_hard": 0.0
+    },
+    "latency": {
+      "action_ms": 305.725,
+      "inference_ms": 1414.4,
+      "kpi_ms": 214.925,
+      "n": 4,
+      "prompt_ms": 3.325,
+      "total_ms": 1938.375
+    },
+    "negotiation": {
+      "n_episodes": 4,
+      "n_negotiations": 3,
+      "rate": 0.75
+    },
+    "per_ue_kpi": {
+      "ue1": {
+        "by_phase": {
+          "p0:Nominal": {
+            "gnb_ul_avg_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "gnb_ul_snr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "rsrp": {
+              "mean": -87.975,
+              "n": 8,
+              "std": 2.561667983393408
+            },
+            "sinr": {
+              "mean": 16.7125,
+              "n": 8,
+              "std": 0.9538455999643906
+            },
+            "throughput_mbps": {
+              "mean": 12.21125,
+              "n": 8,
+              "std": 0.6666855652083242
+            },
+            "ue_dl_sinr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "ue_dl_ss_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            }
+          },
+          "p1:Degradation": {
+            "gnb_ul_avg_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "gnb_ul_snr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "rsrp": {
+              "mean": -88.2875,
+              "n": 8,
+              "std": 3.7226862421029887
+            },
+            "sinr": {
+              "mean": 10.575,
+              "n": 8,
+              "std": 3.8577380493163163
+            },
+            "throughput_mbps": {
+              "mean": 7.8412500000000005,
+              "n": 8,
+              "std": 2.323177857406285
+            },
+            "ue_dl_sinr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "ue_dl_ss_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            }
+          },
+          "p2:Impairment": {
+            "gnb_ul_avg_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "gnb_ul_snr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "rsrp": {
+              "mean": -87.925,
+              "n": 8,
+              "std": 4.152365934878916
+            },
+            "sinr": {
+              "mean": 5.5625,
+              "n": 8,
+              "std": 1.4510464204448161
+            },
+            "throughput_mbps": {
+              "mean": 3.89125,
+              "n": 8,
+              "std": 0.6807021060220521
+            },
+            "ue_dl_sinr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "ue_dl_ss_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            }
+          },
+          "p3:Recovery": {
+            "gnb_ul_avg_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "gnb_ul_snr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "rsrp": {
+              "mean": -88.5,
+              "n": 8,
+              "std": 1.7647338933351173
+            },
+            "sinr": {
+              "mean": 14.075,
+              "n": 8,
+              "std": 1.1234513149855927
+            },
+            "throughput_mbps": {
+              "mean": 10.14125,
+              "n": 8,
+              "std": 0.6119859358794822
+            },
+            "ue_dl_sinr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "ue_dl_ss_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            }
+          },
+          "p4:Nominal": {
+            "gnb_ul_avg_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "gnb_ul_snr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "rsrp": {
+              "mean": -91.1875,
+              "n": 8,
+              "std": 3.067543223586496
+            },
+            "sinr": {
+              "mean": 16.025,
+              "n": 8,
+              "std": 1.9746609112163322
+            },
+            "throughput_mbps": {
+              "mean": 12.565,
+              "n": 8,
+              "std": 0.5612486080160911
+            },
+            "ue_dl_sinr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "ue_dl_ss_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            }
+          }
+        },
+        "overall": {
+          "gnb_ul_avg_rsrp_dbm": {
+            "mean": null,
+            "n": 0,
+            "std": null
+          },
+          "gnb_ul_snr_db": {
+            "mean": null,
+            "n": 0,
+            "std": null
+          },
+          "rsrp": {
+            "mean": -88.775,
+            "n": 40,
+            "std": 3.2473855361679522
+          },
+          "sinr": {
+            "mean": 12.59,
+            "n": 40,
+            "std": 4.632593558356169
+          },
+          "throughput_mbps": {
+            "mean": 9.33,
+            "n": 40,
+            "std": 3.4296303157285193
+          },
+          "ue_dl_sinr_db": {
+            "mean": null,
+            "n": 0,
+            "std": null
+          },
+          "ue_dl_ss_rsrp_dbm": {
+            "mean": null,
+            "n": 0,
+            "std": null
+          }
+        }
+      },
+      "ue2": {
+        "by_phase": {
+          "p0:Nominal": {
+            "gnb_ul_avg_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "gnb_ul_snr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "rsrp": {
+              "mean": -88.6375,
+              "n": 8,
+              "std": 3.3483204745065853
+            },
+            "sinr": {
+              "mean": 15.4875,
+              "n": 8,
+              "std": 2.824604902839131
+            },
+            "throughput_mbps": {
+              "mean": 11.63375,
+              "n": 8,
+              "std": 0.6841248319672996
+            },
+            "ue_dl_sinr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "ue_dl_ss_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            }
+          },
+          "p1:Degradation": {
+            "gnb_ul_avg_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "gnb_ul_snr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "rsrp": {
+              "mean": -88.675,
+              "n": 8,
+              "std": 3.6397605886729885
+            },
+            "sinr": {
+              "mean": 9.5875,
+              "n": 8,
+              "std": 3.2799989111496455
+            },
+            "throughput_mbps": {
+              "mean": 7.13375,
+              "n": 8,
+              "std": 2.3431842650547137
+            },
+            "ue_dl_sinr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "ue_dl_ss_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            }
+          },
+          "p2:Impairment": {
+            "gnb_ul_avg_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "gnb_ul_snr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "rsrp": {
+              "mean": -85.375,
+              "n": 8,
+              "std": 2.4446735101907926
+            },
+            "sinr": {
+              "mean": 4.625,
+              "n": 8,
+              "std": 1.3987239082208367
+            },
+            "throughput_mbps": {
+              "mean": 3.6575,
+              "n": 8,
+              "std": 0.8377478311350193
+            },
+            "ue_dl_sinr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "ue_dl_ss_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            }
+          },
+          "p3:Recovery": {
+            "gnb_ul_avg_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "gnb_ul_snr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "rsrp": {
+              "mean": -85.725,
+              "n": 8,
+              "std": 3.422926901268646
+            },
+            "sinr": {
+              "mean": 11.875,
+              "n": 8,
+              "std": 1.1029182070437364
+            },
+            "throughput_mbps": {
+              "mean": 9.285,
+              "n": 8,
+              "std": 0.4377213725647859
+            },
+            "ue_dl_sinr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "ue_dl_ss_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            }
+          },
+          "p4:Nominal": {
+            "gnb_ul_avg_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "gnb_ul_snr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "rsrp": {
+              "mean": -88.1125,
+              "n": 8,
+              "std": 3.3697975776425677
+            },
+            "sinr": {
+              "mean": 15.0,
+              "n": 8,
+              "std": 1.7163083306079605
+            },
+            "throughput_mbps": {
+              "mean": 11.585,
+              "n": 8,
+              "std": 0.7150824128328545
+            },
+            "ue_dl_sinr_db": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            },
+            "ue_dl_ss_rsrp_dbm": {
+              "mean": null,
+              "n": 0,
+              "std": null
+            }
+          }
+        },
+        "overall": {
+          "gnb_ul_avg_rsrp_dbm": {
+            "mean": null,
+            "n": 0,
+            "std": null
+          },
+          "gnb_ul_snr_db": {
+            "mean": null,
+            "n": 0,
+            "std": null
+          },
+          "rsrp": {
+            "mean": -87.30499999999999,
+            "n": 40,
+            "std": 3.429730496999915
+          },
+          "sinr": {
+            "mean": 11.315000000000001,
+            "n": 40,
+            "std": 4.546993935134931
+          },
+          "throughput_mbps": {
+            "mean": 8.659,
+            "n": 40,
+            "std": 3.2529834826604236
+          },
+          "ue_dl_sinr_db": {
+            "mean": null,
+            "n": 0,
+            "std": null
+          },
+          "ue_dl_ss_rsrp_dbm": {
+            "mean": null,
+            "n": 0,
+            "std": null
+          }
+        }
+      }
+    },
+    "regret": {
+      "decision_regret": {
+        "is_lower_bound": false,
+        "n_applicable": 4,
+        "n_counted": 4,
+        "n_invalid": 0,
+        "n_unknown": 0,
+        "status": "measured",
+        "unit": "Mbps*s",
+        "value": 287.1
+      },
+      "execution_cost": {
+        "is_lower_bound": false,
+        "n_applicable": 0,
+        "n_counted": 0,
+        "n_invalid": 0,
+        "n_unknown": 0,
+        "status": "not_applicable",
+        "unit": "Mbps*s",
+        "value": 0.0
+      },
+      "hard_failure_cost": {
+        "is_lower_bound": false,
+        "n_applicable": 0,
+        "n_counted": 0,
+        "n_invalid": 0,
+        "n_unknown": 0,
+        "status": "not_applicable",
+        "unit": "Mbps*s",
+        "value": 0.0
+      },
+      "negotiation_cost": {
+        "is_lower_bound": false,
+        "n_applicable": 3,
+        "n_counted": 3,
+        "n_invalid": 0,
+        "n_unknown": 0,
+        "status": "measured",
+        "unit": "Mbps*s",
+        "value": 83.8
+      },
+      "no_global_optimum": true,
+      "reference_set": {
+        "is_global_optimum": false,
+        "kind": "finite_offline_declared",
+        "no_fallback": true,
+        "phases": [
+          "Degradation",
+          "Impairment",
+          "Nominal",
+          "Recovery"
+        ],
+        "provenance": "declared per-phase best ACHIEVABLE throughput ceiling under the emulation/paper model, from the single source config.REFERENCE_CEILING_MBPS (also synthetic.RECOVER_CEILING_MBPS); a documented FINITE reference, NOT an unknown global optimum",
+        "unit": "Mbps (achievable throughput LEVEL); a regret/cost value is that level integrated over its window -> Mbps*s",
+        "utility_mbps_by_phase": {
+          "Degradation": 10.5,
+          "Impairment": 10.5,
+          "Nominal": 10.5,
+          "Recovery": 10.5
+        }
+      },
+      "reserve_accounting_note": "reserve/budget accounting does NOT imply a physical-loss upper bound; these components are measured physical shortfalls only",
+      "total_regret": {
+        "completeness": {
+          "all_components_complete": true,
+          "n_invalid_total": 0,
+          "n_unknown_total": 0
+        },
+        "definition": "EXACT sum of decision_regret + execution_cost + negotiation_cost + hard_failure_cost",
+        "is_lower_bound": false,
+        "unit": "Mbps*s",
+        "value": 370.90000000000003
+      }
+    },
+    "rollback": {
+      "n_rollbacks": 0,
+      "n_trials": 1,
+      "n_verified_rollbacks": 0,
+      "rate": 0.0
+    },
+    "strict_joint_satisfaction": {
+      "ci95": {
+        "half_width": 0.0,
+        "high": 0.0,
+        "low": 0.0,
+        "mean": 0.0,
+        "n": 2,
+        "std": 0.0
+      },
+      "definition": "PRIMARY: ALL scoped monitored intents satisfied at EVERY observed step of a VERIFIABLE (method,trial) window; the per-UE average is diagnostic secondary only",
+      "n_unverifiable_windows": 0,
+      "n_verifiable_windows": 2,
+      "n_windows": 2,
+      "rate_status": "measured",
+      "recovery": {
+        "definition": "elapsed t_s from violation onset to the next fully satisfied step; unrecovered violations are censored, not a fabricated finite recovery",
+        "mean_time_to_recovery_s": 90.0,
+        "median_time_to_recovery_s": 90.0,
+        "n_censored_unrecovered": 0,
+        "n_recovered": 2,
+        "n_recovered_unknown_timing": 0,
+        "status": "measured",
+        "unit": "s"
+      },
+      "rollback_verified": {
+        "definition": "verified == restore_verified IS True; denominator is EVERY rollback attempt; false/unknown counted",
+        "n_rollbacks": 0,
+        "n_verified_false": 0,
+        "n_verified_true": 0,
+        "n_verified_unknown": 0,
+        "rate": null,
+        "status": "no_rollbacks"
+      },
+      "strict_joint_rate": 0.0,
+      "violation_area": {
+        "note": "throughput (Mbps) and power (dB) deficits are kept SEPARATE and never summed; each is a deficit summed over steps (unit X*step, a per-step-weighted area, NOT integrated over t_s); unknown cells AND all steps of unverifiable windows are excluded from the sum and counted, so a value with n_unknown>0 OR n_unverifiable_windows_excluded>0 is a measured LOWER BOUND",
+        "power_i1": {
+          "is_lower_bound": false,
+          "n_steps": 40,
+          "n_unknown_steps": 0,
+          "n_unverifiable_windows_excluded": 0,
+          "unit": "dB*step",
+          "value": 0.0
+        },
+        "throughput": {
+          "is_lower_bound": false,
+          "n_cells": 80,
+          "n_unknown_cells": 0,
+          "n_unverifiable_windows_excluded": 0,
+          "unit": "Mbps*step",
+          "value": 88.7
+        }
+      },
+      "windows_status": "all_verifiable"
+    }
+  }
+}

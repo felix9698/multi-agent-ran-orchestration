@@ -1,0 +1,63 @@
+--- a/common/utils/telnetsrv/telnetsrv_ci.c
++++ b/common/utils/telnetsrv/telnetsrv_ci.c
+@@ -554,9 +554,60 @@
+   return 0;
+ }
+
++/* --- structured observability (agentic_intent_coordinator, Q3) --------------
++ * "stats" -> ONE line of JSON with the MAC-visible cell + per-UE state:
++ *
++ *   {"cell":{"dl_prb_cap":0,"mcs_cap":[0,28]},
++ *    "ues":[{"rnti":"4601","dl_mcs":24,"ul_mcs":9,"dl_bler":0.00374,
++ *            "pf_weight":1.000,"prb_cap":0}]}
++ *
++ * Rationale: the coordination loop scrapes dump_mac_stats lines from the
++ * gNB stdout log with regexes - the weakest link of the observation plane.
++ * This command emits the same MAC(RC.nrmac[0])-visible fields as a single
++ * machine-parseable JSON line over the existing telnet channel.
++ * SCOPE: MAC-visible fields ONLY. RSRP/RSRQ live in the PHY/RRC measurement
++ * path and are deliberately NOT included (log parsing remains the source
++ * for radio measurements - see oai_patches/README.md).
++ * Locking: reads are taken under the scheduler lock, like every other MAC
++ * control-path access in this module. Buffer sized for the testbed's UE
++ * population (<= ~30 UEs per cell at ~120 B each).                          */
++static int stats_cmd(char *buf, int debug, telnet_printfunc_t prnt)
++{
++  if (!RC.nrmac || !RC.nrmac[0])
++    ERROR_MSG_RET("no MAC present\n");
++  gNB_MAC_INST *mac = RC.nrmac[0];
++  char json[4096];
++  int off = 0;
++  bool first = true;
++
++  NR_SCHED_LOCK(&mac->sched_lock);
++  off += snprintf(json + off, sizeof(json) - off,
++                  "{\"cell\":{\"dl_prb_cap\":%d,\"mcs_cap\":[%d,%d]},\"ues\":[",
++                  mac->dl_max_rbSize,
++                  mac->dl_bler.min_mcs, mac->dl_bler.max_mcs);
++  UE_iterator(mac->UE_info.connected_ue_list, it) {
++    NR_UE_sched_ctrl_t *sc = &it->UE_sched_ctrl;
++    if (off < (int)sizeof(json) - 160) {
++      off += snprintf(json + off, sizeof(json) - off,
++                      "%s{\"rnti\":\"%04x\",\"dl_mcs\":%d,\"ul_mcs\":%d,"
++                      "\"dl_bler\":%.5f,\"pf_weight\":%.3f,\"prb_cap\":%d}",
++                      first ? "" : ",", it->rnti,
++                      sc->dl_bler_stats.mcs, sc->ul_bler_stats.mcs,
++                      sc->dl_bler_stats.bler, sc->pf_weight,
++                      sc->dl_max_rbSize);
++      first = false;
++    }
++  }
++  NR_SCHED_UNLOCK(&mac->sched_lock);
++  snprintf(json + off, sizeof(json) - off, "]}");
++  prnt("%s\n", json);
++  return 0;
++}
++
+ static telnetshell_cmddef_t cicmds[] = {
+     {"rfatt", "[tx_att_dB(float,opt)]", rfatt_cmd},
+     {"mcs", "[max_mcs(int,opt) [min_mcs(int,opt)]]", mcs_cmd},
+     {"prbcap", "[n_prb(int,opt) [rnti(hex,opt)]]", prbcap_cmd},
+     {"sched_prio", "[weight(float,opt) [rnti(hex,opt)]]", sched_prio_cmd},
+     {"get_single_rnti", "", get_single_rnti},
++    {"stats", "", stats_cmd},

@@ -1,0 +1,15 @@
+--- a/openair1/PHY/NR_UE_TRANSPORT/nr_initial_sync.c
++++ b/openair1/PHY/NR_UE_TRANSPORT/nr_initial_sync.c
+@@ -258,6 +258,12 @@
+   params->sss_res = rx_sss_nr(&p_sss, &params->pss_res, -1, rxdataF);
+ 
+   if (!params->sss_res.success || params->sss_res.nid_cell < 0) {
++    /* 2026-09-24: sample the SSS metric against its floor (30000) and the PSS peak/avg (dB). */
++    static int sss_fails = 0;
++    if (++sss_fails % 200 == 1)
++      LOG_I(PHY, "[UE] SSS miss %d: metric %d (floor 30000) pci %d phase %d, PSS peak %d dB avg %d dB ffo %d Hz pos %d\n",
++            sss_fails, params->sss_res.metric, params->sss_res.nid_cell, params->sss_res.phase,
++            params->pss_res.peak, params->pss_res.avg, params->pss_res.freq_offset, params->pss_res.pos);
+     { ssb_fail_stage = 4; return false; }
+   }
+ 

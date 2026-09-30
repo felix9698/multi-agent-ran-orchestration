@@ -1,0 +1,61 @@
+{
+  "handoffVersion": "oran-aic-handoff/1.0.0",
+  "contractProfile": "oran-aic/1.0.0",
+  "frozenAt": "2026-08-04T08:50:08Z",
+  "hashAlgorithm": "SHA-256",
+  "canonicalization": "RFC8785",
+  "selfDigestExcluded": true,
+  "documents": [
+    {
+      "path": "01-agentic-intent-coordinator-oran-refactor-task.md",
+      "role": "UPPER_ORCHESTRATION_TASK",
+      "requiredFor": ["UPPER_ORCHESTRATION"],
+      "byteCount": 31533,
+      "byteSha256": "04a55ddd79fca42aa17faa8b51bd89710f9bf15de9e05e0a2e61b83b7aad43e1"
+    },
+    {
+      "path": "02-rapp-xapp-backend-mandatory-contract.md",
+      "role": "NORMATIVE_CROSS_TEAM_CONTRACT",
+      "requiredFor": ["UPPER_ORCHESTRATION", "BACKEND_RESEARCHER"],
+      "byteCount": 214540,
+      "byteSha256": "0793b9940273f207211ad63ed51d814f2c5ceda835f97fe86b8ba73d275e07ba"
+    }
+  ],
+  "bundle": {
+    "directory": "shared-contract-bundle",
+    "manifestPath": "shared-contract-bundle/bundle-manifest.1.0.0.json",
+    "manifestByteCount": 5073,
+    "manifestByteSha256": "3e6dff04cbfd6ba13d88b616d8b27165965acebfe8e6d1908ca0cac4d5bf7c71",
+    "manifestJcsSha256": "6f9908ca9cee29ca5fa7b629f4daa0f502b5b8ce244519a76b9c88c6c1710ce3",
+    "regularFileCountExcludingManifest": 27,
+    "requiredFor": ["UPPER_ORCHESTRATION", "BACKEND_RESEARCHER"],
+    "copyMode": "BYTE_FOR_BYTE_WHOLE_DIRECTORY"
+  },
+  "distribution": {
+    "UPPER_ORCHESTRATION": {
+      "requiredPaths": [
+        "01-agentic-intent-coordinator-oran-refactor-task.md",
+        "02-rapp-xapp-backend-mandatory-contract.md",
+        "shared-contract-bundle",
+        "handoff-manifest.1.0.0.json"
+      ]
+    },
+    "BACKEND_RESEARCHER": {
+      "requiredPaths": [
+        "02-rapp-xapp-backend-mandatory-contract.md",
+        "shared-contract-bundle",
+        "handoff-manifest.1.0.0.json"
+      ],
+      "optionalPaths": [
+        "01-agentic-intent-coordinator-oran-refactor-task.md"
+      ]
+    }
+  },
+  "integrationPolicy": {
+    "communicationAssumption": "NO_REQUIRED_COMMUNICATION_UNTIL_FINAL_MERGE",
+    "mergeMutationPolicy": "CONFIGURATION_VALUES_ONLY_NO_SOURCE_EDIT",
+    "contractDriftPolicy": "FAIL_CLOSED_AND_REQUIRE_VERSIONED_HANDOFF_REPLACEMENT",
+    "secretPolicy": "REFERENCES_ONLY_NO_SECRET_VALUES",
+    "releaseGate": "BOTH_SIDES_PASS_PHASE_A_INDEPENDENTLY_BEFORE_PHASE_B"
+  }
+}

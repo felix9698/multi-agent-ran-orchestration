@@ -1,0 +1,507 @@
+diff --git a/openair2/COMMON/rrc_messages_def.h b/openair2/COMMON/rrc_messages_def.h
+index de44c4b79b..a3e13d01f6 100644
+--- a/openair2/COMMON/rrc_messages_def.h
++++ b/openair2/COMMON/rrc_messages_def.h
+@@ -77,3 +77,4 @@ MESSAGE_DEF(NR_RRC_RLC_MAXRTX,          MESSAGE_PRIORITY_MED,       RlcMaxRtxInd
+ // (openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_rc.c).  See
+ // docs/rc-style3-patch-contract.md 4.5, 9.1.
+ MESSAGE_DEF(NR_RRC_E2_HANDOVER_CONTROL_REQ, MESSAGE_PRIORITY_MED, nr_rrc_e2_ho_control_req_t, nr_rrc_e2_handover_control_req)
++MESSAGE_DEF(NR_RRC_E2_STYLE2_UE_CONTROL_REQ, MESSAGE_PRIORITY_MED, nr_rrc_e2_style2_ue_control_req_t, nr_rrc_e2_style2_ue_control_req)
+diff --git a/openair2/COMMON/rrc_messages_types.h b/openair2/COMMON/rrc_messages_types.h
+index f9218a1a1d..64fcbc6775 100644
+--- a/openair2/COMMON/rrc_messages_types.h
++++ b/openair2/COMMON/rrc_messages_types.h
+@@ -529,4 +529,16 @@ typedef struct nr_rrc_e2_ho_control_req_s {
+ } nr_rrc_e2_ho_control_req_t;
+ #define NR_RRC_E2_HANDOVER_CONTROL_REQ(mSGpTR) (mSGpTR)->ittiMsg.nr_rrc_e2_handover_control_req
+
++/* Pointer-free Style 2 UE action admitted by the FlexRIC pthread and resolved
++ * on TASK_RRC_GNB.  action_id selects exactly one scalar member; retaining
++ * fixed storage keeps the ITTI ownership/thread contract identical to the
++ * Style 3 handover request above. */
++typedef struct nr_rrc_e2_style2_ue_control_req_s {
++  uint32_t rrc_ue_id;
++  uint16_t action_id;
++  uint16_t max_dl_prbs;
++  double pf_weight;
++} nr_rrc_e2_style2_ue_control_req_t;
++#define NR_RRC_E2_STYLE2_UE_CONTROL_REQ(mSGpTR) (mSGpTR)->ittiMsg.nr_rrc_e2_style2_ue_control_req
++
+ #endif /* RRC_MESSAGES_TYPES_H_ */
+diff --git a/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_rc.c b/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_rc.c
+index 2eb9e3a449..a3101c5373 100644
+--- a/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_rc.c
++++ b/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_rc.c
+@@ -22,9 +22,23 @@
+ #include "intertask_interface.h"
+ #include "../../flexric/src/sm/rc_sm/ie/ir/ran_param_struct.h"
+ #include "LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch_default_policies.h"
++#include <inttypes.h>
++#include <math.h>
+ #include <stdlib.h>
+ #include <string.h>
+
++/* Project-local E2SM-RC Style 2 extensions, applied after the Action 6
++ * template.  Actions 101..103 and Parameters 201..222 are deployment-local:
++ * an xApp must discover and reproduce this RAN-function definition rather
++ * than treating the numbers as standard E2SM-RC assignments.
++ *
++ * UE-scoped Actions 102/103 follow the Style 3 thread contract.  The FlexRIC
++ * agent pthread validates a pointer-free request and admits it to
++ * TASK_RRC_GNB.  The RRC thread alone resolves rrc_ue_id to RNTI, then writes
++ * MAC under sched_lock.  A synchronous CONTROL ACK therefore means queue
++ * admission, exactly as for Style 3; later RRC/MAC resolution is deferred and
++ * reported in gNB logs, not retroactively converted into CONTROL FAILURE. */
++
+ /* ran_func_rc.c is also linked into the CU-UP executable, which intentionally
+  * has no gNB MAC scheduler. Keep that target linkable and reject Style 2 at
+  * runtime unless the monolithic gNB supplies both atomic quota symbols. */
+@@ -47,6 +61,16 @@ enum {
+   RC_MIN_PRB_POLICY_RATIO = 11,
+   RC_MAX_PRB_POLICY_RATIO = 12,
+   RC_DEDICATED_PRB_POLICY_RATIO = 13,
++  RC_ACTION_101_DL_MCS_BOUNDS = 101,
++  RC_ACTION_102_UE_DL_PRB_CAP = 102,
++  RC_ACTION_103_UE_PF_WEIGHT = 103,
++  RC_DL_MCS_BOUNDS = 201,
++  RC_DL_MCS_MAX = 202,
++  RC_DL_MCS_MIN = 203,
++  RC_UE_DL_PRB_CAP = 211,
++  RC_MAX_DL_PRBS = 212,
++  RC_UE_PF_WEIGHT = 221,
++  RC_PF_WEIGHT = 222,
+ };
+
+ static pthread_once_t once_rc_mutex = PTHREAD_ONCE_INIT;
+@@ -423,6 +447,53 @@ static void rc_definition_child(ran_param_def_t* parent,
+   child->ran_param_def = child_definition;
+ }
+
++static ran_param_def_t* rc_style2_dl_mcs_bounds_definition(void)
++{
++  ran_param_def_t* definition = rc_compound_definition(STRUCTURE_RAN_PARAMETER_DEF_TYPE, 2);
++  rc_definition_child(definition, 0, RC_DL_MCS_MAX, "DL MCS Maximum", NULL);
++  rc_definition_child(definition, 1, RC_DL_MCS_MIN, "DL MCS Minimum", NULL);
++  return definition;
++}
++
++static ran_param_def_t* rc_style2_ue_dl_prb_cap_definition(void)
++{
++  ran_param_def_t* definition = rc_compound_definition(STRUCTURE_RAN_PARAMETER_DEF_TYPE, 1);
++  rc_definition_child(definition, 0, RC_MAX_DL_PRBS, "Maximum DL PRBs", NULL);
++  return definition;
++}
++
++static ran_param_def_t* rc_style2_ue_pf_weight_definition(void)
++{
++  ran_param_def_t* definition = rc_compound_definition(STRUCTURE_RAN_PARAMETER_DEF_TYPE, 1);
++  rc_definition_child(definition, 0, RC_PF_WEIGHT, "PF Weight", NULL);
++  return definition;
++}
++
++static void rc_style2_append_local_action(seq_ctrl_style_t* style,
++                                          uint16_t action_id,
++                                          const char* action_name,
++                                          uint32_t root_id,
++                                          const char* root_name,
++                                          ran_param_def_t* definition)
++{
++  assert(style != NULL && action_name != NULL && root_name != NULL && definition != NULL);
++  const size_t new_count = style->sz_seq_ctrl_act + 1;
++  seq_ctrl_act_2_t* resized = realloc(style->seq_ctrl_act, new_count * sizeof(*resized));
++  assert(resized != NULL && "Memory exhausted");
++  style->seq_ctrl_act = resized;
++  seq_ctrl_act_2_t* action = &style->seq_ctrl_act[style->sz_seq_ctrl_act];
++  memset(action, 0, sizeof(*action));
++  style->sz_seq_ctrl_act = new_count;
++  action->id = action_id;
++  action->name = cp_str_to_ba(action_name);
++  action->sz_seq_assoc_ran_param = 1;
++  action->assoc_ran_param = calloc(1, sizeof(*action->assoc_ran_param));
++  assert(action->assoc_ran_param != NULL && "Memory exhausted");
++  action->assoc_ran_param[0].id = root_id;
++  action->assoc_ran_param[0].name = cp_str_to_ba(root_name);
++  action->assoc_ran_param[0].def = definition;
++}
++
+ /* Build one STRUCTURE node of the verified 8.4.4.1 parameter profile.  The
+  * returned definition owns child_definition.  This mirrors FlexRIC's existing
+  * Style 1 construction above and is consumed by its normal ASN.1 encoder/free
+@@ -502,6 +573,25 @@ static void fill_ctrl_style_2_radio_resource_allocation(seq_ctrl_style_t* ctrl_s
+   action->assoc_ran_param[0].id = RC_RRM_POLICY_RATIO_LIST;
+   action->assoc_ran_param[0].name = cp_str_to_ba("RRM Policy Ratio List");
+   action->assoc_ran_param[0].def = rc_style2_rrm_policy_ratio_list_definition();
++
++  rc_style2_append_local_action(ctrl_style,
++                                RC_ACTION_101_DL_MCS_BOUNDS,
++                                "DL MCS bounds (deployment-local)",
++                                RC_DL_MCS_BOUNDS,
++                                "DL MCS Bounds",
++                                rc_style2_dl_mcs_bounds_definition());
++  rc_style2_append_local_action(ctrl_style,
++                                RC_ACTION_102_UE_DL_PRB_CAP,
++                                "UE DL PRB cap (deployment-local)",
++                                RC_UE_DL_PRB_CAP,
++                                "UE DL PRB Cap",
++                                rc_style2_ue_dl_prb_cap_definition());
++  rc_style2_append_local_action(ctrl_style,
++                                RC_ACTION_103_UE_PF_WEIGHT,
++                                "UE PF weight (deployment-local)",
++                                RC_UE_PF_WEIGHT,
++                                "UE PF Weight",
++                                rc_style2_ue_pf_weight_definition());
+   ctrl_style->sz_ran_param_ctrl_out = 0;
+   ctrl_style->ran_param_ctrl_out = NULL;
+ }
+@@ -1343,6 +1433,65 @@ static const ran_parameter_value_t* rc_false_element(const seq_ran_param_t* para
+   return param->ran_param_val.flag_false;
+ }
+
++static const ran_param_struct_t* rc_style2_structure_root(const e2sm_rc_ctrl_msg_frmt_1_t* m,
++                                                          uint32_t root_id,
++                                                          const char** why)
++{
++  const uint32_t root_ids[] = {root_id};
++  if (!rc_exact_parameter_ids(m->ran_param, m->sz_ran_param, root_ids, 1, why))
++    return NULL;
++  const seq_ran_param_t* root = rc_find_ran_param(m->ran_param, m->sz_ran_param, root_id);
++  if (root == NULL || root->ran_param_val.type != STRUCTURE_RAN_PARAMETER_VAL_TYPE
++      || root->ran_param_val.strct == NULL) {
++    *why = "deployment-local root RAN Parameter is not a STRUCTURE";
++    return NULL;
++  }
++  return root->ran_param_val.strct;
++}
++
++static sm_ag_if_ans_t rc_ctrl_style_2_dl_mcs_bounds(const e2sm_rc_ctrl_msg_frmt_1_t* m)
++{
++  const char* why = "";
++  const ran_param_struct_t* bounds = rc_style2_structure_root(m, RC_DL_MCS_BOUNDS, &why);
++  static const uint32_t child_ids[] = {RC_DL_MCS_MAX, RC_DL_MCS_MIN};
++  if (bounds == NULL
++      || !rc_exact_parameter_ids(bounds->ran_param_struct, bounds->sz_ran_param_struct, child_ids, 2, &why))
++    return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, RC_ACTION_101_DL_MCS_BOUNDS, why);
++
++  const ran_parameter_value_t* maximum = rc_false_element(
++      rc_find_ran_param(bounds->ran_param_struct, bounds->sz_ran_param_struct, RC_DL_MCS_MAX),
++      INTEGER_RAN_PARAMETER_VALUE,
++      &why);
++  const ran_parameter_value_t* minimum = rc_false_element(
++      rc_find_ran_param(bounds->ran_param_struct, bounds->sz_ran_param_struct, RC_DL_MCS_MIN),
++      INTEGER_RAN_PARAMETER_VALUE,
++      &why);
++  if (maximum == NULL || minimum == NULL)
++    return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, RC_ACTION_101_DL_MCS_BOUNDS, why);
++  if (minimum->int_ran < 0 || maximum->int_ran > 28 || minimum->int_ran > maximum->int_ran)
++    return rc_ctrl_reject(RC_CTRL_REJ_POLICY_OR_ADMISSION,
++                          2,
++                          RC_ACTION_101_DL_MCS_BOUNDS,
++                          "DL MCS bounds must satisfy 0 <= min <= max <= 28");
++  if (RC.nrmac[0] == NULL)
++    return rc_ctrl_reject(RC_CTRL_REJ_CAPABILITY_STATE,
++                          2,
++                          RC_ACTION_101_DL_MCS_BOUNDS,
++                          "MAC instance is not ready");
++
++  gNB_MAC_INST* mac = RC.nrmac[0];
++  NR_SCHED_LOCK(&mac->sched_lock);
++  mac->dl_bler.min_mcs = (uint8_t)minimum->int_ran;
++  mac->dl_bler.max_mcs = (uint8_t)maximum->int_ran;
++  NR_SCHED_UNLOCK(&mac->sched_lock);
++  printf("[E2 AGENT] RIC CONTROL Style 2 / Action %u applied: DL MCS [%" PRId64 "..%" PRId64 "]\n",
++         RC_ACTION_101_DL_MCS_BOUNDS,
++         minimum->int_ran,
++         maximum->int_ran);
++  fflush(stdout);
++  return rc_ctrl_empty_outcome();
++}
++
+ static bool rc_plmn_matches_local(const byte_array_t* value, const char** why)
+ {
+   if (value == NULL || value->buf == NULL || value->len != 3 || RC.nrrrc[0] == NULL) {
+@@ -1667,10 +1816,17 @@ static bool rc_extract_rrc_ue_id(const ue_id_e2sm_t* ue_id, uint32_t* out)
+ {
+   if (ue_id->type != GNB_UE_ID_E2SM)
+     return false;
+-  if (ue_id->gnb.gnb_cu_ue_f1ap_lst_len < 1 || ue_id->gnb.gnb_cu_ue_f1ap_lst == NULL)
+-    return false;
+-  *out = ue_id->gnb.gnb_cu_ue_f1ap_lst[0];
+-  return true;
++  if (ue_id->gnb.gnb_cu_ue_f1ap_lst_len >= 1 && ue_id->gnb.gnb_cu_ue_f1ap_lst != NULL) {
++    *out = ue_id->gnb.gnb_cu_ue_f1ap_lst[0];
++    return true;
++  }
++  /* Monolithic-gNB KPM identities carry gNB-RAN-UE-ID instead of an F1AP
++   * list (the same fallback is used by ran_func_kpm.c). */
++  if (ue_id->gnb.ran_ue_id != NULL) {
++    *out = *ue_id->gnb.ran_ue_id;
++    return true;
++  }
++  return false;
+ }
+
+ /* [T10/PATCH-C] Hand an immutable, pointer-free request from the FlexRIC agent
+@@ -1716,6 +1872,90 @@ static bool rc_enqueue_ho_control_req(const nr_rrc_e2_ho_control_req_t* req)
+   return true; /* ownership transferred (R3): msg must not be touched again */
+ }
+
++static bool rc_enqueue_style2_ue_control_req(const nr_rrc_e2_style2_ue_control_req_t* req)
++{
++  MessageDef* msg = itti_alloc_new_message(TASK_RRC_GNB, 0, NR_RRC_E2_STYLE2_UE_CONTROL_REQ);
++  if (msg == NULL)
++    return false;
++  NR_RRC_E2_STYLE2_UE_CONTROL_REQ(msg) = *req;
++
++  /* NOTE: at this pin itti_send_msg_to_task_locked() always returns 0 and the
++   * queue is an unbounded std::list, so the failure branch below is
++   * unreachable.  Do not free msg after a successful send: ownership has
++   * transferred to TASK_RRC_GNB per R3.  If the ITTI API later gains a real
++   * failure result, its ownership rule must be revisited with this branch. */
++  if (itti_send_msg_to_task(TASK_RRC_GNB, 0, msg) != 0)
++    return false;
++  return true; /* ownership transferred (R3): msg must not be touched again */
++}
++
++static sm_ag_if_ans_t rc_ctrl_style_2_ue_action(const e2sm_rc_ctrl_hdr_frmt_1_t* h,
++                                                const e2sm_rc_ctrl_msg_frmt_1_t* m)
++{
++  const bool is_prb_cap = h->ctrl_act_id == RC_ACTION_102_UE_DL_PRB_CAP;
++  const uint32_t root_id = is_prb_cap ? RC_UE_DL_PRB_CAP : RC_UE_PF_WEIGHT;
++  const uint32_t child_id = is_prb_cap ? RC_MAX_DL_PRBS : RC_PF_WEIGHT;
++  const char* why = "";
++  const ran_param_struct_t* value_struct = rc_style2_structure_root(m, root_id, &why);
++  const uint32_t child_ids[] = {child_id};
++  if (value_struct == NULL
++      || !rc_exact_parameter_ids(
++          value_struct->ran_param_struct, value_struct->sz_ran_param_struct, child_ids, 1, &why))
++    return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, h->ctrl_act_id, why);
++
++  const seq_ran_param_t* value_param = rc_find_ran_param(
++      value_struct->ran_param_struct, value_struct->sz_ran_param_struct, child_id);
++  if (value_param == NULL
++      || value_param->ran_param_val.type != ELEMENT_KEY_FLAG_FALSE_RAN_PARAMETER_VAL_TYPE
++      || value_param->ran_param_val.flag_false == NULL)
++    return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT,
++                          2,
++                          h->ctrl_act_id,
++                          "action value has wrong key flag or is absent");
++
++  nr_rrc_e2_style2_ue_control_req_t req = {
++      .action_id = h->ctrl_act_id,
++  };
++  const ran_parameter_value_t* value = value_param->ran_param_val.flag_false;
++  if (is_prb_cap) {
++    if (value->type != INTEGER_RAN_PARAMETER_VALUE)
++      return rc_ctrl_reject(
++          RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, h->ctrl_act_id, "Maximum DL PRBs is not an INTEGER");
++    if (value->int_ran < 0 || value->int_ran > 275)
++      return rc_ctrl_reject(
++          RC_CTRL_REJ_POLICY_OR_ADMISSION, 2, h->ctrl_act_id, "Maximum DL PRBs is outside 0..275");
++    req.max_dl_prbs = (uint16_t)value->int_ran;
++  } else {
++    if (value->type == REAL_RAN_PARAMETER_VALUE)
++      req.pf_weight = value->real_ran;
++    else if (value->type == INTEGER_RAN_PARAMETER_VALUE)
++      req.pf_weight = value->int_ran;
++    else
++      return rc_ctrl_reject(
++          RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, h->ctrl_act_id, "PF Weight is not a REAL or INTEGER");
++    if (!isfinite(req.pf_weight) || req.pf_weight < 0.001 || req.pf_weight > 100.0)
++      return rc_ctrl_reject(
++          RC_CTRL_REJ_POLICY_OR_ADMISSION, 2, h->ctrl_act_id, "PF Weight is outside 0.001..100");
++  }
++
++  if (!rc_extract_rrc_ue_id(&h->ue_id, &req.rrc_ue_id))
++    return rc_ctrl_reject(RC_CTRL_REJ_IDENTITY_OR_TARGET,
++                          2,
++                          h->ctrl_act_id,
++                          "E2SM-RC UE ID carries neither a gNB-CU UE F1AP ID nor gNB-RAN-UE-ID");
++  if (RC.nrmac[0] == NULL)
++    return rc_ctrl_reject(RC_CTRL_REJ_CAPABILITY_STATE, 2, h->ctrl_act_id, "MAC instance is not ready");
++  if (!rc_enqueue_style2_ue_control_req(&req))
++    return rc_ctrl_reject(RC_CTRL_REJ_POLICY_OR_ADMISSION, 2, h->ctrl_act_id, "RRC queue admission failed");
++
++  printf("[E2 AGENT] RIC CONTROL Style 2 / Action %u admitted to TASK_RRC_GNB: rrc_ue_id=%u "
++         "(CONTROL ACK confirms queue admission; MAC apply is deferred)\n",
++         h->ctrl_act_id,
++         req.rrc_ue_id);
++  fflush(stdout);
++  return rc_ctrl_empty_outcome();
++}
++
+ static sm_ag_if_ans_t rc_ctrl_style_3_handover_control(const e2sm_rc_ctrl_hdr_frmt_1_t* h,
+                                                        const e2sm_rc_ctrl_msg_frmt_1_t* m)
+ {
+@@ -1789,6 +2029,15 @@ sm_ag_if_ans_t write_ctrl_rc_sm(void const* data)
+       && h->ctrl_act_id == RC_ACTION_6_SLICE_PRB_QUOTA)
+     return rc_ctrl_style_2_slice_prb_quota(m);
+
++  if (h->ric_style_type == RC_STYLE_2_RADIO_RESOURCE_ALLOCATION
++      && h->ctrl_act_id == RC_ACTION_101_DL_MCS_BOUNDS)
++    return rc_ctrl_style_2_dl_mcs_bounds(m);
++
++  if (h->ric_style_type == RC_STYLE_2_RADIO_RESOURCE_ALLOCATION
++      && (h->ctrl_act_id == RC_ACTION_102_UE_DL_PRB_CAP
++          || h->ctrl_act_id == RC_ACTION_103_UE_PF_WEIGHT))
++    return rc_ctrl_style_2_ue_action(h, m);
++
+   if (h->ric_style_type == 3 && h->ctrl_act_id == 1)
+     return rc_ctrl_style_3_handover_control(h, m);
+
+diff --git a/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch_default_policies.c b/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch_default_policies.c
+index 3fd30d0417..01737840d7 100644
+--- a/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch_default_policies.c
++++ b/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch_default_policies.c
+@@ -346,6 +346,10 @@ int nr_dl_proportional_fair(const nr_dl_sched_params_t *params, nr_dl_candidate_
+     if (cand->is_retx || cand->pending_bytes > 0)
+       continue;
+
++    const uint16_t ue_cap = cand->UE->UE_sched_ctrl.dl_max_rbSize;
++    if (ue_cap > 0 && ue_cap < min_rbSize)
++      continue;
++
+     uint16_t *vrb_map = params->vrb_map[cand->alloc_beam_idx];
+     int rbStart, rbSize;
+     if (!get_rb_alloc(min_rbSize,
+@@ -384,18 +388,21 @@ int nr_dl_proportional_fair(const nr_dl_sched_params_t *params, nr_dl_candidate_
+     if (params->mac->slice_prb_quotas.count == 0) {
+       target_rbs[j] = n_rb_per_ue;
+       max_rbs[j] = max_rbSize;
+-      continue;
++    } else {
++      int peers = active_new_tx_peers((const nr_dl_candidate_t *const *)order, n_active, cand->nssai);
++      DevAssert(peers > 0);
++      const unsigned reserved_for_others = dedicated_ratio_for_other_slices(params->mac, cand->nssai);
++      const unsigned exclusive_ceiling = 100 - reserved_for_others;
++      const unsigned target_ratio = quota == NULL ? 0 : quota->min_ratio;
++      const unsigned ceiling_ratio = quota == NULL ? exclusive_ceiling : min(quota->max_ratio, exclusive_ceiling);
++      int slice_min = quota == NULL ? n_rb_per_ue * peers : (max_rbSize * target_ratio) / 100;
++      int slice_max = (max_rbSize * ceiling_ratio) / 100;
++      target_rbs[j] = slice_min == 0 ? 0 : max(min_rbSize, slice_min / peers);
++      max_rbs[j] = slice_max == 0 ? 0 : max(min_rbSize, slice_max / peers);
+     }
+-    int peers = active_new_tx_peers((const nr_dl_candidate_t *const *)order, n_active, cand->nssai);
+-    DevAssert(peers > 0);
+-    const unsigned reserved_for_others = dedicated_ratio_for_other_slices(params->mac, cand->nssai);
+-    const unsigned exclusive_ceiling = 100 - reserved_for_others;
+-    const unsigned target_ratio = quota == NULL ? 0 : quota->min_ratio;
+-    const unsigned ceiling_ratio = quota == NULL ? exclusive_ceiling : min(quota->max_ratio, exclusive_ceiling);
+-    int slice_min = quota == NULL ? n_rb_per_ue * peers : (max_rbSize * target_ratio) / 100;
+-    int slice_max = (max_rbSize * ceiling_ratio) / 100;
+-    target_rbs[j] = slice_min == 0 ? 0 : max(min_rbSize, slice_min / peers);
+-    max_rbs[j] = slice_max == 0 ? 0 : max(min_rbSize, slice_max / peers);
++    const uint16_t ue_cap = cand->UE->UE_sched_ctrl.dl_max_rbSize;
++    if (ue_cap > 0)
++      max_rbs[j] = min(max_rbs[j], (int)ue_cap);
+     target_rbs[j] = min(target_rbs[j], max_rbs[j]);
+   }
+
+@@ -410,6 +417,8 @@ int nr_dl_proportional_fair(const nr_dl_sched_params_t *params, nr_dl_candidate_
+     nr_dl_candidate_t *cand = order[j];
+     if (cand->is_retx || cand->pending_bytes == 0)
+       continue;
++    if (max_rbs[j] < min_rbSize)
++      continue;
+
+     // calculate the number of RBs that UE would like to have
+     int mcs = cand->sched_pdsch.mcs;
+@@ -429,7 +438,7 @@ int nr_dl_proportional_fair(const nr_dl_sched_params_t *params, nr_dl_candidate_
+                   dmrs.N_PRB_DMRS * dmrs.N_DMRS_SLOT,
+                   cand->pending_bytes + oh,
+                   min_rbSize,
+-                  max_rbSize,
++                  max_rbs[j],
+                   &tbs,
+                   &rbs_ue[j]);
+     if (n < n_remain_ue) {
+diff --git a/openair2/RRC/NR/rrc_gNB.c b/openair2/RRC/NR/rrc_gNB.c
+index 5193d217e4..14639b3f34 100644
+--- a/openair2/RRC/NR/rrc_gNB.c
++++ b/openair2/RRC/NR/rrc_gNB.c
+@@ -24,6 +24,7 @@
+ #include "F1AP_CauseRadioNetwork.h"
+ #include "NGAP_CauseRadioNetwork.h"
+ #include "openair2/LAYER2/NR_MAC_COMMON/nr_mac.h"
++#include "openair2/LAYER2/NR_MAC_gNB/mac_proto.h"
+ #include "OCTET_STRING.h"
+ #include "RRC/NR/MESSAGES/asn1_msg.h"
+ #include "RRC/NR/mac_rrc_dl.h"
+@@ -3614,6 +3615,67 @@ static const nr_neighbour_cell_t *get_neighbour_cell_by_nrcell_id(const neighbou
+   return NULL;
+ }
+
++enum {
++  NR_RRC_E2_STYLE2_ACTION_UE_DL_PRB_CAP = 102,
++  NR_RRC_E2_STYLE2_ACTION_UE_PF_WEIGHT = 103,
++};
++
++static void rrc_gNB_process_e2_style2_ue_control_req(gNB_RRC_INST *rrc,
++                                                     const nr_rrc_e2_style2_ue_control_req_t *req)
++{
++  rrc_gNB_ue_context_t *ue_context = rrc_gNB_get_ue_context(rrc, req->rrc_ue_id);
++  if (ue_context == NULL) {
++    LOG_E(NR_RRC, "E2 Style 2 UE control: no UE context for rrc_ue_id %u, deferred apply dropped\n", req->rrc_ue_id);
++    return;
++  }
++  if (RC.nrmac[0] == NULL) {
++    LOG_E(NR_RRC, "E2 Style 2 UE control: MAC instance is not ready, deferred apply dropped\n");
++    return;
++  }
++
++  const rnti_t rnti = ue_context->ue_context.rnti;
++  gNB_MAC_INST *mac = RC.nrmac[0];
++  NR_SCHED_LOCK(&mac->sched_lock);
++  NR_UE_info_t *mac_ue = find_nr_UE(&mac->UE_info, rnti);
++  if (mac_ue == NULL) {
++    NR_SCHED_UNLOCK(&mac->sched_lock);
++    LOG_E(NR_RRC,
++          "E2 Style 2 UE control: no MAC UE for rrc_ue_id %u/RNTI %04x, deferred apply dropped\n",
++          req->rrc_ue_id,
++          rnti);
++    return;
++  }
++
++  switch (req->action_id) {
++    case NR_RRC_E2_STYLE2_ACTION_UE_DL_PRB_CAP:
++      mac_ue->UE_sched_ctrl.dl_max_rbSize = req->max_dl_prbs;
++      break;
++    case NR_RRC_E2_STYLE2_ACTION_UE_PF_WEIGHT:
++      mac_ue->UE_sched_ctrl.pf_weight = (float)req->pf_weight;
++      break;
++    default:
++      NR_SCHED_UNLOCK(&mac->sched_lock);
++      LOG_E(NR_RRC, "E2 Style 2 UE control: unsupported deferred action %u dropped\n", req->action_id);
++      return;
++  }
++  NR_SCHED_UNLOCK(&mac->sched_lock);
++
++  if (req->action_id == NR_RRC_E2_STYLE2_ACTION_UE_DL_PRB_CAP)
++    LOG_I(NR_RRC,
++          "E2 Style 2 / Action %u applied: rrc_ue_id=%u RNTI=%04x maxDlPrbs=%u\n",
++          req->action_id,
++          req->rrc_ue_id,
++          rnti,
++          req->max_dl_prbs);
++  else
++    LOG_I(NR_RRC,
++          "E2 Style 2 / Action %u applied: rrc_ue_id=%u RNTI=%04x pfWeight=%.3f\n",
++          req->action_id,
++          req->rrc_ue_id,
++          rnti,
++          req->pf_weight);
++}
++
+ static void rrc_gNB_process_e2_handover_control_req(gNB_RRC_INST *rrc, const nr_rrc_e2_ho_control_req_t *req)
+ {
+   /* Every early return below leaves the RAN state exactly as it was; no
+@@ -3748,6 +3810,10 @@ void *rrc_gnb_task(void *args_p)
+         rrc_gNB_process_e2_handover_control_req(RC.nrrrc[0], &NR_RRC_E2_HANDOVER_CONTROL_REQ(msg_p));
+         break;
+
++      case NR_RRC_E2_STYLE2_UE_CONTROL_REQ:
++        rrc_gNB_process_e2_style2_ue_control_req(RC.nrrrc[0], &NR_RRC_E2_STYLE2_UE_CONTROL_REQ(msg_p));
++        break;
++
+       case MESSAGE_TEST:
+         LOG_I(NR_RRC, "[gNB %ld] Received %s\n", instance, msg_name_p);
+         break;

@@ -1,0 +1,24 @@
+# Runtime dependencies for the offline experiment stack.
+# Python 3.12 (stdlib-only core; experiments/metrics.py must stay stdlib-only).
+matplotlib==3.11.0
+
+# gui/dashboard.py import compatibility only.
+numpy==2.5.1
+
+# O-RAN contract validation (JSON Schema Draft 2020-12).  oran.contract.validator
+# turns formats into assertions rather than annotations, which the oran-aic/1.0.0
+# profile requires, and rfc3339-validator is what backs the date-time assertion.
+# referencing carries the registry that resolves the vendored $id URNs offline,
+# so a schema is never fetched over the network.
+jsonschema==4.25.0
+referencing==0.37.0
+rfc3339-validator==0.1.4
+requests==2.34.2
+
+# Optional, live LLM backends only (lazily imported in decision/llm_backend.py;
+# not required for --mode synthetic / emulated or the test suite):
+# anthropic              (claude-* backends)
+# openai                 (gpt-* backends AND the LiteLLM local-server
+#                         proxy, which speaks the OpenAI-compatible API)
+# google-generativeai    (gemini-* backends)
+# requests is included above for the native Ollama adapter and offline tests.

@@ -1,0 +1,18 @@
+{
+  "case": "unknown-schema-version",
+  "expect": {
+    "detailContains": [
+      "oran-aic-upper-live-o1-harness-capture/3.0.0",
+      "2.0.0"
+    ],
+    "kind": "SCHEMA_MISMATCH"
+  },
+  "mutations": [
+    {
+      "op": "set",
+      "pointer": "/schemaVersion",
+      "value": "oran-aic-upper-live-o1-harness-capture/3.0.0"
+    }
+  ],
+  "why": "A capture schemaVersion this build does not vendor must not be pattern-matched onto a known one."
+}

@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""``upper-bilateral-mock`` launcher (DESIGN.md section 2, D-1).
+
+Stdlib only, and no absolute path anywhere: every location is derived from this
+file's own ``__file__``.  Two things must happen *before* the first
+``import oran.*``:
+
+1. ``ORAN_CONTRACT_AUTHORITY`` must name the release's frozen contract root.
+   ``oran/contract/__init__.py`` runs ``verify_contract_authority()`` at import
+   time and ``oran/contract/digests.py`` defaults the root to a sibling of the
+   ``oran`` package -- which is wrong here, because the release puts the runtime
+   under ``lib/oran/**`` while ``contracts/`` sits at the archive root.
+2. ``<release>/lib`` must be the first entry on ``sys.path`` so the packaged
+   runtime is imported, never a copy that happens to be installed elsewhere.
+
+Both are done here, in that order.  Getting either wrong fails closed at import,
+which is correct but unhelpful, so it is done once and only here.
+
+This file also works unchanged inside the source repository (``bin/ubm``): the
+``lib`` directory is then absent and the repository root is used instead.
+"""
+
+import os
+import sys
+from pathlib import Path
+
+RELEASE_ROOT = Path(__file__).resolve().parent.parent
+CONTRACT_AUTHORITY = RELEASE_ROOT / "contracts" / "oran-aic" / "1.0.1"
+LIB_DIR = RELEASE_ROOT / "lib"
+
+
+def main() -> int:
+    os.environ.setdefault("ORAN_CONTRACT_AUTHORITY", str(CONTRACT_AUTHORITY))
+    import_root = LIB_DIR if LIB_DIR.is_dir() else RELEASE_ROOT
+    entry = str(import_root)
+    while entry in sys.path:
+        sys.path.remove(entry)
+    sys.path.insert(0, entry)
+    from oran.release.ubm.cli import main as cli_main
+
+    return int(cli_main(sys.argv[1:]))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

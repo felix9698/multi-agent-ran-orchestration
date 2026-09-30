@@ -1,0 +1,18 @@
+--- a/openair2/LAYER2/NR_MAC_gNB/mac_rrc_dl_handler.c	2026-09-23 21:17:04.096442088 +0900
++++ b/openair2/LAYER2/NR_MAC_gNB/mac_rrc_dl_handler.c	2026-09-23 21:17:17.038577883 +0900
+@@ -666,6 +666,15 @@
+       LOG_I(NR_MAC, "UE %04x: Re-establishing RLC for LCID %d\n", UE->rnti, lcid);
+       asn1cCallocOne(addmod->list.array[i]->reestablishRLC, NR_RLC_BearerConfig__reestablishRLC_true);
+     }
++    /* rlc-BearerToAddModList is SIZE(1..maxLC-ID).  A UE that re-establishes before any
++     * DRB exists carries SRB1 only; removing it above left an empty list that UPER cannot
++     * encode ("Could not encode CellGroup" -> AssertFatal -> gNB exits, seen 2026-09-23).
++     * An absent list is the valid encoding of "nothing to add or modify". */
++    if (addmod->list.count == 0) {
++      asn_sequence_empty(&addmod->list);
++      free(addmod);
++      new_CellGroup->rlc_BearerToAddModList = NULL;
++    }
+   }
+ }
+ 

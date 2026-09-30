@@ -1,0 +1,281 @@
+[
+ {
+  "action_offsets": {
+   "bs1": 0.0,
+   "bs2": 0.0
+  },
+  "method": "llm_with_history",
+  "phase": "Nominal",
+  "phase_idx": 0,
+  "phase_label": "p0:Nominal",
+  "step_idx": 0,
+  "t_s": 0.0,
+  "trial_id": 1,
+  "ue_kpis": {
+   "ue1": {
+    "gnb_ul_avg_rsrp_dbm": -92.5,
+    "gnb_ul_snr_db": 14.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 4.1,
+    "ue_dl_sinr_db": 12.5,
+    "ue_dl_ss_rsrp_dbm": -88.0
+   },
+   "ue2": {
+    "gnb_ul_avg_rsrp_dbm": -95.0,
+    "gnb_ul_snr_db": 11.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 3.7,
+    "ue_dl_sinr_db": 9.5,
+    "ue_dl_ss_rsrp_dbm": -91.0
+   }
+  }
+ },
+ {
+  "action_offsets": {
+   "bs1": 0.0,
+   "bs2": 0.0
+  },
+  "method": "llm_with_history",
+  "phase": "Nominal",
+  "phase_idx": 0,
+  "phase_label": "p0:Nominal",
+  "step_idx": 1,
+  "t_s": 15.0,
+  "trial_id": 1,
+  "ue_kpis": {
+   "ue1": {
+    "gnb_ul_avg_rsrp_dbm": -93.5,
+    "gnb_ul_snr_db": 13.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 4.2,
+    "ue_dl_sinr_db": 11.5,
+    "ue_dl_ss_rsrp_dbm": -89.0
+   },
+   "ue2": {
+    "gnb_ul_avg_rsrp_dbm": -96.0,
+    "gnb_ul_snr_db": 10.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 3.8,
+    "ue_dl_sinr_db": 8.5,
+    "ue_dl_ss_rsrp_dbm": -92.0
+   }
+  }
+ },
+ {
+  "action_offsets": {
+   "bs1": 0.0,
+   "bs2": 0.0
+  },
+  "method": "llm_with_history",
+  "phase": "Nominal",
+  "phase_idx": 0,
+  "phase_label": "p0:Nominal",
+  "step_idx": 2,
+  "t_s": 30.0,
+  "trial_id": 1,
+  "ue_kpis": {
+   "ue1": {
+    "gnb_ul_avg_rsrp_dbm": -94.5,
+    "gnb_ul_snr_db": 12.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 4.3,
+    "ue_dl_sinr_db": 10.5,
+    "ue_dl_ss_rsrp_dbm": -90.0
+   },
+   "ue2": {
+    "gnb_ul_avg_rsrp_dbm": -97.0,
+    "gnb_ul_snr_db": 9.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 3.9,
+    "ue_dl_sinr_db": 7.5,
+    "ue_dl_ss_rsrp_dbm": -93.0
+   }
+  }
+ },
+ {
+  "action_offsets": {
+   "bs1": 0.0,
+   "bs2": -1.5
+  },
+  "method": "llm_with_history",
+  "phase": "Congestion",
+  "phase_idx": 1,
+  "phase_label": "p1:Congestion",
+  "step_idx": 3,
+  "t_s": 45.0,
+  "trial_id": 1,
+  "ue_kpis": {
+   "ue1": {
+    "gnb_ul_avg_rsrp_dbm": -92.5,
+    "gnb_ul_snr_db": 14.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 1.9,
+    "ue_dl_sinr_db": 12.5,
+    "ue_dl_ss_rsrp_dbm": -88.0
+   },
+   "ue2": {
+    "gnb_ul_avg_rsrp_dbm": -95.0,
+    "gnb_ul_snr_db": 11.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 1.5,
+    "ue_dl_sinr_db": 9.5,
+    "ue_dl_ss_rsrp_dbm": -91.0
+   }
+  }
+ },
+ {
+  "action_offsets": {
+   "bs1": 0.0,
+   "bs2": -1.5
+  },
+  "method": "llm_with_history",
+  "phase": "Congestion",
+  "phase_idx": 1,
+  "phase_label": "p1:Congestion",
+  "step_idx": 4,
+  "t_s": 60.0,
+  "trial_id": 1,
+  "ue_kpis": {
+   "ue1": {
+    "gnb_ul_avg_rsrp_dbm": -93.5,
+    "gnb_ul_snr_db": 13.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 2.0,
+    "ue_dl_sinr_db": 11.5,
+    "ue_dl_ss_rsrp_dbm": -89.0
+   },
+   "ue2": {
+    "gnb_ul_avg_rsrp_dbm": -96.0,
+    "gnb_ul_snr_db": 10.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": null,
+    "ue_dl_sinr_db": 8.5,
+    "ue_dl_ss_rsrp_dbm": -92.0
+   }
+  }
+ },
+ {
+  "action_offsets": {
+   "bs1": 0.0,
+   "bs2": -1.5
+  },
+  "method": "llm_with_history",
+  "phase": "Congestion",
+  "phase_idx": 1,
+  "phase_label": "p1:Congestion",
+  "step_idx": 5,
+  "t_s": 75.0,
+  "trial_id": 1,
+  "ue_kpis": {
+   "ue1": {
+    "gnb_ul_avg_rsrp_dbm": -94.5,
+    "gnb_ul_snr_db": 12.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 2.1,
+    "ue_dl_sinr_db": 10.5,
+    "ue_dl_ss_rsrp_dbm": -90.0
+   },
+   "ue2": {
+    "gnb_ul_avg_rsrp_dbm": -97.0,
+    "gnb_ul_snr_db": 9.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 1.7,
+    "ue_dl_sinr_db": 7.5,
+    "ue_dl_ss_rsrp_dbm": -93.0
+   }
+  }
+ },
+ {
+  "action_offsets": {
+   "bs1": 0.0,
+   "bs2": -1.5
+  },
+  "method": "llm_with_history",
+  "phase": "Recovery",
+  "phase_idx": 2,
+  "phase_label": "p2:Recovery",
+  "step_idx": 6,
+  "t_s": 90.0,
+  "trial_id": 1,
+  "ue_kpis": {
+   "ue1": {
+    "gnb_ul_avg_rsrp_dbm": -92.5,
+    "gnb_ul_snr_db": 14.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 3.7,
+    "ue_dl_sinr_db": 12.5,
+    "ue_dl_ss_rsrp_dbm": -88.0
+   },
+   "ue2": {
+    "gnb_ul_avg_rsrp_dbm": -95.0,
+    "gnb_ul_snr_db": 11.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 3.3,
+    "ue_dl_sinr_db": 9.5,
+    "ue_dl_ss_rsrp_dbm": -91.0
+   }
+  }
+ },
+ {
+  "action_offsets": {
+   "bs1": 0.0,
+   "bs2": -1.5
+  },
+  "method": "llm_with_history",
+  "phase": "Recovery",
+  "phase_idx": 2,
+  "phase_label": "p2:Recovery",
+  "step_idx": 7,
+  "t_s": 105.0,
+  "trial_id": 1,
+  "ue_kpis": {
+   "ue1": {
+    "gnb_ul_avg_rsrp_dbm": -93.5,
+    "gnb_ul_snr_db": 13.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 3.8,
+    "ue_dl_sinr_db": 11.5,
+    "ue_dl_ss_rsrp_dbm": -89.0
+   },
+   "ue2": {
+    "gnb_ul_avg_rsrp_dbm": -96.0,
+    "gnb_ul_snr_db": 10.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 3.4,
+    "ue_dl_sinr_db": 8.5,
+    "ue_dl_ss_rsrp_dbm": -92.0
+   }
+  }
+ },
+ {
+  "action_offsets": {
+   "bs1": 0.0,
+   "bs2": -1.5
+  },
+  "method": "llm_with_history",
+  "phase": "Recovery",
+  "phase_idx": 2,
+  "phase_label": "p2:Recovery",
+  "step_idx": 8,
+  "t_s": 120.0,
+  "trial_id": 1,
+  "ue_kpis": {
+   "ue1": {
+    "gnb_ul_avg_rsrp_dbm": -94.5,
+    "gnb_ul_snr_db": 12.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 3.9,
+    "ue_dl_sinr_db": 10.5,
+    "ue_dl_ss_rsrp_dbm": -90.0
+   },
+   "ue2": {
+    "gnb_ul_avg_rsrp_dbm": -97.0,
+    "gnb_ul_snr_db": 9.0,
+    "radio_source": "gnb_mac_stats+ue_modem",
+    "throughput_mbps": 3.5,
+    "ue_dl_sinr_db": 7.5,
+    "ue_dl_ss_rsrp_dbm": -93.0
+   }
+  }
+ }
+]

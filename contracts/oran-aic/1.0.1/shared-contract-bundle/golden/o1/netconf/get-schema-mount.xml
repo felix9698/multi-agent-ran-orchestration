@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="100">
+  <get>
+    <filter type="subtree">
+      <schema-mounts xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-schema-mount">
+        <mount-point>
+          <module>_3gpp-common-subnetwork</module>
+          <label>children-of-SubNetwork</label>
+        </mount-point>
+      </schema-mounts>
+      <SubNetwork xmlns="urn:3gpp:sa5:_3gpp-common-subnetwork">
+        <id>oran-lab</id>
+        <yang-library xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-library"/>
+      </SubNetwork>
+    </filter>
+  </get>
+</rpc>

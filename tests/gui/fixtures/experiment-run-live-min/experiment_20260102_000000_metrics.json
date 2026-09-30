@@ -1,0 +1,67 @@
+{
+  "_meta": {
+    "config": {
+      "c_episode": 900.0,
+      "carry_calibration": false,
+      "intent_config": {
+        "bs_ids": [
+          "bs1",
+          "bs2"
+        ],
+        "power_offset_limit_db": 3.0,
+        "throughput_target_mbps": 3.5,
+        "ue_ids": [
+          "ue1",
+          "ue2"
+        ]
+      },
+      "kpi_interval_s": 15.0,
+      "phases": [
+        {
+          "name": "Nominal"
+        },
+        {
+          "name": "Congestion"
+        },
+        {
+          "name": "Recovery"
+        }
+      ],
+      "skip_unwired": true,
+      "steps_per_phase": 3,
+      "tau_trial_s": 15.0
+    },
+    "git_hash": "fixture",
+    "history": {
+      "policy": "online",
+      "reset_scope": "run"
+    },
+    "mode": "live",
+    "model_switch_audit": [],
+    "paper_export": "use PairedBlockRunner.paper_export over a paired attested live_ota run; a non-paired run is not paper data",
+    "paper_ready": false,
+    "probe": {
+      "direction": "downlink",
+      "duration_s": 10,
+      "mode": "goodput",
+      "protocol": "udp"
+    },
+    "provenance_note": "hand-built replay fixture: the values are illustrative, not measured, and no result in this repository is derived from them",
+    "seed": 4242,
+    "theta_mode": "adaptive"
+  },
+  "llm_with_history": {
+    "negotiation_rate": {
+      "n": 1,
+      "rate": 0.0
+    },
+    "rollback_rate": {
+      "n": 1,
+      "rate": 0.0
+    },
+    "strict_joint": {
+      "n": 9,
+      "satisfied_fraction": 0.667
+    }
+  }
+}

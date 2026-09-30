@@ -1,0 +1,20 @@
+{
+  "schema": "oran-aic-phase-b-gui-profile/1.0.0",
+  "profileId": "operator-configured-deployment",
+  "label": "My O-RAN deployment (configure before Live)",
+  "description": "Example only. Supply real local integration/binding/capability files; this is not an issued live deployment.",
+  "integrationValuesPath": "local/integration-values.json",
+  "capabilityManifestPath": "local/capability.json",
+  "runsRoot": "../outputs/live-runs",
+  "llmBackend": null,
+  "recording": true,
+  "refreshIntervalMs": 250,
+  "metricSelection": ["RRU.PrbDl", "DRB.UEThpDl"],
+  "intentDefaults": [],
+  "liveConsole": {
+    "assuranceBindingPath": "local/assurance-binding.json",
+    "producerDatabasePath": "local/a1p-producer.sqlite3",
+    "r1StateDir": "../outputs/r1-state",
+    "evidenceDir": "../outputs/live-evidence"
+  }
+}

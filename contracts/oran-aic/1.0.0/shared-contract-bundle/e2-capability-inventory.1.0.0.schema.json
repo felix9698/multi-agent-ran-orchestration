@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:oran-aic:schema:e2-capability-inventory:1.0.0",
+  "title": "Observed per-connection E2 capability inventory",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "contractProfile", "releaseManifestSha256", "generatedAt", "status", "connections"],
+  "properties": {
+    "schemaVersion": { "const": "oran-aic-e2-capability-inventory/1.0.0" },
+    "contractProfile": { "const": "oran-aic/1.0.0" },
+    "releaseManifestSha256": { "$ref": "#/$defs/Sha256" },
+    "generatedAt": { "$ref": "#/$defs/UtcDateTime" },
+    "status": { "type": "string", "enum": ["READY", "NOT_READY"] },
+    "connections": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/Connection" }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "status": { "const": "READY" } },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "connections": {
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "properties": {
+                "active": { "const": true },
+                "ranFunctions": {
+                  "items": {
+                    "properties": { "active": { "const": true } },
+                    "required": ["active"]
+                  }
+                }
+              },
+              "required": ["active", "ranFunctions"]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "x-oran-aic-semanticConstraints": [
+    {
+      "id": "CANONICAL_GLOBAL_E2_NODE_ID_ENCODING",
+      "assertion": "every connections[].globalE2NodeId BitStringIdentity.hex is lowercase 0x followed by exactly ceil(bitLength/4) hexadecimal digits, unused high-order padding bits are zero, and plmn.mnc character length equals plmn.mncDigitLength; identity equality is byte equality of RFC8785 canonical JSON",
+      "failureMode": "NOT_READY_AND_ZERO_WRITE"
+    },
+    {
+      "id": "READY_DISTINCT_ACTIVE_NODE_IDS",
+      "appliesWhen": "status == READY",
+      "assertion": "connections contains exactly two entries, both active, with pairwise-distinct RFC8785-canonical globalE2NodeId values; each entry contains exactly one active ORAN-E2SM-KPM function with ranFunctionId 2 and exactly one active ORAN-E2SM-RC function with ranFunctionId 3",
+      "failureMode": "NOT_READY_AND_ZERO_WRITE"
+    },
+    {
+      "id": "ONE_ACTIVE_EPOCH_PER_NODE",
+      "assertion": "at most one active connectionEpoch exists for each RFC8785-canonical globalE2NodeId",
+      "failureMode": "NOT_READY_AND_ZERO_WRITE"
+    },
+    {
+      "id": "READY_STATIC_CAPABILITY_EXACT_MATCH",
+      "appliesWhen": "status == READY",
+      "assertion": "against the digest-pinned capability manifest selected by integration values, the set of RFC8785-canonical active connections[].globalE2NodeId values exactly equals e2Deployment.nodes[].globalE2NodeId and, for each identity, active KPM 2 and RC 3 OID, revision, raw definition digest, canonical decoded definition digest, E2AP version, transfer syntax, module set, RC profile and build provenance exactly match the static binding and release manifest",
+      "failureMode": "NOT_READY_AND_ZERO_WRITE"
+    }
+  ],
+  "$defs": {
+    "UtcDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z$"
+    },
+    "Sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "Artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "sha256": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "Plmn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mcc", "mnc", "mncDigitLength"],
+      "properties": {
+        "mcc": { "type": "string", "pattern": "^[0-9]{3}$" },
+        "mnc": { "type": "string", "pattern": "^[0-9]{2,3}$" },
+        "mncDigitLength": { "type": "integer", "enum": [2, 3] }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "mncDigitLength": { "const": 2 } },
+            "required": ["mncDigitLength"]
+          },
+          "then": { "properties": { "mnc": { "pattern": "^[0-9]{2}$" } } },
+          "else": { "properties": { "mnc": { "pattern": "^[0-9]{3}$" } } }
+        }
+      ]
+    },
+    "BitStringIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hex", "bitLength"],
+      "properties": {
+        "hex": { "type": "string", "pattern": "^0x[0-9a-f]+$" },
+        "bitLength": { "type": "integer", "minimum": 1, "maximum": 64 }
+      }
+    },
+    "GlobalE2NodeId": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeType", "plmn", "nodeId"],
+      "properties": {
+        "nodeType": { "type": "string", "enum": ["GNB", "EN_GNB", "NG_ENB", "ENB"] },
+        "plmn": { "$ref": "#/$defs/Plmn" },
+        "nodeId": { "$ref": "#/$defs/BitStringIdentity" },
+        "cuDuComponentId": { "$ref": "#/$defs/BitStringIdentity" }
+      }
+    },
+    "KpmStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["styleType", "actionDefinitionFormat", "indicationHeaderFormat", "indicationMessageFormat", "measurements"],
+      "properties": {
+        "styleType": { "type": "integer", "enum": [1, 4] },
+        "actionDefinitionFormat": { "type": "integer", "minimum": 1 },
+        "indicationHeaderFormat": { "type": "integer", "minimum": 1 },
+        "indicationMessageFormat": { "type": "integer", "minimum": 1 },
+        "measurements": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "measurementType", "labels"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1, "maxLength": 255 },
+              "measurementType": { "type": "string", "enum": ["NAME", "ID"] },
+              "labels": { "type": "array", "uniqueItems": true, "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "RanParameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "valueType", "mandatory", "minOccurs", "maxOccurs", "children"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "valueType": { "type": "string", "enum": ["ELEMENT", "STRUCTURE", "LIST"] },
+        "wireChoice": { "type": "string", "minLength": 1 },
+        "mandatory": { "type": "boolean" },
+        "minOccurs": { "type": "integer", "minimum": 0 },
+        "maxOccurs": { "type": "integer", "minimum": 1 },
+        "constraints": { "type": "object" },
+        "children": { "type": "array", "items": { "$ref": "#/$defs/RanParameter" } }
+      }
+    },
+    "RcCapability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["styleType", "actionId", "headerFormat", "messageFormat", "outcomeFormat", "ranParameterTree", "nrCgiEncodingProfileSha256"],
+      "properties": {
+        "styleType": { "const": 3 },
+        "actionId": { "const": 1 },
+        "headerFormat": { "const": 1 },
+        "messageFormat": { "const": 1 },
+        "outcomeFormat": { "const": 1 },
+        "ranParameterTree": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/RanParameter" },
+          "contains": { "properties": { "id": { "const": 1 }, "mandatory": { "const": true } }, "required": ["id", "mandatory"] }
+        },
+        "nrCgiEncodingProfileSha256": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "RanFunction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ranFunctionId",
+        "ranFunctionRevision",
+        "ranFunctionOid",
+        "shortName",
+        "serviceModelVersion",
+        "rawDefinition",
+        "decodedDefinition",
+        "canonicalDefinition",
+        "moduleSetSha256",
+        "observedAt",
+        "active",
+        "capability"
+      ],
+      "properties": {
+        "ranFunctionId": { "type": "integer", "enum": [2, 3] },
+        "ranFunctionRevision": { "type": "integer", "enum": [1, 2] },
+        "ranFunctionOid": { "type": "string", "enum": ["1.3.6.1.4.1.53148.1.2.2.2", "1.3.6.1.4.1.53148.1.1.2.3"] },
+        "shortName": { "type": "string", "enum": ["ORAN-E2SM-KPM", "ORAN-E2SM-RC"] },
+        "serviceModelVersion": { "type": "string", "enum": ["2.03", "1.03"] },
+        "rawDefinition": { "$ref": "#/$defs/Artifact" },
+        "decodedDefinition": { "$ref": "#/$defs/Artifact" },
+        "canonicalDefinition": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["algorithm", "toolVersion", "sha256"],
+          "properties": {
+            "algorithm": { "const": "RFC8785_JSON" },
+            "toolVersion": { "type": "string", "minLength": 1 },
+            "sha256": { "$ref": "#/$defs/Sha256" }
+          }
+        },
+        "moduleSetSha256": { "$ref": "#/$defs/Sha256" },
+        "observedAt": { "$ref": "#/$defs/UtcDateTime" },
+        "active": { "type": "boolean" },
+        "capability": { "oneOf": [{ "$ref": "#/$defs/KpmCapability" }, { "$ref": "#/$defs/RcCapability" }] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "ranFunctionId": { "const": 2 } }, "required": ["ranFunctionId"] },
+          "then": {
+            "properties": {
+              "ranFunctionRevision": { "const": 2 },
+              "ranFunctionOid": { "const": "1.3.6.1.4.1.53148.1.2.2.2" },
+              "shortName": { "const": "ORAN-E2SM-KPM" },
+              "serviceModelVersion": { "const": "2.03" },
+              "capability": { "$ref": "#/$defs/KpmCapability" }
+            }
+          },
+          "else": {
+            "properties": {
+              "ranFunctionRevision": { "const": 1 },
+              "ranFunctionOid": { "const": "1.3.6.1.4.1.53148.1.1.2.3" },
+              "shortName": { "const": "ORAN-E2SM-RC" },
+              "serviceModelVersion": { "const": "1.03" },
+              "capability": { "$ref": "#/$defs/RcCapability" }
+            }
+          }
+        }
+      ]
+    },
+    "KpmCapability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reportStyles"],
+      "properties": {
+        "reportStyles": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/KpmStyle" },
+          "allOf": [
+            { "contains": { "properties": { "styleType": { "const": 1 }, "actionDefinitionFormat": { "const": 1 }, "indicationHeaderFormat": { "const": 1 }, "indicationMessageFormat": { "const": 1 } }, "required": ["styleType", "actionDefinitionFormat", "indicationHeaderFormat", "indicationMessageFormat"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "styleType": { "const": 4 }, "actionDefinitionFormat": { "const": 4 }, "indicationHeaderFormat": { "const": 1 }, "indicationMessageFormat": { "const": 3 } }, "required": ["styleType", "actionDefinitionFormat", "indicationHeaderFormat", "indicationMessageFormat"] }, "minContains": 1, "maxContains": 1 }
+          ]
+        }
+      }
+    },
+    "Connection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["globalE2NodeId", "connectionEpoch", "associationId", "acceptedSetupAt", "e2apVersion", "transferSyntax", "rawE2SetupPdu", "decoderModuleSetSha256", "active", "ranFunctions"],
+      "properties": {
+        "globalE2NodeId": { "$ref": "#/$defs/GlobalE2NodeId" },
+        "connectionEpoch": { "type": "integer", "minimum": 1 },
+        "associationId": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "acceptedSetupAt": { "$ref": "#/$defs/UtcDateTime" },
+        "e2apVersion": { "const": "2.03" },
+        "transferSyntax": { "const": "APER" },
+        "rawE2SetupPdu": { "$ref": "#/$defs/Artifact" },
+        "decoderModuleSetSha256": { "$ref": "#/$defs/Sha256" },
+        "active": { "type": "boolean" },
+        "ranFunctions": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/RanFunction" },
+          "allOf": [
+            { "contains": { "properties": { "ranFunctionId": { "const": 2 } }, "required": ["ranFunctionId"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "ranFunctionId": { "const": 3 } }, "required": ["ranFunctionId"] }, "minContains": 1, "maxContains": 1 }
+          ]
+        }
+      }
+    }
+  }
+}

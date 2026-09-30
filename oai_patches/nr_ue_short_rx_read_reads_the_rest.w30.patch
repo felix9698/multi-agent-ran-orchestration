@@ -1,0 +1,24 @@
+--- a/executables/nr-ue.c
++++ b/executables/nr-ue.c
+@@ -1023,6 +1023,21 @@
+     const int readBlockSize = get_readBlockSize(slot_nr, fp) - iq_shift_to_apply;
+     openair0_timestamp_t rx_timestamp;
+     int tmp = nrue_ru_read(UE, &rx_timestamp, (void **)rxp, readBlockSize, fp->nb_antennas_rx);
++    /* A USRP overflow (seen right after the handover retune, "received 4737 samples out of
++     * 7680") returns a short block.  Read the rest instead of exiting: the slot is corrupt
++     * either way, and the sync loop recovers timing, while the assert killed the UE and
++     * its board (ue1 10:05, ue2 x5 since 09-24).  Give up only after 3 short reads. */
++    for (int retry = 0; tmp < readBlockSize && tmp >= 0 && retry < 3; retry++) {
++      void *rest[fp->nb_antennas_rx];
++      for (int a = 0; a < fp->nb_antennas_rx; a++)
++        rest[a] = (c16_t *)rxp[a] + tmp;
++      openair0_timestamp_t ts2;
++      LOG_W(PHY, "short RX read %d of %d samples (overflow?), reading the rest\n", tmp, readBlockSize);
++      int more = nrue_ru_read(UE, &ts2, rest, readBlockSize - tmp, fp->nb_antennas_rx);
++      if (more <= 0)
++        break;
++      tmp += more;
++    }
+     metadata meta = {.slot =  curMsg.proc.nr_slot_rx, .frame =  curMsg.proc.frame_rx};
+     UEscopeCopyWithMetadata(UE, ueTimeDomainSamples, rxp[0] - firstSymSamp, sizeof(c16_t), 1, readBlockSize, 0, &meta);
+     AssertFatal(readBlockSize == tmp, "");

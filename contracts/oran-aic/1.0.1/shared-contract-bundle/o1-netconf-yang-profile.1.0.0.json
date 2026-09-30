@@ -1,0 +1,301 @@
+{
+  "profileId": "oran-aic-o1-netconf-perfmetricjob/1.0.0",
+  "contractProfile": "oran-aic/1.0.0",
+  "normativeSources": {
+    "genericNrmYangSpecification": {
+      "id": "ETSI-TS-128-623",
+      "version": "18.7.0"
+    },
+    "o1InterfaceSpecification": {
+      "id": "ETSI-TS-104-043",
+      "version": "11.0.0"
+    },
+    "yangSnapshot": {
+      "repository": "https://forge.3gpp.org/rep/sa5/MnS",
+      "tag": "Tag_Rel18_SA104",
+      "commitSha1": "dfada043e1a54453af779367615ad71e2a631268"
+    },
+    "netconf": "RFC6241",
+    "netconfOverSsh": "RFC6242",
+    "yang": "RFC7950",
+    "yangLibrary": "RFC8525",
+    "yangSchemaMount": "RFC8528"
+  },
+  "transport": {
+    "protocol": "NETCONF_1_1_OVER_SSH",
+    "defaultPort": 830,
+    "serverHostKeyPinningRequired": true,
+    "clientPublicKeyAuthenticationRequired": true,
+    "requiredCapabilities": [
+      "urn:ietf:params:netconf:base:1.1",
+      "urn:ietf:params:netconf:capability:writable-running:1.0",
+      "urn:ietf:params:netconf:capability:validate:1.1",
+      "urn:ietf:params:netconf:capability:rollback-on-error:1.0",
+      "urn:ietf:params:netconf:capability:xpath:1.0"
+    ],
+    "targetDatastore": "running",
+    "lockDatastoreDuringMutation": true
+  },
+  "schemaMount": {
+    "schemaNode": "/_3gpp-common-subnetwork:SubNetwork",
+    "parentModule": "_3gpp-common-subnetwork",
+    "parentRevision": "2024-01-30",
+    "label": "children-of-SubNetwork",
+    "labelIsNotAnInstanceNode": true,
+    "configRequired": true,
+    "schemaReferenceKind": "inline",
+    "mountedRootModule": "_3gpp-common-managed-element",
+    "mountedRootRevision": "2024-01-30",
+    "requiredFeature": "MeasurementsUnderManagedElement",
+    "yangLibraryModule": "ietf-yang-library",
+    "yangLibraryRevision": "2019-01-04",
+    "schemaMountModule": "ietf-yang-schema-mount",
+    "schemaMountRevision": "2019-01-14",
+    "mountedYangLibraryInstancePath": "/SubNetwork[id='oran-lab']/ietf-yang-library:yang-library",
+    "mountedYangLibraryQueryRequired": true,
+    "requiredModuleSetMatchMode": "MINIMUM_REQUIRED_PLUS_COMPLETE_TRANSITIVE_IMPORT_CLOSURE",
+    "releaseVendoredTransitiveClosureRequired": true,
+    "releaseClosureManifestPointer": "/o1/yangModuleClosure",
+    "allImportsResolveOfflineRequired": true,
+    "perModuleVendoredPathAndSha256Required": true,
+    "requiredModuleFeatures": [
+      {
+        "module": "_3gpp-common-managed-element",
+        "revision": "2024-01-30",
+        "feature": "MeasurementsUnderManagedElement"
+      }
+    ],
+    "failOnMissingDuplicateOrRevisionMismatch": true
+  },
+  "moduleSet": [
+    {
+      "name": "_3gpp-common-subnetwork",
+      "revision": "2024-01-30",
+      "namespace": "urn:3gpp:sa5:_3gpp-common-subnetwork",
+      "source": "https://forge.3gpp.org/rep/sa5/MnS/-/raw/Tag_Rel18_SA104/yang-models/_3gpp-common-subnetwork.yang"
+    },
+    {
+      "name": "_3gpp-common-managed-element",
+      "revision": "2024-01-30",
+      "namespace": "urn:3gpp:sa5:_3gpp-common-managed-element",
+      "source": "https://forge.3gpp.org/rep/sa5/MnS/-/raw/Tag_Rel18_SA104/yang-models/_3gpp-common-managed-element.yang"
+    },
+    {
+      "name": "_3gpp-common-measurements",
+      "revision": "2024-05-06",
+      "namespace": "urn:3gpp:sa5:_3gpp-common-measurements",
+      "source": "https://forge.3gpp.org/rep/sa5/MnS/-/raw/Tag_Rel18_SA104/yang-models/_3gpp-common-measurements.yang",
+      "role": "GROUPING_DEFINITION_NOT_INSTANCE_NAMESPACE"
+    },
+    {
+      "name": "_3gpp-common-yang-types",
+      "revision": "2024-05-18",
+      "namespace": "urn:3gpp:sa5:_3gpp-common-yang-types",
+      "source": "https://forge.3gpp.org/rep/sa5/MnS/-/raw/Tag_Rel18_SA104/yang-models/_3gpp-common-yang-types.yang"
+    },
+    {
+      "name": "_3gpp-common-top",
+      "revision": "2023-09-18",
+      "namespace": "urn:3gpp:sa5:_3gpp-common-top",
+      "source": "https://forge.3gpp.org/rep/sa5/MnS/-/raw/Tag_Rel18_SA104/yang-models/_3gpp-common-top.yang"
+    },
+    {
+      "name": "_3gpp-common-yang-extensions",
+      "revision": "2024-04-05",
+      "namespace": "urn:3gpp:sa5:_3gpp-common-yang-extensions",
+      "source": "https://forge.3gpp.org/rep/sa5/MnS/-/raw/Tag_Rel18_SA104/yang-models/_3gpp-common-yang-extensions.yang"
+    },
+    {
+      "name": "_3gpp-common-files",
+      "revision": "2024-05-11",
+      "namespace": "urn:3gpp:sa5:_3gpp-common-files",
+      "source": "https://forge.3gpp.org/rep/sa5/MnS/-/raw/Tag_Rel18_SA104/yang-models/_3gpp-common-files.yang"
+    },
+    {
+      "name": "_3gpp-common-subscription-control",
+      "revision": "2024-05-18",
+      "namespace": "urn:3gpp:sa5:_3gpp-common-subscription-control",
+      "source": "https://forge.3gpp.org/rep/sa5/MnS/-/raw/Tag_Rel18_SA104/yang-models/_3gpp-common-subscription-control.yang"
+    },
+    {
+      "name": "_3gpp-common-fm",
+      "revision": "2024-05-12",
+      "namespace": "urn:3gpp:sa5:_3gpp-common-fm",
+      "source": "https://forge.3gpp.org/rep/sa5/MnS/-/raw/Tag_Rel18_SA104/yang-models/_3gpp-common-fm.yang"
+    },
+    {
+      "name": "_3gpp-common-trace",
+      "revision": "2024-05-12",
+      "namespace": "urn:3gpp:sa5:_3gpp-common-trace",
+      "source": "https://forge.3gpp.org/rep/sa5/MnS/-/raw/Tag_Rel18_SA104/yang-models/_3gpp-common-trace.yang"
+    },
+    {
+      "name": "_3gpp-5gc-nrm-configurable5qiset",
+      "revision": "2023-09-18",
+      "namespace": "urn:3gpp:sa5:_3gpp-5gc-nrm-configurable5qiset",
+      "source": "https://forge.3gpp.org/rep/sa5/MnS/-/raw/Tag_Rel18_SA104/yang-models/_3gpp-5gc-nrm-configurable5qiset.yang"
+    },
+    {
+      "name": "_3gpp-5gc-nrm-ecmconnectioninfo",
+      "revision": "2024-01-29",
+      "namespace": "urn:3gpp:sa5:_3gpp-5gc-nrm-ecmconnectioninfo",
+      "source": "https://forge.3gpp.org/rep/sa5/MnS/-/raw/Tag_Rel18_SA104/yang-models/_3gpp-5gc-nrm-ecmconnectioninfo.yang"
+    },
+    {
+      "name": "ietf-inet-types",
+      "revisionPolicy": "RELEASE_VENDORED_REVISION_MUST_MATCH_MOUNTED_YANG_LIBRARY",
+      "namespace": "urn:ietf:params:xml:ns:yang:ietf-inet-types",
+      "sourceAuthority": "RELEASE_VENDORED_MODULE"
+    },
+    {
+      "name": "ietf-yang-types",
+      "revisionPolicy": "RELEASE_VENDORED_REVISION_MUST_MATCH_MOUNTED_YANG_LIBRARY",
+      "namespace": "urn:ietf:params:xml:ns:yang:ietf-yang-types",
+      "sourceAuthority": "RELEASE_VENDORED_MODULE"
+    },
+    {
+      "name": "ietf-yang-schema-mount",
+      "revision": "2019-01-14",
+      "namespace": "urn:ietf:params:xml:ns:yang:ietf-yang-schema-mount",
+      "sourceAuthority": "RFC8528_AND_RELEASE_VENDORED_MODULE"
+    },
+    {
+      "name": "ietf-yang-library",
+      "revision": "2019-01-04",
+      "namespace": "urn:ietf:params:xml:ns:yang:ietf-yang-library",
+      "sourceAuthority": "RFC8525_AND_RELEASE_VENDORED_MODULE"
+    }
+  ],
+  "moduleSetSemantics": {
+    "role": "MINIMUM_REQUIRED_SET_NOT_A_COMPLETE_CLOSURE",
+    "releaseManifestSchema": "oran-aic-backend-release-manifest/1.0.0",
+    "releaseManifestPointer": "/o1/yangModuleClosure",
+    "completeVendoredTransitiveClosureRequired": true,
+    "additionalImportedModulesMustBeIncluded": true,
+    "everyVendoredModuleRequiresPathAndSha256": true,
+    "closureValidationReportRequired": true,
+    "mountedYangLibraryExactCrossCheckRequired": true,
+    "genericProfileDoesNotPinModuleByteDigests": true
+  },
+  "instance": {
+    "subNetworkId": "oran-lab",
+    "managedElementId": "oai-gnb",
+    "perfMetricJobId": "oran-aic-nrcelldu-60s",
+    "instancePath": "/SubNetwork[id='oran-lab']/ManagedElement[id='oai-gnb']/PerfMetricJob[id='oran-aic-nrcelldu-60s']",
+    "instanceNamespaceRule": "PerfMetricJob and all instantiated descendant nodes use urn:3gpp:sa5:_3gpp-common-managed-element",
+    "configuration": {
+      "createAdministrativeState": "LOCKED",
+      "activeAdministrativeState": "UNLOCKED",
+      "jobId": "oran-aic-nrcelldu-60s",
+      "performanceMetrics": [
+        "RRU.PrbDl",
+        "DRB.UEThpDl"
+      ],
+      "granularityPeriodSeconds": 60,
+      "fileReportingPeriodMinutes": 1,
+      "fileLocationPresence": "ABSENT",
+      "notificationRecipientAddressPresence": "ABSENT"
+    },
+    "readOnlyNodesForbiddenInEditConfig": [
+      "operationalState",
+      "_linkToFiles"
+    ],
+    "reportingCtrlWrapperForbidden": true
+  },
+  "rpcProfile": {
+    "defaultOperation": "none",
+    "testOption": "test-then-set",
+    "errorOption": "rollback-on-error",
+    "createOperation": "create",
+    "stateChangeOperation": "replace",
+    "deleteOperation": "delete"
+  },
+  "lifecycle": [
+    {
+      "ordinal": 1,
+      "state": "SCHEMA_VERIFIED",
+      "requestFixture": "golden/o1/netconf/get-schema-mount.xml",
+      "requirements": [
+        "mount point exists and config is true",
+        "schema reference is inline",
+        "the same RPC retrieves ietf-yang-library:yang-library from the concrete SubNetwork mount-point instance",
+        "mounted YANG Library advertises the pinned module revisions and MeasurementsUnderManagedElement feature",
+        "release /o1/yangModuleClosure supplies every transitive import as a vendored path and SHA-256 and its validation report proves that all imports resolve offline",
+        "mounted YANG Library module revisions and enabled features match the release-supplied closure"
+      ]
+    },
+    {
+      "ordinal": 2,
+      "state": "DATASTORE_LOCKED",
+      "requestFixture": "golden/o1/netconf/lock-running.xml",
+      "expectedReply": "ok"
+    },
+    {
+      "ordinal": 3,
+      "state": "JOB_CREATED_LOCKED",
+      "requestFixture": "golden/o1/netconf/create-perfmetricjob-locked.xml",
+      "expectedReply": "ok"
+    },
+    {
+      "ordinal": 4,
+      "state": "JOB_CONFIG_VERIFIED",
+      "requestFixture": "golden/o1/netconf/get-perfmetricjob.xml",
+      "expectedAdministrativeState": "LOCKED"
+    },
+    {
+      "ordinal": 5,
+      "state": "SUBSCRIPTION_DURABLE",
+      "externalPrecondition": "FileDataReportingMnS subscription returned 201 and its identifier is durably persisted"
+    },
+    {
+      "ordinal": 6,
+      "state": "JOB_UNLOCKED",
+      "requestFixture": "golden/o1/netconf/unlock-perfmetricjob.xml",
+      "expectedReply": "ok"
+    },
+    {
+      "ordinal": 7,
+      "state": "JOB_ACTIVE",
+      "requestFixture": "golden/o1/netconf/get-perfmetricjob.xml",
+      "eventualReadbackTimeoutMs": 30000,
+      "expectedAdministrativeState": "UNLOCKED",
+      "expectedOperationalState": "ENABLED"
+    },
+    {
+      "ordinal": 8,
+      "state": "DATASTORE_UNLOCKED",
+      "requestFixture": "golden/o1/netconf/unlock-running.xml",
+      "expectedReply": "ok"
+    }
+  ],
+  "teardown": [
+    {
+      "ordinal": 1,
+      "requestFixture": "golden/o1/netconf/lock-running.xml"
+    },
+    {
+      "ordinal": 2,
+      "requestFixture": "golden/o1/netconf/lock-perfmetricjob.xml"
+    },
+    {
+      "ordinal": 3,
+      "requestFixture": "golden/o1/netconf/delete-perfmetricjob.xml"
+    },
+    {
+      "ordinal": 4,
+      "requestFixture": "golden/o1/netconf/unlock-running.xml"
+    }
+  ],
+  "failClosed": [
+    "missing required NETCONF capability",
+    "missing or mismatched schema mount",
+    "missing required YANG module or feature",
+    "missing vendored YANG module path or SHA-256",
+    "unresolved transitive YANG import or closure validation failure",
+    "release YANG closure differs from mounted YANG Library",
+    "unexpected instance namespace",
+    "subscription not durable before unlock",
+    "edit-config or readback mismatch",
+    "operationalState not ENABLED before timeout"
+  ]
+}

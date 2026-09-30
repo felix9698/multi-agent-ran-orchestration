@@ -1,0 +1,17 @@
+{
+  "case": "wrong-typed-field",
+  "expect": {
+    "detailContains": [
+      "sequenceHighWaterMark"
+    ],
+    "kind": "SCHEMA_MISMATCH"
+  },
+  "mutations": [
+    {
+      "op": "set",
+      "pointer": "/run/sequenceHighWaterMark",
+      "value": "48"
+    }
+  ],
+  "why": "sequenceHighWaterMark as a string would silently break the ordering rule the timeline merge depends on."
+}

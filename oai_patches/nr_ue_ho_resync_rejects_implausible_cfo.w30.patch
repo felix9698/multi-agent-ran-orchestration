@@ -1,0 +1,35 @@
+--- a/executables/nr-ue.c	2026-09-24 12:55:28.278917739 +0900
++++ b/executables/nr-ue.c	2026-09-25 02:05:46.505379386 +0900
+@@ -208,7 +208,21 @@
+     ret = nr_initial_sync(&syncD->proc, UE, 2, syncD->gscnInfo, syncD->numGscn);
+   }
+ 
++  /* 2026-09-24: a handover re-sync runs on samples buffered around the retune, and its PSS
++   * frequency estimate came out 3-8 kHz (13 of 13 such handovers hit T304; every success was
++   * under 1.5 kHz, and the post-T304 re-sync on the same cell read ~500 Hz).  With continuous
++   * FO compensation that wrong start is never recovered inside T304.  Discard it and re-sync on
++   * fresh samples, a bounded number of times. */
++  static int ho_fo_retries = 0;
++  if (ret.cell_detected && abs(UE->common_vars.freq_offset) > 1500
++      && ho_fo_retries < 6) {
++    ho_fo_retries++;
++    LOG_W(PHY, "re-sync: PSS frequency estimate %d Hz is implausible, re-syncing on fresh samples (%d/6)\n",
++          UE->common_vars.freq_offset, ho_fo_retries);
++    ret.cell_detected = false;
++  }
+   if (ret.cell_detected) {
++    ho_fo_retries = 0;
+     syncD->rx_offset = ret.rx_offset;
+     int freq_offset = UE->common_vars.freq_offset; // frequency offset computed with pss in initial sync
+     if (!get_nrUE_params()->cont_fo_comp) {
+@@ -225,6 +239,10 @@
+         + round((float)((ret.rx_offset << 1) % fp->samples_per_subframe) / fp->samples_per_slot0);
+ 
+     UE->freq_offset = freq_offset - UE->dl_Doppler_shift;
++    /* 2026-09-25: the PI loop integrator (phy_procedures_nr_ue.c) is never reset, so after a handover it
++     * kept pulling the compensation toward the previous cell oscillator (a fresh process synced the same
++     * cell at once while the handed-over one failed PBCH 930 times).  A new sync is a new reference. */
++    UE->freq_off_acc = 0;
+     if (!get_nrUE_params()->cont_fo_comp) {
+       // rerun with new cell parameters and frequency-offset
+       nrue_ru_set_freq(UE, ul_carrier, dl_carrier, freq_offset);

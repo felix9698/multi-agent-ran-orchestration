@@ -1,0 +1,30 @@
+========================================================================
+5-PHASE INTENT-COORDINATION EXPERIMENT REPORT
+========================================================================
+Session: 20260101_000000
+C_episode budget: 500.0 Mbps*s
+Intents: I1 |bs2 offset| <= 3.0 dB, I2 throughput >= 8.0 Mbps
+
+method               strict-sat  rollback    nego    ECE  theta* N_max hardfail
+-------------------------------------------------------------------------------
+llm_no_history             0.0%     0.0%  75.0%  0.028   0.506     2        0
+                       (95% CI strict-sat: [0.000, 0.000], n=2; diag dual-sat avg=70.0%; windows 2 verifiable/0 invalid [all_verifiable]; ECE n=1, bins=5)
+                       strict detail: viol-area tput=88.70 Mbps*step power=0.00 dB*step; recovery mean=90.0s (rec=2,cens=0,unk=0); rollback-verified n/a (0/0, false=0,unk=0)
+
+Per-phase dual-intent satisfaction (DIAGNOSTIC SECONDARY; primary = strict joint):
+  llm_no_history       p0:Nominal=100%  p1:Degradation=50%  p2:Impairment=0%  p3:Recovery=100%  p4:Nominal=100%
+
+Cost parameters (DERIVED from measured episodes -> Eq.8/Eq.9):
+  llm_no_history       R_success=66.9 C_worst=125.0 C_nego=27.9 -> theta*=0.506 N_max=2  [* some components used priors]
+
+Component latency (P1-3, unit=ms; MEASURED samples only):
+  llm_no_history:
+    prompt_ms          mean=3.3ms (measured=4,unknown=0,missing=0) [measured]
+    inference_ms       mean=1414.4ms (measured=4,unknown=0,missing=0) [measured]
+    kpi_ms             mean=214.9ms (measured=4,unknown=0,missing=0) [measured]
+    action_ms          mean=305.7ms (measured=4,unknown=0,missing=0) [measured]
+    total_ms           mean=1938.4ms (measured=4,unknown=0,missing=0) [measured]
+    linkage: violations (4 record(s), 8 violation(s))
+
+Regret decomposition (P1-4, unit=Mbps*s; vs declared finite reference, NOT a global optimum):
+  llm_no_history       decision=287.1 (n=4/4,unk=0) exec=0.0 (n=0/0,unk=0) nego=83.8 (n=3/3,unk=0) hard=0.0 (n=0/0,unk=0) -> total=370.9

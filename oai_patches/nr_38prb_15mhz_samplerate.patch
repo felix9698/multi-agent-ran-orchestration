@@ -1,0 +1,18 @@
+diff --git a/common/utils/nr/nr_common.c b/common/utils/nr/nr_common.c
+index cd897f8949..e5a68d3b7b 100644
+--- a/common/utils/nr/nr_common.c
++++ b/common/utils/nr/nr_common.c
+@@ -912,6 +912,13 @@ void get_samplerate_and_bw(int mu,
+         *rx_bw = 10e6;
+       }
+       break;
++    case 38:
++      // 15 MHz / 30kHz SCS: 38 PRB = 456 subcarriers need FFT>=512, so only the
++      // full-rate 15.36e6 (FFT 512) works; three-quarter (FFT 384) cannot fit 456 SCs.
++      *sample_rate=15.36e6;
++      *tx_bw = 15e6;
++      *rx_bw = 15e6;
++      break;
+     default:
+       AssertFatal(0==1,"N_RB %d not yet supported for numerology %d\n",n_rb,mu);
+     }

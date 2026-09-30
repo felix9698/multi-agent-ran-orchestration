@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="MeasDataCollection.xsl"?>
+<measCollecFile xmlns="http://www.3gpp.org/ftp/specs/archive/32_series/32.435#measCollec">
+  <fileHeader fileFormatVersion="32.435 V10.0" vendorName="OAI">
+    <fileSender localDn="SubNetwork=oran-lab,ManagedElement=oai-gnb" elementType="O-DU"/>
+    <measCollec beginTime="2026-08-13T14:19:00Z"/>
+  </fileHeader>
+  <measData>
+    <managedElement localDn="SubNetwork=oran-lab,ManagedElement=oai-gnb" userLabel="oran-aic-oai-gnb" swVersion="oran-aic-o1-provider/1.0.4"/>
+    <measInfo measInfoId="oran-aic-pm">
+      <job jobId="oran-aic-nrcelldu-60s"/>
+      <granPeriod duration="PT60S" endTime="2026-08-13T14:20:00Z"/>
+      <repPeriod duration="PT60S"/>
+      <measType p="1">RRU.PrbDl</measType>
+      <measValue measObjLdn="GNBDUFunction=oai-du,NRCellDU=1">
+        <r p="1">30</r>
+        <suspect>false</suspect>
+      </measValue>
+      <measValue measObjLdn="GNBDUFunction=oai-du,NRCellDU=2">
+        <r p="1">40</r>
+        <suspect>false</suspect>
+      </measValue>
+    </measInfo>
+  </measData>
+  <fileFooter>
+    <measCollec endTime="2026-08-13T14:20:00Z"/>
+  </fileFooter>
+</measCollecFile>

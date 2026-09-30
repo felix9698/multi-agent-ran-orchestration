@@ -1,0 +1,17 @@
+--- a/common/utils/telnetsrv/telnetsrv_ci.c	2026-09-25 09:32:33.084732987 +0900
++++ b/common/utils/telnetsrv/telnetsrv_ci.c	2026-09-25 09:32:33.071733055 +0900
+@@ -263,7 +263,13 @@
+   if (!UE)
+     ERROR_MSG_RET("no UE with RNTI %04x in MAC\n", rnti);
+   NR_UE_sched_ctrl_t *sched_ctrl = &UE->UE_sched_ctrl;
+-  sched_ctrl->ul_failure_timer = 2;
++  /* Land on UL_FAILURE_REQ_GRACE (10000, gNB_scheduler_primitives.c) so the check asks the CU
++   * to release the UE (F1 UE Context Release Request -> RRCRelease + NGAP release); the DU
++   * drops it by itself only if the CU does not answer within the grace.  The old value 2
++   * skipped the request: the DU forgot the UE while the CU kept it, the UE re-established
++   * onto that CU context and got a DU context with SRB1 only -- its DRB was gone ("LCID 4:
++   * ignoring"), max RETX, re-establishment loop, frozen bearer (gnb2, 2026-09-25 09:11). */
++  sched_ctrl->ul_failure_timer = 10000 + 1;
+   nr_mac_check_ul_failure(RC.nrmac[0], UE->rnti, sched_ctrl);
+   return 0;
+ }

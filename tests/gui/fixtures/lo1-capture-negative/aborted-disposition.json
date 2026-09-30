@@ -1,0 +1,15 @@
+{
+  "case": "aborted-disposition",
+  "expect": {
+    "disposition": "FAILED",
+    "loads": true
+  },
+  "mutations": [
+    {
+      "op": "set",
+      "pointer": "/run/disposition",
+      "value": "ABORTED_GUARD"
+    }
+  ],
+  "why": "Only run.disposition COMPLETED maps to COMPLETED. Every other declared disposition is FAILED - a partial run is never summarized as success."
+}

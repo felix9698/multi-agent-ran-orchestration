@@ -1,0 +1,26 @@
+Respect B200 stream buffer args the operator already passed in --usrp-args.
+
+usrp_lib.cpp appended ",num_send_frames=256,num_recv_frames=256,send_frame_size=7680,
+recv_frame_size=7680" after the user args for every b200-type device, and UHD's
+device_addr_t keeps the LAST value of a repeated key, so --usrp-args
+num_recv_frames=512 was silently replaced by 256 x 7680 bytes (~32 ms of RX slack at
+15.36 Msps).  2026-09-15: 49 UE deaths on nr-ue.c:982 (readBlockSize == tmp) followed
+[recv] ERROR_CODE_OVERFLOW / ERROR_CODE_TIMEOUT.  The defaults are kept when the user
+did not give the key.
+
+--- a/radio/USRP/usrp_lib.cpp	2026-09-15 05:05:55.713656797 +0900
++++ b/radio/USRP/usrp_lib.cpp	2026-09-15 05:05:55.725656317 +0900
+@@ -1119,7 +1119,12 @@
+       device->type = USRP_B200_DEV;
+       usrp_master_clock = 30.72e6;
+       args += boost::str(boost::format(",master_clock_rate=%f") % usrp_master_clock);
+-      args += ",num_send_frames=256,num_recv_frames=256, send_frame_size=7680, recv_frame_size=7680" ;
++      // Only default what the operator did not set: UHD keeps the last value of a repeated key.
++      for (const char *kv : {"num_send_frames=256", "num_recv_frames=256", "send_frame_size=7680", "recv_frame_size=7680"}) {
++        const std::string key = std::string(kv).substr(0, std::string(kv).find('='));
++        if (args.find(key + "=") == std::string::npos)
++          args += std::string(",") + kv;
++      }
+     }
+ 
+     if (device_adds[0].get(type_str) == "n3xx") {

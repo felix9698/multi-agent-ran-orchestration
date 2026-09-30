@@ -1,0 +1,44 @@
+--- a/openair2/LAYER2/NR_MAC_UE/nr_ue_procedures.c
++++ b/openair2/LAYER2/NR_MAC_UE/nr_ue_procedures.c
+@@ -4030,6 +4030,7 @@
+ 
+   nr_rlc_data_ind_t data_ind[MAX_NUM_DATA_IND] = {0};
+   int num_data_ind = 0;
++  bool corrupt = false; // a subPDU that does not parse means the TB passed CRC by chance
+ 
+   while (!done && pdu_len > 0){
+     uint16_t mac_len = 0x0000;
+@@ -4048,6 +4049,7 @@
+           LOG_E(MAC, "get_mac_len(): invalid pdu_len %d (mac_len %d mac_subheader_len %d)\n",
+                 pdu_len, mac_len, mac_subheader_len);
+           done = 1;
++          corrupt = true;
+           break;
+         }
+ 
+@@ -4183,6 +4185,7 @@
+         if (!get_mac_len(pduP, pdu_len, &mac_len, &mac_subheader_len)) {
+           LOG_E(MAC, "get_mac_len(): invalid pdu_len %d (mac_len %d mac_subheader_len %d)\n", pdu_len, mac_len, mac_subheader_len);
+           done = 1;
++          corrupt = true;
+           break;
+         }
+         // discard the received subPDU if RB is suspended
+@@ -4204,9 +4207,17 @@
+     if (pdu_len < 0) {
+       LOG_E(MAC, "[UE %d][%d.%d] nr_ue_process_mac_pdu, residual mac pdu length %d < 0!\n", mac->ue_id, frameP, slot, pdu_len);
+       done = 1;
++      corrupt = true;
+     }
+   }
+ 
++  if (corrupt) {
++    // Delivering the subPDUs parsed before the error handed a garbage DL-CCCH to RRC as an
++    // RRCSetup while connected, and the UE stopped (ue3, 2026-09-24 09:28).  Drop the TB.
++    LOG_W(MAC, "[UE %d][%d.%d] dropping a MAC PDU that does not parse (%d subPDUs discarded)\n",
++          mac->ue_id, frameP, slot, num_data_ind);
++    return;
++  }
+   nr_mac_rlc_data_ind(mac->ue_id, mac->ue_id, false, data_ind, num_data_ind);
+ }
+ 

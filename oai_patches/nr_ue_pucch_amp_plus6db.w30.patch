@@ -1,0 +1,13 @@
+diff --git a/openair1/SCHED_NR_UE/pucch_uci_ue_nr.c b/openair1/SCHED_NR_UE/pucch_uci_ue_nr.c
+index f161235944..60b4f220ed 100644
+--- a/openair1/SCHED_NR_UE/pucch_uci_ue_nr.c
++++ b/openair1/SCHED_NR_UE/pucch_uci_ue_nr.c
+@@ -153,7 +153,7 @@ void pucch_procedures_ue_nr(PHY_VARS_NR_UE *ue,
+                              nb_of_prbs);
+       if (tx_amp == 0)*/
+       // FIXME temporarly using fixed amplitude before pucch power control implementation revised
+-      tx_amp = AMP;
++      tx_amp = AMP * 2;   // aic 2026-09-28: +6 dB PUCCH (power control is not applied; weak-TX B206 PUCCH F0 DTX at gnb1)
+ 
+ 
+       LOG_D(PHY,"Generation of PUCCH format %d at frame.slot %d.%d\n",pucch_pdu->format_type,proc->frame_tx,nr_slot_tx);

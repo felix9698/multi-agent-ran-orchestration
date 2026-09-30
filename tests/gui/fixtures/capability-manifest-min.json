@@ -1,0 +1,316 @@
+{
+ "assuranceKpis": [
+  {
+   "managedObjectClass": "NRCellDU",
+   "measurementDefinition": "3GPP_TS_28.552_V18.11.0",
+   "name": "RRU.PrbDl",
+   "required": true,
+   "samplingPeriodMs": 60000,
+   "sourceInterface": "O1",
+   "unit": "percent"
+  },
+  {
+   "managedObjectClass": "NRCellDU",
+   "measurementDefinition": "3GPP_TS_28.552_V18.11.0",
+   "name": "DRB.UEThpDl",
+   "required": false,
+   "samplingPeriodMs": 60000,
+   "sourceInterface": "O1",
+   "unit": "kbit/s"
+  }
+ ],
+ "authority": {
+  "kind": "DIGEST_PINNED_RELEASE_ARTIFACT",
+  "producerId": "ai-ran-xapp-release"
+ },
+ "cellIdFormats": [
+  "plmnId+cId.ncI"
+ ],
+ "contractProfile": "oran-aic/1.0.0",
+ "controlAxes": [
+  "serving_cell"
+ ],
+ "decisionKpis": [
+  {
+   "measurementDefinition": "3GPP_TS_28.552",
+   "name": "RRU.PrbDl",
+   "requiredFor": [
+    "BALANCE_PRB_LOAD"
+   ],
+   "samplingPeriodMs": 1000,
+   "serviceModel": "E2SM-KPM",
+   "sourceInterface": "E2",
+   "unit": "percent"
+  }
+ ],
+ "dmeTypeId": "aic:ran-capability:1.0.0",
+ "e2Deployment": {
+  "ackSuccessSemantics": "ACK_IS_DELIVERY_ONLY_APPLIED_VERIFIED_REQUIRES_KPM_READBACK",
+  "e2apVersion": "2.03",
+  "nodes": [
+   {
+    "globalE2NodeId": {
+     "nodeId": {
+      "bitLength": 16,
+      "hex": "0x0e00"
+     },
+     "nodeType": "GNB",
+     "plmn": {
+      "mcc": "208",
+      "mnc": "95",
+      "mncDigitLength": 2
+     }
+    },
+    "requiredRanFunctions": [
+     {
+      "canonicalDecodedDefinitionSha256": "20798a7d24038cd11da31c09603672eefc2a512df9dd7cf9a2078b21cdbdbc5a",
+      "observedRanFunctionRevision": 2,
+      "ranFunctionId": 2,
+      "ranFunctionOid": "1.3.6.1.4.1.53148.1.2.2.2",
+      "rawDefinitionSha256": "7624512d684984e14f0c06475475bf5949baa2275c05dcff68ade4c7c3fd226a",
+      "serviceModel": "E2SM-KPM"
+     },
+     {
+      "canonicalDecodedDefinitionSha256": "61d3eaafedbb1cca56ad56e306e9ccefc713bf32ada59434c9f623b1ff4bd173",
+      "observedRanFunctionRevision": 1,
+      "ranFunctionId": 3,
+      "ranFunctionOid": "1.3.6.1.4.1.53148.1.1.2.3",
+      "rawDefinitionSha256": "deb0ea1fb00082af38b26825ef3159e90592fe5f27dae1e49cfb48f0a1804429",
+      "serviceModel": "E2SM-RC"
+     }
+    ],
+    "role": "SOURCE_AND_ROLLBACK_TARGET"
+   },
+   {
+    "globalE2NodeId": {
+     "nodeId": {
+      "bitLength": 16,
+      "hex": "0x0b00"
+     },
+     "nodeType": "GNB",
+     "plmn": {
+      "mcc": "208",
+      "mnc": "95",
+      "mncDigitLength": 2
+     }
+    },
+    "requiredRanFunctions": [
+     {
+      "canonicalDecodedDefinitionSha256": "dc19fbc694d09b18570c00b190ea0c0f0c3ec5129b1d907fca7af575eb4422e2",
+      "observedRanFunctionRevision": 2,
+      "ranFunctionId": 2,
+      "ranFunctionOid": "1.3.6.1.4.1.53148.1.2.2.2",
+      "rawDefinitionSha256": "407e983df539fe38885dc5192bb9d2f57bfb13496da8c1a78ed925cd64031335",
+      "serviceModel": "E2SM-KPM"
+     },
+     {
+      "canonicalDecodedDefinitionSha256": "659c3bedb31ea07b57c507824ad02fbecf014faf2ab81a02a0e2eb85cb8983f8",
+      "observedRanFunctionRevision": 1,
+      "ranFunctionId": 3,
+      "ranFunctionOid": "1.3.6.1.4.1.53148.1.1.2.3",
+      "rawDefinitionSha256": "1bd7bab02bdf649097aaa2d1de7ea7c78416c259296b9ad514c29a289950ff99",
+      "serviceModel": "E2SM-RC"
+     }
+    ],
+    "role": "TARGET_AND_ROLLBACK_SOURCE"
+   }
+  ],
+  "runtimeBindingRule": "E2_SETUP_AND_RIC_SERVICE_UPDATE_EXACT_MATCH_PER_NODE_CONNECTION_EPOCH"
+ },
+ "effectiveAt": "2026-08-04T00:00:00Z",
+ "hardwareProfileId": "oran-aic-fixture-hw",
+ "limits": {
+  "maxActivePolicies": 64,
+  "maxPoliciesPerUe": 1
+ },
+ "manifestId": "80905f07-bb50-4a13-965b-11b1bc067543",
+ "nearRtRicId": "near-rt-ric-fixture-001",
+ "o1PerformanceProfileId": "oran-aic-o1-pa-file/1.0.0",
+ "objectives": [
+  "BALANCE_PRB_LOAD",
+  "PIN_TO_CELL"
+ ],
+ "policyTypes": [
+  "AIC_UECellSteering_1.0.0"
+ ],
+ "schemaDigests": {
+  "evidence": "a707fabbbdbbb944a15d1e1fab2bb73042db689ae2b6ee50b3ad97ea5dce6f98",
+  "o1Profile": "8e20a04899d4486695d38b4b6edbe52bedd78d768d68be370c3cb88012569ef9",
+  "policy": "3c48abaefd1c213ef78e3cad1e3483f512e9675bcb5936dadaada47782c02c90",
+  "status": "9ec81ea297806d2816611b634b3d0163de830574dde9d91227ca6f309aca115a"
+ },
+ "serviceModels": {
+  "e2ap": {
+   "buildSelector": "E2AP_V2",
+   "encoding": "APER",
+   "version": "2.03"
+  },
+  "e2smKpm": {
+   "buildSelector": "KPM_V2_03",
+   "oid": "1.3.6.1.4.1.53148.1.2.2.2",
+   "ranFunctionId": 2,
+   "ranFunctionRevision": 2,
+   "reportStyles": [
+    1,
+    4
+   ],
+   "version": "2.03"
+  },
+  "e2smRc": {
+   "controlStyles": [
+    {
+     "actionIds": [
+      1
+     ],
+     "headerFormat": 1,
+     "messageFormat": 1,
+     "outcomeFormat": 1,
+     "styleType": 3
+    }
+   ],
+   "encoding": "ASN",
+   "oid": "1.3.6.1.4.1.53148.1.1.2.3",
+   "ranFunctionId": 3,
+   "ranFunctionRevision": 1,
+   "ranParameterProfile": {
+    "choiceTargetCell": 2,
+    "nrCell": 3,
+    "nrCgi": 4,
+    "targetPrimaryCellId": 1
+   },
+   "version": "1.03"
+  }
+ },
+ "softwareProvenance": {
+  "aperVectorManifest": {
+   "byteSha256": "c59d2206a39adb76af13fa070a39351706612112d53c01df94e72621086c3a6f",
+   "path": "fixtures/e2-control-aper-vectors.json"
+  },
+  "authoritativeRcArtifactSha256": "f83f996d2d8e635ab5a2c699e6b3cea2657733ac72bebd53cf470e1c7d4e1fa0",
+  "buildArtifactManifestSha256": "3c2f32d3b0d4f17477024b1124c21361f50dc875b94e7c3934a2bb41d41c7064",
+  "flexRicCommitSha1": "ef6d722f22191eea74089966983da1f5ec1fedd4",
+  "oaiBaseCommitSha1": "42bf80e9b25dbf521cc692fa6338cbbbebfbcd1d",
+  "oaiBaseTag": "2026.w30",
+  "orderedPatchSet": [
+   {
+    "byteSha256": "d2e4f48bdb8fa6db95e50d8b6bfd79505a64a88f97ec2a6585bcbc59dd0ede0e",
+    "path": "fixtures/oai-style3.patch"
+   }
+  ],
+  "otaEvidenceManifest": {
+   "byteSha256": "003e8dcd5cd5723eb8fa8ab45e94babb941a8be2df7f7e2c17b05e6db671f5a9",
+   "path": "fixtures/ota-readback-evidence.json"
+  },
+  "postPatchSourceTreeSha1": "b547f537e21f320b463b92fbbb0e2079d03564ed",
+  "rcProfileArtifact": {
+   "byteSha256": "6e355c174474b0fd9a9d5c98a8d7098413af5c9dd53d33d4a982303bd3ab8675",
+   "path": "fixtures/e2sm-rc-style3-profile.json"
+  }
+ },
+ "sourceRevision": "fixture-commit-0000001",
+ "timing": {
+  "assuranceFreshnessLimitMs": 120000,
+  "clockSkewToleranceMs": 250,
+  "controlDrainTimeoutMs": 15000,
+  "maxActionDeadlineMs": 120000,
+  "maxKpiFreshnessMs": 60000,
+  "recoveryWindowMs": 30000
+ },
+ "topology": {
+  "cells": [
+   {
+    "cellId": {
+     "cId": {
+      "ncI": 12345678
+     },
+     "plmnId": {
+      "mcc": "208",
+      "mnc": "95"
+     }
+    },
+    "globalE2NodeId": {
+     "nodeId": {
+      "bitLength": 16,
+      "hex": "0x0e00"
+     },
+     "nodeType": "GNB",
+     "plmn": {
+      "mcc": "208",
+      "mnc": "95",
+      "mncDigitLength": 2
+     }
+    },
+    "managedObjectDn": "SubNetwork=oran-lab,ManagedElement=oai-gnb,GNBDUFunction=oai-du,NRCellDU=2"
+   },
+   {
+    "cellId": {
+     "cId": {
+      "ncI": 87654321
+     },
+     "plmnId": {
+      "mcc": "208",
+      "mnc": "95"
+     }
+    },
+    "globalE2NodeId": {
+     "nodeId": {
+      "bitLength": 16,
+      "hex": "0x0b00"
+     },
+     "nodeType": "GNB",
+     "plmn": {
+      "mcc": "208",
+      "mnc": "95",
+      "mncDigitLength": 2
+     }
+    },
+    "managedObjectDn": "SubNetwork=oran-lab,ManagedElement=oai-gnb,GNBDUFunction=oai-du,NRCellDU=1"
+   }
+  ],
+  "neighbours": [
+   {
+    "sourceCell": {
+     "cId": {
+      "ncI": 12345678
+     },
+     "plmnId": {
+      "mcc": "208",
+      "mnc": "95"
+     }
+    },
+    "targetCell": {
+     "cId": {
+      "ncI": 87654321
+     },
+     "plmnId": {
+      "mcc": "208",
+      "mnc": "95"
+     }
+    }
+   },
+   {
+    "sourceCell": {
+     "cId": {
+      "ncI": 87654321
+     },
+     "plmnId": {
+      "mcc": "208",
+      "mnc": "95"
+     }
+    },
+    "targetCell": {
+     "cId": {
+      "ncI": 12345678
+     },
+     "plmnId": {
+      "mcc": "208",
+      "mnc": "95"
+     }
+    }
+   }
+  ]
+ },
+ "ueIdFormats": [
+  "guAmfUeNgapId"
+ ]
+}

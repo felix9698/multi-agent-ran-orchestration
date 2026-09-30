@@ -1,0 +1,135 @@
+{
+  "profile": "O-RAN E2SM-RC v1.03 section 8.4.3.6",
+  "deploymentSource": {
+    "script": "tools/labctl/assets/lower-1.0.0/start-gnbs-prb24-dual-slice-source-first.sh",
+    "gnbConfig": "/opt/ran-lab/controller/a1p-stage/phase-b-rc-capability-patch-2/runtime/oai/gnb1.dual-slice-prb24.conf",
+    "gnbConfigSha256": "ee7ebb64ad3c7c080f674150bfd4ad65a5853f5823106dac6d7e93a5ef0551bc",
+    "coreSubscriberDatabase": "/opt/ran-lab/controller/oai-cn5g/docker-compose/database/oai_db2.sql",
+    "coreSubscriberDatabaseSha256": "94b3ff8722c71352a7e3b03052f9b2d5e2abbadccfab15ac3a25d248abe70fcb",
+    "coreServingPlmn": "20895",
+    "coreSubscriberImsi": "208950000000032",
+    "ueAnchorRef": "imsi-208950000000032",
+    "plmn": "208-95",
+    "snssai": {
+      "sst": 222,
+      "sd": "00007B"
+    }
+  },
+  "request": {
+    "header": {
+      "format": 1,
+      "ricStyleType": 2,
+      "ricControlActionId": 6,
+      "ueId": {
+        "anchorRef": "imsi-208950000000032"
+      }
+    },
+    "message": {
+      "format": 1,
+      "ranParameters": [
+        {
+          "id": 1,
+          "name": "RRM Policy Ratio List",
+          "value": {
+            "type": "LIST",
+            "items": [
+              {
+                "id": 2,
+                "name": "RRM Policy Ratio Group",
+                "value": {
+                  "type": "STRUCTURE",
+                  "children": [
+                    {
+                      "id": 3,
+                      "name": "RRM Policy",
+                      "value": {
+                        "type": "STRUCTURE",
+                        "children": [
+                          {
+                            "id": 5,
+                            "name": "RRM Policy Member List",
+                            "value": {
+                              "type": "LIST",
+                              "items": [
+                                {
+                                  "id": 6,
+                                  "name": "RRM Policy Member",
+                                  "value": {
+                                    "type": "STRUCTURE",
+                                    "children": [
+                                      {
+                                        "id": 7,
+                                        "name": "PLMN Identity",
+                                        "value": {
+                                          "type": "ELEMENT",
+                                          "octets": "02f859"
+                                        }
+                                      },
+                                      {
+                                        "id": 8,
+                                        "name": "S-NSSAI",
+                                        "value": {
+                                          "type": "STRUCTURE",
+                                          "children": [
+                                            {
+                                              "id": 9,
+                                              "name": "SST",
+                                              "value": {
+                                                "type": "ELEMENT",
+                                                "octets": "de"
+                                              }
+                                            },
+                                            {
+                                              "id": 10,
+                                              "name": "SD",
+                                              "value": {
+                                                "type": "ELEMENT",
+                                                "octets": "00007b"
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": 11,
+                      "name": "Min PRB Policy Ratio",
+                      "value": {
+                        "type": "ELEMENT",
+                        "integer": 20
+                      }
+                    },
+                    {
+                      "id": 12,
+                      "name": "Max PRB Policy Ratio",
+                      "value": {
+                        "type": "ELEMENT",
+                        "integer": 80
+                      }
+                    },
+                    {
+                      "id": 13,
+                      "name": "Dedicated PRB Policy Ratio",
+                      "value": {
+                        "type": "ELEMENT",
+                        "integer": 10
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

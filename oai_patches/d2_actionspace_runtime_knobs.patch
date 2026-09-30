@@ -1,0 +1,207 @@
+--- a/common/utils/telnetsrv/telnetsrv_ci.c
++++ b/common/utils/telnetsrv/telnetsrv_ci.c
+@@ -419,8 +419,135 @@
+   return 0;
+ }
+ 
++/* --- d>=2 action-space runtime knobs (agentic_intent_coordinator) -----------
++ * MAC-level scheduling parameters exposed for in-loop (no-restart) control,
++ * mirroring the rfatt TX-power knob above. The DL scheduler re-reads these
++ * fields on RC.nrmac[0] every slot, so a write takes effect on the next slot.
++ * All writes take the scheduler lock, like the rest of the MAC control path. */
++
++/* "mcs"             -> print current DL/UL MCS caps
++ * "mcs <max>"       -> set DL MCS ceiling (RC.nrmac[0]->dl_bler.max_mcs)
++ * "mcs <max> <min>" -> also set the DL MCS floor
++ * Persistent DL MCS cap: unlike the per-UE sched_ctrl->dl_max_mcs it is NOT
++ * overwritten by CSI/CQI reports. */
++static int mcs_cmd(char *buf, int debug, telnet_printfunc_t prnt)
++{
++  if (!RC.nrmac || !RC.nrmac[0])
++    ERROR_MSG_RET("no MAC present\n");
++  gNB_MAC_INST *mac = RC.nrmac[0];
++  int max_mcs = -1, min_mcs = -1;
++  if (!buf || sscanf(buf, "%d %d", &max_mcs, &min_mcs) < 1) {
++    prnt("DL MCS cap [%d..%d] UL MCS cap [%d..%d]\n",
++         mac->dl_bler.min_mcs, mac->dl_bler.max_mcs,
++         mac->ul_bler.min_mcs, mac->ul_bler.max_mcs);
++    return 0;
++  }
++  if (max_mcs < 0 || max_mcs > 28)
++    ERROR_MSG_RET("max_mcs %d out of range [0,28]\n", max_mcs);
++  NR_SCHED_LOCK(&mac->sched_lock);
++  mac->dl_bler.max_mcs = (uint8_t)max_mcs;
++  if (min_mcs >= 0 && min_mcs <= max_mcs)
++    mac->dl_bler.min_mcs = (uint8_t)min_mcs;
++  if (mac->dl_bler.min_mcs > mac->dl_bler.max_mcs)
++    mac->dl_bler.min_mcs = mac->dl_bler.max_mcs;
++  NR_SCHED_UNLOCK(&mac->sched_lock);
++  prnt("DL MCS cap set to [%d..%d]\n", mac->dl_bler.min_mcs, mac->dl_bler.max_mcs);
++  return 0;
++}
++
++/* "prbcap"            -> print the cell DL PRB cap and any per-UE caps
++ * "prbcap <n>"        -> set the CELL DL PRB cap (caps every UE on the cell)
++ * "prbcap <n> <rnti>" -> set one UE's per-UE DL PRB cap (hex RNTI)
++ * 0 removes the cap. Cell cap -> RC.nrmac[0]->dl_max_rbSize; per-UE cap ->
++ * sched_ctrl->dl_max_rbSize; the DL scheduler grants the tighter of the two. */
++static int prbcap_cmd(char *buf, int debug, telnet_printfunc_t prnt)
++{
++  if (!RC.nrmac || !RC.nrmac[0])
++    ERROR_MSG_RET("no MAC present\n");
++  gNB_MAC_INST *mac = RC.nrmac[0];
++  char *sn = buf ? strtok(buf, " ") : NULL;
++  char *srnti = sn ? strtok(NULL, " ") : NULL;
++  if (!sn) {
++    if (mac->dl_max_rbSize == 0)
++      prnt("DL PRB cap 0 (uncapped)\n");
++    else
++      prnt("DL PRB cap %d\n", mac->dl_max_rbSize);
++    UE_iterator(mac->UE_info.connected_ue_list, it) {
++      if (it->UE_sched_ctrl.dl_max_rbSize > 0)
++        prnt("UE %04x DL PRB cap %d\n", it->rnti, it->UE_sched_ctrl.dl_max_rbSize);
++    }
++    return 0;
++  }
++  int n = (int)strtol(sn, NULL, 10);
++  if (n < 0 || n > 275)
++    ERROR_MSG_RET("prb cap %d out of range [0,275]\n", n);
++  if (!srnti) {
++    /* cell-wide cap: applies to every UE on the cell */
++    NR_SCHED_LOCK(&mac->sched_lock);
++    mac->dl_max_rbSize = (uint16_t)n;
++    NR_SCHED_UNLOCK(&mac->sched_lock);
++    if (n == 0)
++      prnt("DL PRB cap set to 0 (uncapped)\n");
++    else
++      prnt("DL PRB cap set to %d\n", n);
++    return 0;
++  }
++  /* per-UE cap: partition resources among UEs sharing a cell */
++  int rnti = fetch_rnti(srnti, prnt);
++  if (rnti < 0)
++    ERROR_MSG_RET("could not identify UE (no UE, no such RNTI, or multiple UEs)\n");
++  NR_UE_info_t *UE = find_nr_UE(&mac->UE_info, rnti);
++  if (!UE)
++    ERROR_MSG_RET("could not find UE with RNTI %04x\n", rnti);
++  NR_SCHED_LOCK(&mac->sched_lock);
++  UE->UE_sched_ctrl.dl_max_rbSize = (uint16_t)n;
++  NR_SCHED_UNLOCK(&mac->sched_lock);
++  if (n == 0)
++    prnt("UE %04x DL PRB cap set to 0 (uncapped)\n", rnti);
++  else
++    prnt("UE %04x DL PRB cap set to %d\n", rnti, n);
++  return 0;
++}
++
++/* "sched_prio"            -> list connected UEs and their PF weights
++ * "sched_prio <w>"        -> set PF weight of the single connected UE
++ * "sched_prio <w> <rnti>" -> set PF weight of a specific UE (hex RNTI)
++ * Writes UE->UE_sched_ctrl.pf_weight; the DL PF coefficient is multiplied by
++ * it (1.0 = neutral, >1 favors, <1 starves). */
++static int sched_prio_cmd(char *buf, int debug, telnet_printfunc_t prnt)
++{
++  if (!RC.nrmac || !RC.nrmac[0])
++    ERROR_MSG_RET("no MAC present\n");
++  gNB_MAC_INST *mac = RC.nrmac[0];
++  char *sweight = buf ? strtok(buf, " ") : NULL;
++  char *srnti = sweight ? strtok(NULL, " ") : NULL;
++  if (!sweight) {
++    UE_iterator(mac->UE_info.connected_ue_list, it) {
++      prnt("UE %04x PF weight %.3f\n", it->rnti, it->UE_sched_ctrl.pf_weight);
++    }
++    return 0;
++  }
++  double w = strtod(sweight, NULL);
++  if (w <= 0.0 || w > 100.0)
++    ERROR_MSG_RET("weight %.3f out of range (0,100]\n", w);
++  int rnti = fetch_rnti(srnti, prnt);
++  if (rnti < 0)
++    ERROR_MSG_RET("could not identify UE (no UE, no such RNTI, or multiple UEs)\n");
++  NR_UE_info_t *UE = find_nr_UE(&mac->UE_info, rnti);
++  if (!UE)
++    ERROR_MSG_RET("could not find UE with RNTI %04x\n", rnti);
++  NR_SCHED_LOCK(&mac->sched_lock);
++  UE->UE_sched_ctrl.pf_weight = (float)w;
++  NR_SCHED_UNLOCK(&mac->sched_lock);
++  prnt("UE %04x PF weight set to %.3f\n", rnti, w);
++  return 0;
++}
++
+ static telnetshell_cmddef_t cicmds[] = {
+     {"rfatt", "[tx_att_dB(float,opt)]", rfatt_cmd},
++    {"mcs", "[max_mcs(int,opt) [min_mcs(int,opt)]]", mcs_cmd},
++    {"prbcap", "[n_prb(int,opt) [rnti(hex,opt)]]", prbcap_cmd},
++    {"sched_prio", "[weight(float,opt) [rnti(hex,opt)]]", sched_prio_cmd},
+     {"get_single_rnti", "", get_single_rnti},
+     {"force_reestab", "[rnti(hex,opt)]", trigger_reestab},
+     {"get_reestab_count", "[rnti(hex,opt)]", get_reestab_count},
+--- a/openair2/LAYER2/NR_MAC_gNB/nr_mac_gNB.h
++++ b/openair2/LAYER2/NR_MAC_gNB/nr_mac_gNB.h
+@@ -702,6 +702,16 @@
+   // pdcch closed loop adjust for PDCCH aggregation level, range <0, 1>
+   // 0 - good channel, 1 - bad channel
+   float pdcch_cl_adjust;
++
++  /// d>=2 action-space: proportional-fair scheduling weight (PF coeff
++  /// multiplier). 1.0 = neutral; runtime knob via telnet "ci sched_prio".
++  /// A 0/unset value is treated as neutral by the scheduler.
++  float pf_weight;
++
++  /// d>=2 action-space: per-UE DL PRB cap (telnet "ci prbcap <n> <rnti>");
++  /// 0 = uncapped. The scheduler grants min(cell dl_max_rbSize, this), so an
++  /// intra-cell fairness intent can partition PRBs among UEs sharing a cell.
++  uint16_t dl_max_rbSize;
+ } NR_UE_sched_ctrl_t;
+ 
+ typedef struct NR_mac_dir_stats {
+@@ -987,6 +997,9 @@
+   NR_bler_options_t dl_bler;
+   NR_bler_options_t ul_bler;
+   uint16_t min_grant_prb;
++  /// d>=2 action-space: runtime DL PRB cap per UE grant (telnet
++  /// "ci prbcap"); 0 = uncapped (default, full carrier).
++  uint16_t dl_max_rbSize;
+   bool identity_pm;
+   int precoding_matrix_size[NR_MAX_NB_LAYERS];
+   int beam_index_list[MAX_NUM_OF_SSB];
+--- a/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch.c
++++ b/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch.c
+@@ -742,7 +742,10 @@
+                                     0 /* N_PRB_oh, 0 for initialBWP */,
+                                     0 /* tb_scaling */,
+                                     l) >> 3;
+-      float coeff_ue = (float) tbs / UE->dl_thr_ue;
++      /* d>=2 action-space: per-UE PF weight (telnet "ci sched_prio"). A
++       * 0/unset weight is treated as neutral (1.0), preserving default PF. */
++      const float pf_w = sched_ctrl->pf_weight > 0.0f ? sched_ctrl->pf_weight : 1.0f;
++      float coeff_ue = pf_w * (float) tbs / UE->dl_thr_ue;
+       LOG_D(NR_MAC, "[UE %04x][%4d.%2d] b %d, thr_ue %f, tbs %d, coeff_ue %f\n",
+             UE->rnti,
+             frame,
+@@ -826,6 +829,14 @@
+     while (rbStart + max_rbSize <= rbStop && !(rballoc_mask[rbStart + max_rbSize + bwp_start] & slbitmap))
+       max_rbSize++;
+ 
++    /* d>=2 action-space: cap the DL PRB grant at runtime (telnet "ci prbcap").
++     * Apply the tighter of the cell cap (mac->dl_max_rbSize) and the per-UE cap
++     * (sched_ctrl->dl_max_rbSize); 0 on either side means "no cap" there. */
++    if (mac->dl_max_rbSize > 0 && max_rbSize > mac->dl_max_rbSize)
++      max_rbSize = mac->dl_max_rbSize;
++    if (sched_ctrl->dl_max_rbSize > 0 && max_rbSize > sched_ctrl->dl_max_rbSize)
++      max_rbSize = sched_ctrl->dl_max_rbSize;
++
+     if (max_rbSize < min_rbSize) {
+       LOG_D(NR_MAC,
+             "(%d.%d) Cannot schedule RNTI %04x, rbStart %d, rbSize %d, rbStop %d\n",
+--- a/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_primitives.c
++++ b/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_primitives.c
+@@ -3055,6 +3055,8 @@
+ 
+   NR_UE_sched_ctrl_t *sched_ctrl = &UE->UE_sched_ctrl;
+   sched_ctrl->dl_max_mcs = 28; /* do not limit MCS for individual UEs */
++  sched_ctrl->pf_weight = 1.0f; /* neutral proportional-fair weight (d>=2 action space) */
++  sched_ctrl->dl_max_rbSize = 0; /* per-UE DL PRB cap: 0 = uncapped (d>=2 action space) */
+   sched_ctrl->pdcch_cl_adjust = 0;
+   reset_srs_stats(UE);
+ 

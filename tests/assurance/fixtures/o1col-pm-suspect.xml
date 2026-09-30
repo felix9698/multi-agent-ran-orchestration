@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<measCollecFile xmlns="http://www.3gpp.org/ftp/specs/archive/32_series/32.435#measCollec"><measData><managedElement localDn="SubNetwork=oran-lab,ManagedElement=oai-gnb"/><measInfo measInfoId="oran-aic-pm"><granPeriod duration="PT60S" endTime="2026-08-21T09:01:00Z"/><measType p="1">RRU.PrbDl</measType><measValue measObjLdn="GNBDUFunction=oai-du,NRCellDU=1"><r p="1">NIL</r><suspect>true</suspect></measValue></measInfo></measData></measCollecFile>

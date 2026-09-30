@@ -1,0 +1,17 @@
+{
+  "budget": {"cases": 4, "harm": 10.0, "trialsPerCase": 1},
+  "intentProfiles": [
+    {"intent": {"throughputFloorMbps": 6.0}, "profileId": "gold-ue-1", "scope": {"slice": "gold", "ue": "ue-1"}},
+    {"intent": {"throughputFloorMbps": 5.0}, "profileId": "silver-ue-2", "scope": {"slice": "silver", "ue": "ue-2"}}
+  ],
+  "model": {"family": "deterministic", "version": "mock-1"},
+  "objectives": ["TrafficSteeringPreference"],
+  "ordering": "counterbalanced",
+  "repeats": 2,
+  "retry": {"abortOnError": true, "inclusion": "all_terminal", "retries": 0},
+  "scope": {"cell": "cell-1", "site": "mock-site"},
+  "seed": 20260825,
+  "strategy": "deterministic",
+  "topology": {"adapter": "MockActuationAdapter", "kind": "mock", "liveCalls": 0},
+  "windows": {"holdS": 1.0, "measurementS": 1.0, "observationS": 1.0, "recoveryS": 0.0, "warmupS": 0.0}
+}

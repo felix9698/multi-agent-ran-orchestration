@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:oran-aic:schema:policy-evidence-filter:1.0.0",
+  "title": "AIC Policy Evidence Data Job Filter",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "policyTypeId",
+    "policyId",
+    "minimumPolicyRevision",
+    "nearRtRicId"
+  ],
+  "properties": {
+    "policyTypeId": {
+      "const": "AIC_UECellSteering_1.0.0"
+    },
+    "policyId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "minimumPolicyRevision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "nearRtRicId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "pattern": "^[A-Za-z0-9._:/-]+$"
+    }
+  }
+}

@@ -1,0 +1,39 @@
+name: Offline artifact checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install offline dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Self-contained implementation tests
+        run: python scripts/test_public_artifact.py
+      - name: Ubuntu shell syntax
+        run: git ls-files -z '*.sh' | xargs -0 -r -n 1 bash -n
+      - name: CLI entry and mock example
+        run: |
+          python main.py --help
+          python bin/labctl --help
+          OUT="$(mktemp -d /tmp/pqc.XXXXXX)"
+          python tools/campaign5/run_agent_experiments.py --scenario three-ue --condition contention-boundary --methods three-agent --model mock:agent --repetitions 1 --budget 2 --out "$OUT"
+          python -m experiments.agent_metrics "$OUT/episodes" --out "$OUT/recomputed-metrics.json"
+      - name: Disconnected GUI startup
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb
+          xvfb-run -a python -c 'import main; c=main.build_console(); r=c.create_window(); r.update_idletasks(); r.destroy()'

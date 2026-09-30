@@ -1,0 +1,52 @@
+diff --git a/openair1/SCHED_NR_UE/pucch_uci_ue_nr.c b/openair1/SCHED_NR_UE/pucch_uci_ue_nr.c
+index f161235944..15e6c8811f 100644
+--- a/openair1/SCHED_NR_UE/pucch_uci_ue_nr.c
++++ b/openair1/SCHED_NR_UE/pucch_uci_ue_nr.c
+@@ -146,15 +146,15 @@ void pucch_procedures_ue_nr(PHY_VARS_NR_UE *ue,
+ 
+       int tx_amp;
+ 
+-      /*
+-      tx_amp = nr_get_tx_amp(pucch_tx_power,
+-                             ue->tx_power_max_dBm,
+-                             ue->frame_parms.N_RB_UL,
+-                             nb_of_prbs);
+-      if (tx_amp == 0)*/
+-      // FIXME temporarly using fixed amplitude before pucch power control implementation revised
+-      tx_amp = AMP;
+-
++      /* aic 2026-09-29: PUCCH power control restored.  The MAC pucch_tx_power (38.213 7.2.1: p0, pathloss, TPC)
++       * was computed and then ignored (fixed AMP), so a UE whose PUCCH gnb1 barely heard could not follow the
++       * gNB TPC.  nr_get_tx_amp() maps it to an amplitude (full power on one PRB is AMP*sqrt(N_RB_UL));
++       * the earlier fixed +6 dB (AMP*2) stays as the floor. */
++      tx_amp = nr_get_tx_amp(pucch_tx_power, ue->tx_power_max_dBm, ue->frame_parms.N_RB_UL, nb_of_prbs);
++      if (tx_amp < AMP * 2)
++        tx_amp = AMP * 2;
++      if (tx_amp > 32767)
++        tx_amp = 32767;
+ 
+       LOG_D(PHY,"Generation of PUCCH format %d at frame.slot %d.%d\n",pucch_pdu->format_type,proc->frame_tx,nr_slot_tx);
+ 
+diff --git a/openair2/LAYER2/NR_MAC_UE/nr_ue_power_procedures.c b/openair2/LAYER2/NR_MAC_UE/nr_ue_power_procedures.c
+index 177ddf7b1d..b7cbd8ca97 100644
+--- a/openair2/LAYER2/NR_MAC_UE/nr_ue_power_procedures.c
++++ b/openair2/LAYER2/NR_MAC_UE/nr_ue_power_procedures.c
+@@ -362,7 +362,9 @@ int16_t get_pucch_tx_power_ue(NR_UE_MAC_INST_t *mac,
+ 
+   int16_t pucch_power_without_g_pucch = P_O_PUCCH + M_pucch_component + pathloss + delta_F_PUCCH + DELTA_TF;
+ 
+-  if (power_config->p0_Set == NULL) {
++  /* aic 2026-09-29: the closed loop g(i) of 38.213 7.2.1 applies whether or not p0-Set is configured; the gNB
++   * always sends p0-Set, so gating on p0_Set == NULL meant TPC was never accumulated. */
++  {
+     if (mac->pucch_power_control_initialized == false) {
+       // Initialize power control state
+       // Assuming only sending on PCell
+@@ -372,6 +374,7 @@ int16_t get_pucch_tx_power_ue(NR_UE_MAC_INST_t *mac,
+       DELTA_P_rampup = max(min(0, DELTA_P_rampup), DELTA_P_rampup_requested);
+       mac->G_b_f_c = DELTA_P_rampup + sum_delta_pucch;
+       mac->pucch_power_control_initialized = true;
++      G_b_f_c = mac->G_b_f_c;   /* aic: the first PUCCH carries the initial state too */
+     }
+     else {
+       // PUCCH closed loop power control state

@@ -1,0 +1,161 @@
+diff --git a/executables/nr-ue.c b/executables/nr-ue.c
+index 1fc5b1af1c..e165f635e5 100644
+--- a/executables/nr-ue.c
++++ b/executables/nr-ue.c
+@@ -208,14 +208,87 @@ static void UE_synch(void *arg) {
+     ret = nr_initial_sync(&syncD->proc, UE, 2, syncD->gscnInfo, syncD->numGscn);
+   }
+ 
++  /* 2026-09-24: a handover re-sync runs on samples buffered around the retune, and its PSS
++   * frequency estimate came out 3-8 kHz (13 of 13 such handovers hit T304; every success was
++   * under 1.5 kHz, and the post-T304 re-sync on the same cell read ~500 Hz).  With continuous
++   * FO compensation that wrong start is never recovered inside T304.  Discard it and re-sync on
++   * fresh samples, a bounded number of times. */
++  static int ho_fo_retries = 0;
++  if (ret.cell_detected && abs(UE->common_vars.freq_offset) > 1500
++      && ho_fo_retries < 6) {
++    ho_fo_retries++;
++    LOG_W(PHY, "re-sync: PSS frequency estimate %d Hz is implausible, re-syncing on fresh samples (%d/6)\n",
++          UE->common_vars.freq_offset, ho_fo_retries);
++    ret.cell_detected = false;
++  }
+   if (ret.cell_detected) {
++    ho_fo_retries = 0;
+     syncD->rx_offset = ret.rx_offset;
+-    const int freq_offset = UE->common_vars.freq_offset; // frequency offset computed with pss in initial sync
++    int freq_offset = UE->common_vars.freq_offset; // frequency offset computed with pss in initial sync
++    if (!get_nrUE_params()->cont_fo_comp) {
++      // A re-sync on the same carrier searches on the LO as it stands, still carrying the correction
++      // of the previous sync, so the PSS estimate is only the residual: the LO offset to set is the sum.
++      // Setting the residual alone dropped the earlier correction on every other re-sync, leaving the
++      // UL off by the whole oscillator error (500-1000 Hz on the B206mini UEs): PUSCH heard at 14 dB
++      // SNR but undecodable at MCS 0, then UL failure and release.
++      const openair0_config_t *cfg0 = &openair0_cfg[UE->rf_map.card];
++      freq_offset += (int)lround(cfg0->rx_freq[UE->rf_map.chain] - (double)dl_carrier);
++      /* aic 2026-09-25: the absolute offset of one carrier barely moves (ue3 on gnb2: 878..1036 Hz over
++       * a day), but a handover re-sync can still read a wrong one below the 1500 Hz guard (board 627:
++       * -1192 Hz after rejecting 3.5-12.8 kHz, first RAR undecodable, T304).  Remember the last offset
++       * that worked on each carrier; re-sync on fresh samples when a new estimate is more than 300 Hz
++       * away, and after six such tries use the remembered offset. */
++      static struct { uint64_t carrier; int off; } fo_prior[4];
++      static int fo_prior_retries = 0;
++      int k = 0;
++      while (k < 4 && fo_prior[k].carrier && fo_prior[k].carrier != dl_carrier)
++        k++;
++      /* aic 2026-09-27 19:5x: the anchor itself can be wrong (ue2's first gnb2 sync was a handover read of
++       * -988 Hz; fresh re-syncs then agreed on 442-461 Hz and were all overridden, the context died).
++       * Fresh-sample estimates that agree with each other win over the anchor and replace it. */
++      static int fo_seen_min, fo_seen_max;
++      if (k < 4 && fo_prior[k].carrier == dl_carrier && abs(freq_offset - fo_prior[k].off) > 300) {
++        if (fo_prior_retries == 0) {
++          fo_seen_min = fo_seen_max = freq_offset;
++        } else {
++          fo_seen_min = freq_offset < fo_seen_min ? freq_offset : fo_seen_min;
++          fo_seen_max = freq_offset > fo_seen_max ? freq_offset : fo_seen_max;
++        }
++        if (fo_prior_retries >= 2 && fo_seen_max - fo_seen_min <= 150) {
++          LOG_W(PHY, "re-sync: %d fresh estimates agree (%d..%d Hz); replacing the remembered %d Hz with %d Hz\n",
++                fo_prior_retries + 1, fo_seen_min, fo_seen_max, fo_prior[k].off, freq_offset);
++          fo_prior[k].off = freq_offset;
++        } else if (fo_prior_retries < 6) {
++          fo_prior_retries++;
++          LOG_W(PHY, "re-sync: offset %d Hz is %d Hz from the last good %d Hz on this carrier, re-syncing (%d/6)\n",
++                freq_offset, freq_offset - fo_prior[k].off, fo_prior[k].off, fo_prior_retries);
++          return;
++        } else {
++          LOG_W(PHY, "re-sync: using the remembered offset %d Hz instead of %d Hz\n", fo_prior[k].off, freq_offset);
++          freq_offset = fo_prior[k].off;
++        }
++      }
++      fo_prior_retries = 0;
++      /* aic 2026-09-27: the remembered offset is the anchor of the first sync on the carrier; an accepted
++       * re-sync no longer replaces it.  Replacing it let hand-backs walk it 692 Hz at a time under the old
++       * 700 Hz window (ue2 on gnb1: 46 -> -450 -> -1142 Hz, contexts at MCS 9 then 0 with BLER 0.5; ue3
++       * 853 -> 712 -> 20 Hz, MCS 2) while a fresh process read 46 / 807-860 Hz and ran MCS 19-26. */
++      if (k == 4)
++        k = 3;                    // table full (never on this bed: two carriers): overwrite the last slot
++      if (fo_prior[k].carrier != dl_carrier) {
++        fo_prior[k].carrier = dl_carrier;
++        fo_prior[k].off = freq_offset;
++      }
++    }
+     const int hw_slot_offset =
+         ((ret.rx_offset << 1) / fp->samples_per_subframe * fp->slots_per_subframe)
+         + round((float)((ret.rx_offset << 1) % fp->samples_per_subframe) / fp->samples_per_slot0);
+ 
+     UE->freq_offset = freq_offset - UE->dl_Doppler_shift;
++    /* 2026-09-25: the PI loop integrator (phy_procedures_nr_ue.c) is never reset, so after a handover it
++     * kept pulling the compensation toward the previous cell oscillator (a fresh process synced the same
++     * cell at once while the handed-over one failed PBCH 930 times).  A new sync is a new reference. */
++    UE->freq_off_acc = 0;
+     if (!get_nrUE_params()->cont_fo_comp) {
+       // rerun with new cell parameters and frequency-offset
+       nrue_ru_set_freq(UE, ul_carrier, dl_carrier, freq_offset);
+@@ -363,6 +436,19 @@ static void RU_write(nr_rxtx_thread_data_t *rxtxD, bool sl_tx_action, c16_t **tx
+                          writeBlockSize);
+   }
+ 
++  /* aic 2026-09-29: OAI UE applies no UL power control (PUSCH/PRACH/PUCCH amplitude fixed at AMP) and the
++   * B206mini already runs at its full TX gain, so a weak-TX unit cannot follow gNB TPC.  +4 dB digital gain on
++   * everything this UE sends (x1.585, saturating); ue2 tree only, test build. */
++  if (flags != TX_BURST_INVALID) {
++    for (int a = 0; a < fp->nb_antennas_tx; a++) {
++      c16_t *s = txp[a];
++      for (int n = 0; n < writeBlockSize; n++) {
++        const int re = (s[n].r * 1585) / 1000, im = (s[n].i * 1585) / 1000;
++        s[n].r = re > 32767 ? 32767 : (re < -32768 ? -32768 : re);
++        s[n].i = im > 32767 ? 32767 : (im < -32768 ? -32768 : im);
++      }
++    }
++  }
+   int tmp = nrue_ru_write_reorder(UE, writeTimestamp, (void **)txp, writeBlockSize, fp->nb_antennas_tx, flags);
+   AssertFatal(tmp == writeBlockSize, "");
+ }
+@@ -480,6 +566,25 @@ static int handle_sync_req_from_mac(PHY_VARS_NR_UE *UE)
+             cfg->dl_frequency,
+             UE->target_Nid_cell);
+       nrue_ru_set_freq(UE, ul_CarrierFreq, dl_CarrierFreq, 0);
++      /* 2026-09-24: one fixed gain cannot serve two cells 15-20 dB apart for this UE (ue1:
++       * 110 on gnb2, >=120 on gnb1).  AIC_UE_RXGAIN_BY_CARRIER="<dl Hz>:<gain>,..." picks the
++       * gain for the carrier a handover moves to; unset, nothing changes. */
++      const char *by_carrier = getenv("AIC_UE_RXGAIN_BY_CARRIER");
++      if (by_carrier) {
++        const char *p = by_carrier;
++        while (p && *p) {
++          unsigned long long hz = 0;
++          double gain = 0;
++          if (sscanf(p, "%llu:%lf", &hz, &gain) == 2
++              && llabs((long long)hz - (long long)dl_CarrierFreq) < 1000000LL) {
++            nrue_ru_set_rx_gain(UE, gain);
++            break;
++          }
++          p = strchr(p, ',');
++          if (p)
++            p++;
++        }
++      }
+       fp->dl_CarrierFreq = dl_CarrierFreq;
+       fp->ul_CarrierFreq = ul_CarrierFreq;
+       init_symbol_rotation(fp);
+@@ -977,6 +1082,21 @@ void *UE_thread(void *arg)
+     const int readBlockSize = get_readBlockSize(slot_nr, fp) - iq_shift_to_apply;
+     openair0_timestamp_t rx_timestamp;
+     int tmp = nrue_ru_read(UE, &rx_timestamp, (void **)rxp, readBlockSize, fp->nb_antennas_rx);
++    /* A USRP overflow (seen right after the handover retune, "received 4737 samples out of
++     * 7680") returns a short block.  Read the rest instead of exiting: the slot is corrupt
++     * either way, and the sync loop recovers timing, while the assert killed the UE and
++     * its board (ue1 10:05, ue2 x5 since 09-24).  Give up only after 3 short reads. */
++    for (int retry = 0; tmp < readBlockSize && tmp >= 0 && retry < 3; retry++) {
++      void *rest[fp->nb_antennas_rx];
++      for (int a = 0; a < fp->nb_antennas_rx; a++)
++        rest[a] = (c16_t *)rxp[a] + tmp;
++      openair0_timestamp_t ts2;
++      LOG_W(PHY, "short RX read %d of %d samples (overflow?), reading the rest\n", tmp, readBlockSize);
++      int more = nrue_ru_read(UE, &ts2, rest, readBlockSize - tmp, fp->nb_antennas_rx);
++      if (more <= 0)
++        break;
++      tmp += more;
++    }
+     metadata meta = {.slot =  curMsg.proc.nr_slot_rx, .frame =  curMsg.proc.frame_rx};
+     UEscopeCopyWithMetadata(UE, ueTimeDomainSamples, rxp[0] - firstSymSamp, sizeof(c16_t), 1, readBlockSize, 0, &meta);
+     AssertFatal(readBlockSize == tmp, "");

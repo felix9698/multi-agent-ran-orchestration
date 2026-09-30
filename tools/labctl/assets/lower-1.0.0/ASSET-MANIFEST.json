@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "oran-aic-labctl-asset-manifest/1.0.0",
+  "sourceRelease": "oran-aic-lower-integration/1.0.0",
+  "sourceCommit": "9f607c336a6f8b55c0421d0e0e4cabb498180b5a",
+  "files": {
+    "start-gnbs-prb24-dual-slice-source-first.sh": {
+      "sha256": "c556055f7b2b3185e607166296c611512f315d0b628f653c5d7702090ccd790f"
+    }
+  }
+}

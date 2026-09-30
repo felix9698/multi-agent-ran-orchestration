@@ -1,0 +1,128 @@
+--- a/openair2/RRC/NR_UE/rrc_UE.c
++++ b/openair2/RRC/NR_UE/rrc_UE.c
+@@ -560,30 +560,33 @@
+                              uint8_t kgnb[SECURITY_KEY_LEN],
+                              uint8_t nh[SECURITY_KEY_LEN],
+                              uint64_t *nhcc,
+-                             const int8_t target_ncc)
++                             const uint64_t target_ncc)
+ {
+   // If the UE received an NCC value that was different from the NCC associated with the
+   // currently active KgNB, the UE shall first synchronize the locally kept NH
+   // parameter by computing the function defined in Annex A.10 iteratively (and increasing
+   // the NCC value until it matches the NCC value received from the source ng-gNB).
+   if (target_ncc <= *nhcc) {
+-    LOG_W(NR_RRC, "Received NCC=%d is less than or equal to current nhcc=%ld (nothing to sync)\n", target_ncc, *nhcc);
++    LOG_W(NR_RRC, "Received NCC=%ld is less than or equal to current nhcc=%ld (nothing to sync)\n", target_ncc, *nhcc);
+     return;
+   }
+   if (target_ncc > *nhcc) {
+-    LOG_I(NR_RRC, "Synchronizing NH chain: current nhcc=%ld, target ncc=%d\n", *nhcc, target_ncc);
++    LOG_I(NR_RRC, "Synchronizing NH chain: current nhcc=%ld, target ncc=%ld\n", *nhcc, target_ncc);
+     if (*nhcc == 0) {
+       // First derivation: derive KgNB from KAMF, then derive NH from KgNB (per TS 33.501 A.10)
+       // Note: For the first NH derivation, we use UL NAS COUNT = 0 to match the AMF's derivation
+       // during handover. The AMF derives the first NH using the UL NAS COUNT from the last
+       // successful NAS SMC, which is 0 for the initial derivation.
+-      derive_kgnb(kamf, 0, kgnb);
++      /* kgnb holds the initial KgNB here (the caller loads the one NAS derived with the
++       * real UL NAS COUNT).  Re-deriving it with COUNT 0 matched the AMF only when the
++       * connection started at COUNT 0: after a re-registration at COUNT 7 the first NH
++       * was wrong and SRB integrity failed at the target (ue3, 2026-09-25 09:45). */
+       nr_derive_nh(kamf, kgnb, nh);
+       *nhcc = 1;
+     }
+     // Following derivations: iterate from current nhcc to target_ncc
+-    for (uint8_t i = *nhcc; i < target_ncc; i++) {
+-      LOG_D(NR_RRC, "Derive keys for ChainingCount = %d\n", i);
++    for (uint64_t i = *nhcc; i < target_ncc; i++) {
++      LOG_D(NR_RRC, "Derive keys for ChainingCount = %ld\n", i);
+       nr_derive_nh(kamf, nh, nh);
+     }
+     *nhcc = target_ncc;
+@@ -652,30 +655,29 @@
+ static void nr_update_kgnb_from_ncc(NR_UE_RRC_INST_t *rrc, const uint8_t kamf[SECURITY_KEY_LEN], int8_t received_ncc)
+ {
+   const uint64_t original_nhcc = rrc->nhcc;
+-
+-  if (received_ncc == original_nhcc) {
+-    // NCC values match: use horizontal derivation from currently active KgNB
+-    // Per TS 33.501 6.9.2.3.4: "derive the KNG-RAN* from the currently active KgNB"
+-    // This applies regardless of NCC being 0 or >0. For a fixed NCC level, we stay
+-    // within that level using horizontal derivations.
++  /* NCC is 3 bits: compare modulo 8 and step the NH chain forward by the difference
++   * (33.501 A.10: increase the NCC until it matches).  rrc->nhcc stays the unbounded
++   * chain depth.  Comparing it with the raw 0..7 label treated the wrap after NCC 7
++   * (the AMF sends 2 = three more steps) as "less than", kept the old KgNB, and SRB
++   * integrity failed at the target: RRCReconfigurationComplete was dropped, the
++   * target's ho_context never cleared, and every later handover of that UE was
++   * refused "Ongoing handover" (2026-09-25, ~14% of handovers). */
++  const int steps = ((int)received_ncc - (int)(original_nhcc % 8) + 8) % 8;
++  if (steps == 0) {
+     LOG_D(NR_RRC, "NCC values match (%d), using horizontal derivation\n", received_ncc);
+     nr_derive_kgnb_horizontal(rrc->phyCellID, rrc->arfcn_ssb, rrc->kgnb);
+-  } else if (received_ncc < original_nhcc) {
+-    // Note: According to spec, NCC should only increase. If received_ncc < original_nhcc,
+-    // this is an error condition, but we handle it gracefully.
+-    LOG_W(NR_RRC,
+-          "Received NCC=%d is less than current nhcc=%ld (unexpected per spec, NH chain should only increase)\n",
+-          received_ncc,
+-          original_nhcc);
+   } else {
+-    // received_ncc > original_nhcc: synchronize NH chain first (per 33.501 A.10)
+-    nr_sync_nh_chain(kamf, rrc->kgnb, rrc->nh, &rrc->nhcc, received_ncc);
+-    // Store the received nextHopChainingCount value (per 38.331 5.3.7.5)
+-    LOG_D(NR_RRC, "Synchronizing NH chain to target NCC %d\n", received_ncc);
+-    rrc->nhcc = received_ncc;
+-    // After synchronization, derive KNG-RAN* from synchronized NH (vertical derivation)
+-    // per 33.501 6.9.2.3.4: "When the NCC values match, the UE shall compute the K NG-RAN *
+-    // from the synchronized NH parameter"
++    if (original_nhcc == 0) {
++      /* first NH is chained from the KgNB this connection's AS security was activated
++       * with (33.501 A.10) -- the one the AMF stored at Initial Context Setup.  NAS's own
++       * copy is re-derived at other COUNTs (authentication, idle-mode registration), which
++       * failed the first handover after an RRCSetup-fallback re-registration (ue2
++       * 2026-09-25 11:21); rrc->kgnb may also have moved on horizontally since. */
++      memcpy(rrc->kgnb, rrc->kgnb_root, sizeof(rrc->kgnb));
++    }
++    if (received_ncc < (int)(original_nhcc % 8) || original_nhcc >= 8)
++      LOG_I(NR_RRC, "NCC wrapped: received %d, chain depth %ld -> %ld\n", received_ncc, original_nhcc, original_nhcc + steps);
++    nr_sync_nh_chain(kamf, rrc->kgnb, rrc->nh, &rrc->nhcc, original_nhcc + steps);
+     nr_derive_kgnb_vertical(rrc->phyCellID, rrc->arfcn_ssb, rrc->kgnb, rrc->nh);
+   }
+ }
+@@ -2448,6 +2450,17 @@
+   nr_derive_key(RRC_INT_ALG, ue_rrc->integrityProtAlgorithm, ue_rrc->kgnb, security_parameters.integrity_key);
+ 
+   log_dump(NR_RRC, ue_rrc->kgnb, 32, LOG_DUMP_CHAR, "deriving kRRCenc, kRRCint from KgNB=");
++  memcpy(ue_rrc->kgnb_smc, ue_rrc->kgnb, sizeof(ue_rrc->kgnb_smc));
++  {
++    nr_ue_nas_t *nas = get_ue_nas_info(ue_rrc->ue_id);
++    if (memcmp(ue_rrc->kamf_of_root, nas->security.kamf, sizeof(ue_rrc->kamf_of_root)) != 0) {
++      memcpy(ue_rrc->kamf_of_root, nas->security.kamf, sizeof(ue_rrc->kamf_of_root));
++      memcpy(ue_rrc->kgnb_root, ue_rrc->kgnb, sizeof(ue_rrc->kgnb_root));
++      LOG_I(NR_RRC, "new KAMF: NH chain root set to this activation's KgNB\n");
++    } else {
++      LOG_I(NR_RRC, "same KAMF: NH chain root kept from the first activation under it\n");
++    }
++  }
+ 
+   /* for SecurityModeComplete, ciphering is not activated yet, only integrity */
+   security_parameters.ciphering_algorithm = 0;
+--- a/openair2/RRC/NR_UE/rrc_defs.h
++++ b/openair2/RRC/NR_UE/rrc_defs.h
+@@ -226,6 +226,14 @@
+ 
+   /* KgNB as computed from parameters within USIM card */
+   uint8_t kgnb[32];
++  /* KgNB of the current AS security activation (securityModeCommand): the root the AMF's NH
++   * chain starts from.  Proven equal to the network's by the SMC passing integrity. */
++  uint8_t kgnb_smc[32];
++  /* Root of the AMF's NH chain: the KgNB of the FIRST AS security activation under the
++   * current KAMF.  The OAI AMF keeps that KgNB for handovers and does not refresh it when the
++   * UE re-registers with the same NAS context (verified by KDF from AMF logs 2026-09-25). */
++  uint8_t kgnb_root[32];
++  uint8_t kamf_of_root[32];
+   /* Used integrity/ciphering algorithms */
+   //RRC_LIST_TYPE(NR_SecurityAlgorithmConfig_t, NR_SecurityAlgorithmConfig) SecurityAlgorithmConfig_list;
+   NR_CipheringAlgorithm_t  cipheringAlgorithm;

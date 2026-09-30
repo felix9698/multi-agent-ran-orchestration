@@ -1,0 +1,43 @@
+{
+  "capabilityManifestPath": "tests/gui/fixtures/capability-manifest-min.json",
+  "contract": {
+    "authorityVersion": "1.0.1"
+  },
+  "intent": {
+    "bsIds": [
+      "bs1",
+      "bs2"
+    ],
+    "powerOffsetLimitDb": 3.0,
+    "throughputTargetMbps": 3.5,
+    "ueIds": [
+      "ue1",
+      "ue2"
+    ]
+  },
+  "label": "Replay - run-012 excerpt",
+  "llm": {
+    "backendName": "mock:deterministic",
+    "credentialRefs": [],
+    "modelVersion": null
+  },
+  "metrics": {
+    "graphWindowS": 300,
+    "refreshHz": 4,
+    "selected": [
+      "RRU.PrbDl",
+      "o1_ingest_latency_ms"
+    ]
+  },
+  "mode": "REPLAY",
+  "profileId": "replay-lo1-min",
+  "recording": {
+    "enabled": true,
+    "runsRoot": "gui_runs"
+  },
+  "schemaVersion": "oran-aic-phase-b-gui-profile/1.0.0",
+  "source": {
+    "adapter": "lo1-capture",
+    "path": "tests/gui/fixtures/lo1-capture-min"
+  }
+}

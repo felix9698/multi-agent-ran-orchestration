@@ -1,0 +1,1002 @@
+[
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 0,
+    "t_s": 0.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 11.69,
+        "rsrp": -85.4,
+        "sinr": 17.5
+      },
+      "ue2": {
+        "throughput_mbps": 12.51,
+        "rsrp": -90.6,
+        "sinr": 16.2
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": -0.29
+    },
+    "phase_idx": 0,
+    "phase_label": "p0:Nominal"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 1,
+    "t_s": 15.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 12.68,
+        "rsrp": -86.9,
+        "sinr": 17.6
+      },
+      "ue2": {
+        "throughput_mbps": 10.81,
+        "rsrp": -86.4,
+        "sinr": 11.0
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": -0.29
+    },
+    "phase_idx": 0,
+    "phase_label": "p0:Nominal"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 2,
+    "t_s": 30.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 12.34,
+        "rsrp": -87.0,
+        "sinr": 17.3
+      },
+      "ue2": {
+        "throughput_mbps": 12.63,
+        "rsrp": -92.9,
+        "sinr": 20.7
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": -0.29
+    },
+    "phase_idx": 0,
+    "phase_label": "p0:Nominal"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 3,
+    "t_s": 45.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 13.24,
+        "rsrp": -86.6,
+        "sinr": 14.8
+      },
+      "ue2": {
+        "throughput_mbps": 11.26,
+        "rsrp": -90.2,
+        "sinr": 14.2
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": -0.29
+    },
+    "phase_idx": 0,
+    "phase_label": "p0:Nominal"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Degradation",
+    "step_idx": 4,
+    "t_s": 60.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 5.84,
+        "rsrp": -85.7,
+        "sinr": 5.9
+      },
+      "ue2": {
+        "throughput_mbps": 5.29,
+        "rsrp": -83.1,
+        "sinr": 5.1
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 1,
+    "phase_label": "p1:Degradation"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Degradation",
+    "step_idx": 5,
+    "t_s": 75.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 5.41,
+        "rsrp": -88.3,
+        "sinr": 10.6
+      },
+      "ue2": {
+        "throughput_mbps": 4.5,
+        "rsrp": -88.9,
+        "sinr": 6.0
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 1,
+    "phase_label": "p1:Degradation"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Degradation",
+    "step_idx": 6,
+    "t_s": 90.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 5.81,
+        "rsrp": -93.4,
+        "sinr": 5.8
+      },
+      "ue2": {
+        "throughput_mbps": 4.62,
+        "rsrp": -92.3,
+        "sinr": 6.6
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 1,
+    "phase_label": "p1:Degradation"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Degradation",
+    "step_idx": 7,
+    "t_s": 105.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 5.94,
+        "rsrp": -84.6,
+        "sinr": 9.0
+      },
+      "ue2": {
+        "throughput_mbps": 5.5,
+        "rsrp": -86.7,
+        "sinr": 9.6
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 1,
+    "phase_label": "p1:Degradation"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Impairment",
+    "step_idx": 8,
+    "t_s": 120.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 4.54,
+        "rsrp": -92.1,
+        "sinr": 5.8
+      },
+      "ue2": {
+        "throughput_mbps": 4.23,
+        "rsrp": -84.9,
+        "sinr": 5.7
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 2,
+    "phase_label": "p2:Impairment"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Impairment",
+    "step_idx": 9,
+    "t_s": 135.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 4.27,
+        "rsrp": -86.0,
+        "sinr": 7.1
+      },
+      "ue2": {
+        "throughput_mbps": 3.49,
+        "rsrp": -88.6,
+        "sinr": 5.0
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 2,
+    "phase_label": "p2:Impairment"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Impairment",
+    "step_idx": 10,
+    "t_s": 150.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 3.08,
+        "rsrp": -85.4,
+        "sinr": 3.9
+      },
+      "ue2": {
+        "throughput_mbps": 2.94,
+        "rsrp": -82.5,
+        "sinr": 3.3
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 2,
+    "phase_label": "p2:Impairment"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Impairment",
+    "step_idx": 11,
+    "t_s": 165.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 3.67,
+        "rsrp": -87.9,
+        "sinr": 6.2
+      },
+      "ue2": {
+        "throughput_mbps": 2.77,
+        "rsrp": -87.9,
+        "sinr": 2.9
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 2,
+    "phase_label": "p2:Impairment"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Recovery",
+    "step_idx": 12,
+    "t_s": 180.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 10.42,
+        "rsrp": -90.0,
+        "sinr": 14.7
+      },
+      "ue2": {
+        "throughput_mbps": 8.94,
+        "rsrp": -83.8,
+        "sinr": 14.2
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.37
+    },
+    "phase_idx": 3,
+    "phase_label": "p3:Recovery"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Recovery",
+    "step_idx": 13,
+    "t_s": 195.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 10.55,
+        "rsrp": -87.6,
+        "sinr": 14.4
+      },
+      "ue2": {
+        "throughput_mbps": 9.44,
+        "rsrp": -87.0,
+        "sinr": 12.5
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.37
+    },
+    "phase_idx": 3,
+    "phase_label": "p3:Recovery"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Recovery",
+    "step_idx": 14,
+    "t_s": 210.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 10.13,
+        "rsrp": -90.7,
+        "sinr": 14.2
+      },
+      "ue2": {
+        "throughput_mbps": 9.98,
+        "rsrp": -84.8,
+        "sinr": 11.6
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.37
+    },
+    "phase_idx": 3,
+    "phase_label": "p3:Recovery"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Recovery",
+    "step_idx": 15,
+    "t_s": 225.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 11.03,
+        "rsrp": -87.0,
+        "sinr": 12.2
+      },
+      "ue2": {
+        "throughput_mbps": 8.68,
+        "rsrp": -92.3,
+        "sinr": 10.8
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.37
+    },
+    "phase_idx": 3,
+    "phase_label": "p3:Recovery"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 16,
+    "t_s": 240.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 12.27,
+        "rsrp": -91.5,
+        "sinr": 18.1
+      },
+      "ue2": {
+        "throughput_mbps": 12.79,
+        "rsrp": -89.2,
+        "sinr": 16.4
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": -0.01
+    },
+    "phase_idx": 4,
+    "phase_label": "p4:Nominal"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 17,
+    "t_s": 255.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 11.77,
+        "rsrp": -84.8,
+        "sinr": 15.1
+      },
+      "ue2": {
+        "throughput_mbps": 11.51,
+        "rsrp": -84.6,
+        "sinr": 15.4
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": -0.01
+    },
+    "phase_idx": 4,
+    "phase_label": "p4:Nominal"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 18,
+    "t_s": 270.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 12.99,
+        "rsrp": -93.0,
+        "sinr": 16.9
+      },
+      "ue2": {
+        "throughput_mbps": 11.12,
+        "rsrp": -86.3,
+        "sinr": 15.2
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": -0.01
+    },
+    "phase_idx": 4,
+    "phase_label": "p4:Nominal"
+  },
+  {
+    "trial_id": 1,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 19,
+    "t_s": 285.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 12.42,
+        "rsrp": -93.8,
+        "sinr": 17.1
+      },
+      "ue2": {
+        "throughput_mbps": 10.73,
+        "rsrp": -92.4,
+        "sinr": 15.2
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": -0.01
+    },
+    "phase_idx": 4,
+    "phase_label": "p4:Nominal"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 0,
+    "t_s": 0.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 12.11,
+        "rsrp": -90.0,
+        "sinr": 16.4
+      },
+      "ue2": {
+        "throughput_mbps": 11.54,
+        "rsrp": -92.4,
+        "sinr": 15.8
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.38
+    },
+    "phase_idx": 0,
+    "phase_label": "p0:Nominal"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 1,
+    "t_s": 15.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 12.6,
+        "rsrp": -92.5,
+        "sinr": 16.1
+      },
+      "ue2": {
+        "throughput_mbps": 11.84,
+        "rsrp": -87.4,
+        "sinr": 13.9
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.38
+    },
+    "phase_idx": 0,
+    "phase_label": "p0:Nominal"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 2,
+    "t_s": 30.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 11.06,
+        "rsrp": -85.4,
+        "sinr": 17.4
+      },
+      "ue2": {
+        "throughput_mbps": 11.65,
+        "rsrp": -84.0,
+        "sinr": 17.3
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.38
+    },
+    "phase_idx": 0,
+    "phase_label": "p0:Nominal"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 3,
+    "t_s": 45.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 11.97,
+        "rsrp": -90.0,
+        "sinr": 16.6
+      },
+      "ue2": {
+        "throughput_mbps": 10.83,
+        "rsrp": -85.2,
+        "sinr": 14.8
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.38
+    },
+    "phase_idx": 0,
+    "phase_label": "p0:Nominal"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Degradation",
+    "step_idx": 4,
+    "t_s": 60.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 9.33,
+        "rsrp": -83.8,
+        "sinr": 15.6
+      },
+      "ue2": {
+        "throughput_mbps": 8.79,
+        "rsrp": -92.4,
+        "sinr": 12.8
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 2.73
+    },
+    "phase_idx": 1,
+    "phase_label": "p1:Degradation"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Degradation",
+    "step_idx": 5,
+    "t_s": 75.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 11.32,
+        "rsrp": -87.0,
+        "sinr": 15.8
+      },
+      "ue2": {
+        "throughput_mbps": 9.69,
+        "rsrp": -89.5,
+        "sinr": 13.5
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 2.73
+    },
+    "phase_idx": 1,
+    "phase_label": "p1:Degradation"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Degradation",
+    "step_idx": 6,
+    "t_s": 90.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 9.67,
+        "rsrp": -93.3,
+        "sinr": 12.4
+      },
+      "ue2": {
+        "throughput_mbps": 9.56,
+        "rsrp": -84.4,
+        "sinr": 11.4
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 2.73
+    },
+    "phase_idx": 1,
+    "phase_label": "p1:Degradation"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Degradation",
+    "step_idx": 7,
+    "t_s": 105.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 9.41,
+        "rsrp": -90.2,
+        "sinr": 9.5
+      },
+      "ue2": {
+        "throughput_mbps": 9.12,
+        "rsrp": -92.1,
+        "sinr": 11.7
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 2.73
+    },
+    "phase_idx": 1,
+    "phase_label": "p1:Degradation"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Impairment",
+    "step_idx": 8,
+    "t_s": 120.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 4.97,
+        "rsrp": -82.5,
+        "sinr": 7.1
+      },
+      "ue2": {
+        "throughput_mbps": 3.42,
+        "rsrp": -88.0,
+        "sinr": 4.0
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 2,
+    "phase_label": "p2:Impairment"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Impairment",
+    "step_idx": 9,
+    "t_s": 135.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 3.67,
+        "rsrp": -83.9,
+        "sinr": 4.2
+      },
+      "ue2": {
+        "throughput_mbps": 5.03,
+        "rsrp": -82.8,
+        "sinr": 7.3
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 2,
+    "phase_label": "p2:Impairment"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Impairment",
+    "step_idx": 10,
+    "t_s": 150.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 3.91,
+        "rsrp": -92.7,
+        "sinr": 6.6
+      },
+      "ue2": {
+        "throughput_mbps": 2.88,
+        "rsrp": -84.0,
+        "sinr": 4.3
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 2,
+    "phase_label": "p2:Impairment"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Impairment",
+    "step_idx": 11,
+    "t_s": 165.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 3.02,
+        "rsrp": -92.9,
+        "sinr": 3.6
+      },
+      "ue2": {
+        "throughput_mbps": 4.5,
+        "rsrp": -84.3,
+        "sinr": 4.5
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.0
+    },
+    "phase_idx": 2,
+    "phase_label": "p2:Impairment"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Recovery",
+    "step_idx": 12,
+    "t_s": 180.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 9.69,
+        "rsrp": -89.5,
+        "sinr": 14.5
+      },
+      "ue2": {
+        "throughput_mbps": 8.81,
+        "rsrp": -82.8,
+        "sinr": 10.8
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.38
+    },
+    "phase_idx": 3,
+    "phase_label": "p3:Recovery"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Recovery",
+    "step_idx": 13,
+    "t_s": 195.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 9.72,
+        "rsrp": -88.9,
+        "sinr": 14.7
+      },
+      "ue2": {
+        "throughput_mbps": 9.44,
+        "rsrp": -83.4,
+        "sinr": 11.9
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.38
+    },
+    "phase_idx": 3,
+    "phase_label": "p3:Recovery"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Recovery",
+    "step_idx": 14,
+    "t_s": 210.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 10.49,
+        "rsrp": -89.0,
+        "sinr": 15.4
+      },
+      "ue2": {
+        "throughput_mbps": 9.57,
+        "rsrp": -82.8,
+        "sinr": 11.3
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.38
+    },
+    "phase_idx": 3,
+    "phase_label": "p3:Recovery"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Recovery",
+    "step_idx": 15,
+    "t_s": 225.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 9.1,
+        "rsrp": -85.3,
+        "sinr": 12.5
+      },
+      "ue2": {
+        "throughput_mbps": 9.42,
+        "rsrp": -88.9,
+        "sinr": 11.9
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.38
+    },
+    "phase_idx": 3,
+    "phase_label": "p3:Recovery"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 16,
+    "t_s": 240.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 12.7,
+        "rsrp": -93.1,
+        "sinr": 14.6
+      },
+      "ue2": {
+        "throughput_mbps": 10.98,
+        "rsrp": -91.3,
+        "sinr": 12.3
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.35
+    },
+    "phase_idx": 4,
+    "phase_label": "p4:Nominal"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 17,
+    "t_s": 255.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 12.94,
+        "rsrp": -93.3,
+        "sinr": 16.0
+      },
+      "ue2": {
+        "throughput_mbps": 12.48,
+        "rsrp": -91.5,
+        "sinr": 15.2
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.35
+    },
+    "phase_idx": 4,
+    "phase_label": "p4:Nominal"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 18,
+    "t_s": 270.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 13.45,
+        "rsrp": -91.4,
+        "sinr": 18.1
+      },
+      "ue2": {
+        "throughput_mbps": 11.5,
+        "rsrp": -84.2,
+        "sinr": 12.8
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.35
+    },
+    "phase_idx": 4,
+    "phase_label": "p4:Nominal"
+  },
+  {
+    "trial_id": 2,
+    "method": "llm_no_history",
+    "phase": "Nominal",
+    "step_idx": 19,
+    "t_s": 285.0,
+    "ue_kpis": {
+      "ue1": {
+        "throughput_mbps": 11.98,
+        "rsrp": -88.6,
+        "sinr": 12.3
+      },
+      "ue2": {
+        "throughput_mbps": 11.57,
+        "rsrp": -85.4,
+        "sinr": 17.5
+      }
+    },
+    "action_offsets": {
+      "bs1": 0.0,
+      "bs2": 0.35
+    },
+    "phase_idx": 4,
+    "phase_label": "p4:Nominal"
+  }
+]

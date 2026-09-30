@@ -1,0 +1,30 @@
+# CCCH 경로의 길이 불일치에서 UE 프로세스를 죽이지 않는다.
+#
+# 근거 (2026-09-13 실측): 부하 중 하향 CCCH PDU 의 길이 불일치로
+#   nr_ue_procedures.c:4047 AssertFatal 이 걸려 UE softmodem 이 즉사한다.
+#   오늘 밤 UE 사망 6건 중 5건이 이 한 줄이며, offered load 를 3->2 Mbps 로
+#   낮춰도 사라지지 않았다 (RLC max-RETX 폭주와는 별개 결함).
+# get_mac_len() 이 false 를 내는 경우는 nr_mac.h:72 기준 세 가지뿐이고
+#   모두 '들어온 PDU 가 잘렸거나 형식이 어긋났다'는 뜻이지 UE 상태 손상이 아니다.
+# 같은 함수 4178 행은 동일한 실패를 LOG_E 로 처리하고 계속 진행한다 -- 이 패치는
+#   그 in-tree 선례를 CCCH 경로에 맞춘 것이다.
+#
+# 적용: patch -p1 < oai_patches/nr_ue_ccch_maclen_no_assert.w30.patch
+# 상태: 미적용 (OAI 트리 수정은 승인 범위 밖이므로 텍스트로만 보관)
+---
+--- a/openair2/LAYER2/NR_MAC_UE/nr_ue_procedures.c
++++ b/openair2/LAYER2/NR_MAC_UE/nr_ue_procedures.c
+@@ -7,7 +7,12 @@
+         //  MSG4 RRC Setup 38.331
+         //  variable length
+         ret=get_mac_len(pduP, pdu_len, &mac_len, &mac_subheader_len);
+-        AssertFatal(ret, "The mac_len (%d) has an invalid size. PDU len = %d! \n", mac_len, pdu_len);
++        if (!ret) {
++          LOG_E(MAC, "get_mac_len(): invalid pdu_len %d (mac_len %d mac_subheader_len %d)\n",
++                pdu_len, mac_len, mac_subheader_len);
++          done = 1;
++          break;
++        }
+ 
+         // Check if it is a valid CCCH message, we get all 00's messages very often
+         int i = 0;

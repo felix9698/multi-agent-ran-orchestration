@@ -1,0 +1,262 @@
+{
+  "specVersion": "oran-aic-phase-b-gui-metric-registry/1.0.0",
+  "title": "Phase B Operator GUI - metric availability registry",
+  "description": "What the GUI may plot, where each value comes from, and what it must render when a metric has no source. phaseB_task.md section 4 forbids synthesizing an unsupported KPI or substituting a different one for it. This registry is the mechanical form of that rule.",
+
+  "discoveryRule": {
+    "primary": "At session start the GUI loads the RAN capability manifest (aic.ran-capability.1.0.0) and takes decisionKpis and assuranceKpis as the authoritative list of metrics this deployment offers. The registry below supplies presentation metadata (display name, unit, decimals, scope level, expected sampling) for known ids.",
+    "unknownDeclaredMetric": "A metric the manifest declares but the registry does not know is still plotted, with unit and scope taken from the manifest and display name equal to its id. It is never dropped.",
+    "undeclaredMetric": "A metric the registry knows but the manifest does not declare renders UNSUPPORTED with reason NOT_DECLARED_BY_CAPABILITY_MANIFEST.",
+    "noManifest": "Without a capability manifest every O-RAN-sourced metric renders UNKNOWN with reason CAPABILITY_MANIFEST_ABSENT. It does not fall back to a hard-coded list."
+  },
+
+  "sourceClasses": {
+    "O1_DME": "PM measurement delivered as aic:policy-evidence samples sourced from O1 Performance Assurance. The only O-RAN-boundary KPI path available to this console.",
+    "EXPERIMENT_RECORD": "A value recorded by the research measurement path (experiments StepRecord / EpisodeRecord). It is REAL measured data, but it did not arrive over an O-RAN interface. It must be labelled with source 'Experiment record', never as O1 or DME.",
+    "RAPP_INTERNAL": "Measured inside the coordinator itself (decision latencies, confidence, theta*).",
+    "DERIVED": "Computed by the GUI from other metrics. Always carries the 'Derived visualization' label and its derivation formula.",
+    "NONE": "No source exists in this deployment."
+  },
+
+  "metrics": [
+    {
+      "id": "RRU.PrbDl",
+      "display": "DL PRB utilization",
+      "unit": "percent",
+      "decimals": 0,
+      "scopeLevel": "CELL",
+      "sources": ["O1_DME"],
+      "standard": "3GPP TS 28.552",
+      "availability": {
+        "live": "AVAILABLE_IF_DECLARED",
+        "replayLo1Capture": "AVAILABLE",
+        "replayExperimentRun": "UNSUPPORTED",
+        "note": "The run-012 capture carries exactly one PM measurement type at one granularity period for two cells - two scalars in total. It supports a per-cell gauge and a single annotated point on the time axis. It does NOT support a time series, and the chart must say so rather than drawing a line through two points."
+      }
+    },
+    {
+      "id": "DRB.UEThpDl",
+      "display": "DL UE throughput (O1)",
+      "unit": "kbps",
+      "decimals": 0,
+      "scopeLevel": "CELL",
+      "sources": ["O1_DME"],
+      "standard": "3GPP TS 28.552",
+      "availability": {
+        "live": "AVAILABLE_IF_DECLARED",
+        "replayLo1Capture": "UNAVAILABLE",
+        "replayExperimentRun": "UNSUPPORTED",
+        "reason": "Subscribed in the PerfMetricJob (raw/netconf/rpc-0009-create-perfmetricjob-locked-request.xml requests it) but the provider delivered no measType for it, so the capture contains zero values.",
+        "renderRule": "UNAVAILABLE with the reason above. It is NOT substituted by the experiment-record throughput; the two are different measurements from different paths and must never share a series."
+      },
+      "gapId": "GAP-05"
+    },
+    {
+      "id": "throughput_mbps",
+      "display": "UE DL throughput (experiment record)",
+      "unit": "Mbps",
+      "decimals": 2,
+      "scopeLevel": "UE",
+      "sources": ["EXPERIMENT_RECORD"],
+      "recordField": "StepRecord.ue_kpis[ue].throughput_mbps",
+      "availability": {
+        "live": "UNSUPPORTED",
+        "replayLo1Capture": "UNSUPPORTED",
+        "replayExperimentRun": "AVAILABLE",
+        "note": "Source label must read 'Experiment record', never O1. The live I2 target is config.LIVE_I2_TARGET_MBPS (3.5) while the offline default is IntentConfig.throughput_target_mbps (8.0); the goal line is read from the run's own config snapshot, never from a constant."
+      }
+    },
+    {
+      "id": "ue_dl_ss_rsrp_dbm",
+      "display": "UE DL SS-RSRP",
+      "unit": "dBm",
+      "decimals": 1,
+      "scopeLevel": "UE",
+      "sources": ["EXPERIMENT_RECORD"],
+      "availability": {"live": "UNSUPPORTED", "replayLo1Capture": "UNSUPPORTED", "replayExperimentRun": "AVAILABLE"},
+      "gapId": "GAP-06"
+    },
+    {
+      "id": "gnb_ul_avg_rsrp_dbm",
+      "display": "gNB UL average RSRP",
+      "unit": "dBm",
+      "decimals": 1,
+      "scopeLevel": "UE",
+      "sources": ["EXPERIMENT_RECORD"],
+      "availability": {"live": "UNSUPPORTED", "replayLo1Capture": "UNSUPPORTED", "replayExperimentRun": "AVAILABLE"},
+      "gapId": "GAP-06",
+      "note": "UL and DL RSRP are separate series and must never be merged into one 'RSRP' line. The existing radio_source column records which one a row came from."
+    },
+    {
+      "id": "ue_dl_sinr_db",
+      "display": "UE DL SINR",
+      "unit": "dB",
+      "decimals": 1,
+      "scopeLevel": "UE",
+      "sources": ["EXPERIMENT_RECORD"],
+      "availability": {"live": "UNSUPPORTED", "replayLo1Capture": "UNSUPPORTED", "replayExperimentRun": "AVAILABLE"},
+      "gapId": "GAP-06"
+    },
+    {
+      "id": "gnb_ul_snr_db",
+      "display": "gNB UL SNR",
+      "unit": "dB",
+      "decimals": 1,
+      "scopeLevel": "UE",
+      "sources": ["EXPERIMENT_RECORD"],
+      "availability": {"live": "UNSUPPORTED", "replayLo1Capture": "UNSUPPORTED", "replayExperimentRun": "AVAILABLE"},
+      "gapId": "GAP-06"
+    },
+    {
+      "id": "mcs",
+      "display": "MCS",
+      "unit": "index",
+      "decimals": 0,
+      "scopeLevel": "UE",
+      "sources": ["NONE"],
+      "availability": {
+        "live": "UNSUPPORTED",
+        "replayLo1Capture": "UNSUPPORTED",
+        "replayExperimentRun": "UNSUPPORTED",
+        "reason": "No O-RAN contract path and no experiment record field carries MCS. It appears only as a ClipEvent axis label ('mcs') in the offline episode record, which is a control-axis name and not a measurement."
+      },
+      "gapId": "GAP-07",
+      "renderRule": "The MCS tile shows Unsupported with the reason. It must not be back-computed from throughput or SINR."
+    },
+    {
+      "id": "latency_e2e_ms",
+      "display": "Intent end-to-end decision latency",
+      "unit": "ms",
+      "decimals": 0,
+      "scopeLevel": "RUN",
+      "sources": ["RAPP_INTERNAL"],
+      "recordField": "episode result latency_ms",
+      "availability": {"live": "AVAILABLE", "replayLo1Capture": "UNAVAILABLE", "replayExperimentRun": "AVAILABLE"},
+      "note": "This is decision latency, not air-interface latency."
+    },
+    {
+      "id": "latency_stage_ms",
+      "display": "Per-stage decision latency",
+      "unit": "ms",
+      "decimals": 0,
+      "scopeLevel": "RUN",
+      "sources": ["RAPP_INTERNAL"],
+      "components": ["parse_ms", "inference_ms", "schema_admission_ms", "executor_write_ms", "readback_ms", "validation_ms", "negotiation_ms", "rollback_ms", "recovery_ms"],
+      "availability": {"live": "AVAILABLE", "replayLo1Capture": "UNAVAILABLE", "replayExperimentRun": "AVAILABLE"},
+      "note": "Any component that is null is unmeasured; the stacked bar leaves a labelled gap rather than filling zero."
+    },
+    {
+      "id": "o1_ingest_latency_ms",
+      "display": "O1 measurement ingest latency",
+      "unit": "ms",
+      "decimals": 0,
+      "scopeLevel": "CELL",
+      "sources": ["O1_DME"],
+      "recordField": "evidence sample ingestLatencyMs / measurementAgeMs",
+      "availability": {"live": "AVAILABLE_IF_DECLARED", "replayLo1Capture": "AVAILABLE", "replayExperimentRun": "UNSUPPORTED"},
+      "note": "Pipeline latency of the assurance path. It is labelled as such and never presented as network latency."
+    },
+    {
+      "id": "latency_ran_ms",
+      "display": "RAN / air-interface latency",
+      "unit": "ms",
+      "decimals": 0,
+      "scopeLevel": "UE",
+      "sources": ["NONE"],
+      "availability": {"live": "UNSUPPORTED", "replayLo1Capture": "UNSUPPORTED", "replayExperimentRun": "UNSUPPORTED"},
+      "gapId": "GAP-08"
+    },
+    {
+      "id": "serving_cell",
+      "display": "Serving cell / handover",
+      "unit": "identity",
+      "scopeLevel": "UE",
+      "sources": ["NONE"],
+      "availability": {
+        "live": "UNSUPPORTED",
+        "replayLo1Capture": "UNSUPPORTED",
+        "replayExperimentRun": "UNSUPPORTED",
+        "reason": "The capture contains the key NAME servingCellNcI in a harness operation output-key list but no value, and no mobility or handover event exists anywhere. Static cell identity (NRCellDU=1/2 with their ncI values) is available and is shown as inventory, not as a serving-cell state."
+      },
+      "gapId": "GAP-09"
+    },
+    {
+      "id": "constellation_iq",
+      "display": "Constellation (IQ)",
+      "unit": "IQ",
+      "scopeLevel": "UE",
+      "sources": ["NONE"],
+      "availability": {
+        "live": "UNSUPPORTED",
+        "replayLo1Capture": "UNSUPPORTED",
+        "replayExperimentRun": "UNSUPPORTED",
+        "reason": "No IQ or constellation source exists at the management-plane layer this console operates on, and acquiring one would require RAN-side access the boundary forbids."
+      },
+      "gapId": "GAP-10",
+      "renderRule": "The constellation panel renders Unsupported with the reason whenever no IQ source is declared. It falls back to constellation_derived ONLY when a real SINR series exists, and then it is unmistakably labelled."
+    },
+    {
+      "id": "constellation_derived",
+      "display": "Modulation quality (Derived visualization)",
+      "unit": "EVM-equivalent",
+      "scopeLevel": "UE",
+      "sources": ["DERIVED"],
+      "derivation": "Symbol cloud spread from a measured SINR series: sigma = 10^(-SINR/20). The constellation order is taken from a measured MCS when one exists and is otherwise fixed and stated on the panel.",
+      "requires": ["ue_dl_sinr_db"],
+      "availability": {
+        "live": "AVAILABLE_IF_SINR_AVAILABLE",
+        "replayLo1Capture": "UNSUPPORTED",
+        "replayExperimentRun": "AVAILABLE"
+      },
+      "renderRule": "Permanent 'Derived visualization' badge on the panel, in the panel title, in the tooltip and in any export of it. When the SINR series is absent the panel renders Unsupported - it must NEVER draw a random cloud from no input. The legacy dashboard's behaviour of always drawing a noise cloud is explicitly NOT carried forward.",
+      "note": "Implemented with the standard library random and math modules so the Operator Console adds no numpy dependency of its own."
+    },
+    {
+      "id": "policy_count",
+      "display": "Active A1 policies",
+      "unit": "count",
+      "decimals": 0,
+      "scopeLevel": "RUN",
+      "sources": ["R1_POLICY"],
+      "availability": {"live": "AVAILABLE", "replayLo1Capture": "AVAILABLE", "replayExperimentRun": "UNSUPPORTED"}
+    },
+    {
+      "id": "evidence_record_count",
+      "display": "Evidence records accepted",
+      "unit": "count",
+      "decimals": 0,
+      "scopeLevel": "RUN",
+      "sources": ["R1_DME"],
+      "availability": {"live": "AVAILABLE", "replayLo1Capture": "AVAILABLE", "replayExperimentRun": "UNSUPPORTED"}
+    },
+    {
+      "id": "theta_star",
+      "display": "Decision threshold theta*",
+      "unit": "",
+      "decimals": 3,
+      "scopeLevel": "RUN",
+      "sources": ["RAPP_INTERNAL"],
+      "availability": {"live": "AVAILABLE", "replayLo1Capture": "UNAVAILABLE", "replayExperimentRun": "AVAILABLE"}
+    },
+    {
+      "id": "calibrated_probability",
+      "display": "Calibrated probability",
+      "unit": "",
+      "decimals": 3,
+      "scopeLevel": "RUN",
+      "sources": ["RAPP_INTERNAL"],
+      "availability": {"live": "AVAILABLE", "replayLo1Capture": "UNAVAILABLE", "replayExperimentRun": "AVAILABLE"},
+      "note": "Always displayed together with raw_confidence and threshold_applied_to so the operator can see routing is on the calibrated value."
+    }
+  ],
+
+  "renderingRules": [
+    "A metric tile always shows: value, unit, source class, scope, sampling interval, observation timestamp, age and quality. A bare number with no provenance is not an acceptable rendering.",
+    "A metric whose status is not OK shows the status glyph plus the reason string in place of a value.",
+    "A chart never silently drops an unavailable series. It shows the series in the legend with its status, so the absence is visible.",
+    "Series from different source classes are never combined into one line, even when they nominally measure the same quantity.",
+    "A time series with fewer than three real samples is rendered as discrete points with a 'sparse data (n=N)' note, never as a connected line.",
+    "Null values create gaps in a line; they are never bridged by interpolation and never plotted as zero.",
+    "Aggregation across UEs or cells is opt-in, is stated in the axis label, and is recorded in the figure metadata processing block."
+  ]
+}

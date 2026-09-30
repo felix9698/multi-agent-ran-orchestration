@@ -1,0 +1,65 @@
+diff --git a/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch.c b/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch.c
+index be4850f412..2654b88d9b 100644
+--- a/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch.c
++++ b/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch.c
+@@ -680,10 +685,60 @@ bool nr_dl_validate_cce_pucch(const nr_dl_sched_params_t *params, nr_dl_candidat
+   return true;
+ }
+ 
++/* [Action6] Resolve the E2SM-RC Style2/Action6 slice PRB quota governing this UE,
++ * via the UE's logical-channel S-NSSAI (same match as the KPM readback in
++ * ran_func_kpm_subs.c fill_RAN_SlicePrbQuotaMin). NULL if the UE's slice is not in
++ * the atomic quota table. */
++static const nr_slice_prb_quota_t *slice_quota_for_ue(const gNB_MAC_INST *mac,
++                                                      const NR_UE_sched_ctrl_t *sched_ctrl)
++{
++  for (size_t l = 0; l < seq_arr_size(&sched_ctrl->lc_config); ++l) {
++    const nr_lc_config_t *lc = seq_arr_at(&sched_ctrl->lc_config, l);
++    for (size_t q = 0; q < mac->slice_prb_quotas.count; ++q) {
++      const nr_slice_prb_quota_t *quota = &mac->slice_prb_quotas.entries[q];
++      if (quota->nssai.sst == lc->nssai.sst && quota->nssai.sd == lc->nssai.sd)
++        return quota;
++    }
++  }
++  return NULL;
++}
++
+ // Validate CCE/PUCCH and mark VRBs for a candidate whose sched_pdsch.rbStart/rbSize/mcs
+ // have already been set. Returns false if validation fails (UE should be skipped).
+ bool commit_alloc(const nr_dl_sched_params_t *params, nr_dl_candidate_t *cand)
+ {
++  /* d>=2 action-space: cap new-transmission DL PRB grants at runtime. Apply
++   * the tighter of the cell cap and per-UE cap; 0 means uncapped. HARQ retx
++   * keeps its original RB size so its TBS remains invariant. */
++  if (!cand->is_retx) {
++    const gNB_MAC_INST *mac = params->mac;
++    const NR_UE_sched_ctrl_t *sched_ctrl = &cand->UE->UE_sched_ctrl;
++    uint16_t rb_cap = mac->dl_max_rbSize;
++    if (sched_ctrl->dl_max_rbSize > 0 && (rb_cap == 0 || sched_ctrl->dl_max_rbSize < rb_cap))
++      rb_cap = sched_ctrl->dl_max_rbSize;
++    /* [Action6] Slice PRB quota enforcement: additionally cap this UE's new-tx
++     * grant at its slice's max_ratio of the UE BWP. The quota table is the atomic
++     * Action-6 state exposed by nr_mac_get_slice_prb_quotas; a UE binds to a slice
++     * via its logical-channel S-NSSAI. Per-UE cap (one UE per slice in the current
++     * deployment => per-UE == slice share). count==0 => no slice governs anything. */
++    if (mac->slice_prb_quotas.count > 0 && cand->bwp_size > 0) {
++      const nr_slice_prb_quota_t *sq = slice_quota_for_ue(mac, sched_ctrl);
++      if (sq != NULL) {
++        uint16_t slice_cap = (uint16_t)(((uint32_t)sq->max_ratio * (uint32_t)cand->bwp_size) / 100u);
++        if (slice_cap == 0)
++          return false;                    /* slice max_ratio==0 starves this UE entirely */
++        if (rb_cap == 0 || slice_cap < rb_cap)
++          rb_cap = slice_cap;
++      }
++    }
++    if (rb_cap > 0 && cand->sched_pdsch.rbSize > rb_cap)
++      cand->sched_pdsch.rbSize = rb_cap;
++    /* The default DL policy requires at least five contiguous PRBs, matching
++     * the legacy scheduler's post-cap min_rbSize check. */
++    if (rb_cap > 0 && cand->sched_pdsch.rbSize < 5)
++      return false;
++  }
++
+   if (!nr_dl_validate_cce_pucch(params, cand))
+     return false;
+ 

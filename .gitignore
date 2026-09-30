@@ -1,0 +1,44 @@
+# Environments and credentials
+.venv/
+venv/
+.env
+.env.*
+!env.example
+/credentials*
+*.credentials.json
+*.key
+*.pem
+deployment/*.local.json
+deployment/local/
+scripts/hardware/env.sh
+
+# Generated results; scientific datasets are released deliberately, not by glob.
+outputs/
+gui_runs/
+var/
+experiment_results/ota-20260911/formal38guarded-*/
+experiment_results/ota-20260911/ops/overnight/
+experiment_results/ota-20260911/ops/corpus-*/
+*.log
+*.sqlite*
+*.json.bak
+calibration_data.json
+
+# Development tools and caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.claude/
+.codex/
+.superpowers/
+*.swp
+*.swo
+MEMORY.md
+AGENTS.md
+CLAUDE.md

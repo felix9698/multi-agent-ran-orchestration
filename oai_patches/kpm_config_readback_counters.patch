@@ -1,0 +1,173 @@
+diff --git a/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_kpm.c b/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_kpm.c
+index 7a96cb1..1672f47 100644
+--- a/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_kpm.c
++++ b/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_kpm.c
+@@ -455,6 +455,8 @@ static const char* kpm_node_meas_gnb[] = {
+   "CARR.PDSCHMCSDist",
+   "CARR.PUSCHMCSDist",
+   "L1M.SS-RSRP",
++  "RAN.Cell.DlMcsBounds",
++  "RAN.Cell.TxAttenuationDb",
+   "MR.NRScSSSINR",
+   "RRC.ConnMean",
+   NULL,
+@@ -477,6 +479,9 @@ static const char* kpm_meas_gnb[] = {
+   "DRB.UEThpUl",
+   "RRU.PrbTotDl",
+   "RRU.PrbTotUl",
++  "RAN.UE.DlPrbCap",
++  "RAN.UE.PfWeight",
++  "RAN.SlicePrbQuotaMin",
+   NULL,
+ };
+ 
+diff --git a/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_kpm_subs.c b/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_kpm_subs.c
+index 13545fd..f8baf5d 100644
+--- a/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_kpm_subs.c
++++ b/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_kpm_subs.c
+@@ -8,6 +8,9 @@
+ 
+ #include "openair2/RRC/NR/rrc_gNB_UE_context.h"
+ 
++#pragma weak nr_ru_get_tx_attenuation
++extern int nr_ru_get_tx_attenuation(double *configured_att_db, double *applied_gain_db, double *range_max_db);
++
+ e2_node_level_stats_t cp_node_level_stats(const e2_node_level_stats_t *src)
+ {
+   e2_node_level_stats_t dst = {
+@@ -195,6 +198,122 @@ static meas_record_lst_t fill_RRC_ConnMean(__attribute__((unused)) const label_i
+ static uldlcounter_t last_rlc_pdu_total_bytes[MAX_MOBILES_PER_GNB] = {0};
+ static uldlcounter_t last_total_prbs[MAX_MOBILES_PER_GNB] = {0};
+ 
++static meas_record_lst_t no_kpm_config_value(void)
++{
++  return (meas_record_lst_t){.value = NO_VALUE_MEAS_VALUE};
++}
++
++/* Deployment-local configuration readback.  UE attribution is supplied by
++ * KPM Style 4; a zero cap is a valid "uncapped" configuration. */
++static meas_record_lst_t fill_RAN_UE_DlPrbCap(__attribute__((unused)) const label_info_lst_t label,
++                                              __attribute__((unused)) uint32_t gran_period_ms,
++                                              cudu_ue_info_pair_t ue_info,
++                                              __attribute__((unused)) const size_t ue_idx,
++                                              __attribute__((unused)) e2_node_level_stats_t* node_stats)
++{
++  if (RC.nrmac == NULL || RC.nrmac[0] == NULL || ue_info.ue == NULL)
++    return no_kpm_config_value();
++  gNB_MAC_INST *mac = RC.nrmac[0];
++  NR_SCHED_LOCK(&mac->sched_lock);
++  const uint16_t cap = ue_info.ue->UE_sched_ctrl.dl_max_rbSize;
++  NR_SCHED_UNLOCK(&mac->sched_lock);
++  return (meas_record_lst_t){.value = INTEGER_MEAS_VALUE, .int_val = cap};
++}
++
++static meas_record_lst_t fill_RAN_UE_PfWeight(__attribute__((unused)) const label_info_lst_t label,
++                                              __attribute__((unused)) uint32_t gran_period_ms,
++                                              cudu_ue_info_pair_t ue_info,
++                                              __attribute__((unused)) const size_t ue_idx,
++                                              __attribute__((unused)) e2_node_level_stats_t* node_stats)
++{
++  if (RC.nrmac == NULL || RC.nrmac[0] == NULL || ue_info.ue == NULL)
++    return no_kpm_config_value();
++  gNB_MAC_INST *mac = RC.nrmac[0];
++  NR_SCHED_LOCK(&mac->sched_lock);
++  const double weight = ue_info.ue->UE_sched_ctrl.pf_weight;
++  NR_SCHED_UNLOCK(&mac->sched_lock);
++  return (meas_record_lst_t){.value = REAL_MEAS_VALUE, .real_val = weight};
++}
++
++/* Request this measurement twice, once with the standard min label and once
++ * with max.  The scalar KPM record then carries the complete configured pair
++ * without inventing a string encoding. */
++static meas_record_lst_t fill_RAN_Cell_DlMcsBounds(const label_info_lst_t label,
++                                                   __attribute__((unused)) uint32_t gran_period_ms,
++                                                   __attribute__((unused)) cudu_ue_info_pair_t ue_info,
++                                                   __attribute__((unused)) const size_t ue_idx,
++                                                   __attribute__((unused)) e2_node_level_stats_t* node_stats)
++{
++  if (RC.nrmac == NULL || RC.nrmac[0] == NULL || (label.min == NULL) == (label.max == NULL))
++    return no_kpm_config_value();
++  gNB_MAC_INST *mac = RC.nrmac[0];
++  NR_SCHED_LOCK(&mac->sched_lock);
++  const uint32_t bound = label.min != NULL ? mac->dl_bler.min_mcs : mac->dl_bler.max_mcs;
++  NR_SCHED_UNLOCK(&mac->sched_lock);
++  return (meas_record_lst_t){.value = INTEGER_MEAS_VALUE, .int_val = bound};
++}
++
++/* Style-4 S-NSSAI matching has already selected the UE.  Resolve that UE's
++ * configured logical-channel slice against the atomic Action-6 quota table. */
++static meas_record_lst_t fill_RAN_SlicePrbQuotaMin(__attribute__((unused)) const label_info_lst_t label,
++                                                   __attribute__((unused)) uint32_t gran_period_ms,
++                                                   cudu_ue_info_pair_t ue_info,
++                                                   __attribute__((unused)) const size_t ue_idx,
++                                                   __attribute__((unused)) e2_node_level_stats_t* node_stats)
++{
++  if (RC.nrmac == NULL || RC.nrmac[0] == NULL || ue_info.ue == NULL)
++    return no_kpm_config_value();
++
++  gNB_MAC_INST *mac = RC.nrmac[0];
++  bool found = false;
++  uint32_t minimum = 0;
++  NR_SCHED_LOCK(&mac->sched_lock);
++  const NR_UE_sched_ctrl_t *sched_ctrl = &ue_info.ue->UE_sched_ctrl;
++  for (size_t l = 0; !found && l < seq_arr_size(&sched_ctrl->lc_config); ++l) {
++    const nr_lc_config_t *lc = seq_arr_at(&sched_ctrl->lc_config, l);
++    for (size_t q = 0; q < mac->slice_prb_quotas.count; ++q) {
++      const nr_slice_prb_quota_t *quota = &mac->slice_prb_quotas.entries[q];
++      if (quota->nssai.sst == lc->nssai.sst && quota->nssai.sd == lc->nssai.sd) {
++        minimum = quota->min_ratio;
++        found = true;
++        break;
++      }
++    }
++  }
++  NR_SCHED_UNLOCK(&mac->sched_lock);
++  if (!found)
++    return no_kpm_config_value();
++  return (meas_record_lst_t){.value = INTEGER_MEAS_VALUE, .int_val = minimum};
++}
++
++/* distBinX selects one scalar from the three-value device-relative readback:
++ * 1 (or no label) = applied attenuation, 2 = applied absolute gain,
++ * 3 = the live device gain-range maximum. */
++static meas_record_lst_t fill_RAN_Cell_TxAttenuationDb(const label_info_lst_t label,
++                                                       __attribute__((unused)) uint32_t gran_period_ms,
++                                                       __attribute__((unused)) cudu_ue_info_pair_t ue_info,
++                                                       __attribute__((unused)) const size_t ue_idx,
++                                                       __attribute__((unused)) e2_node_level_stats_t* node_stats)
++{
++  if (nr_ru_get_tx_attenuation == NULL)
++    return no_kpm_config_value();
++
++  double configured = 0.0;
++  double applied_gain = 0.0;
++  double range_max = 0.0;
++  if (nr_ru_get_tx_attenuation(&configured, &applied_gain, &range_max) != 0)
++    return no_kpm_config_value();
++
++  const uint16_t component = label.distBinX == NULL ? 1 : *label.distBinX;
++  if (component == 1)
++    return (meas_record_lst_t){.value = REAL_MEAS_VALUE, .real_val = range_max - applied_gain};
++  if (component == 2)
++    return (meas_record_lst_t){.value = REAL_MEAS_VALUE, .real_val = applied_gain};
++  if (component == 3)
++    return (meas_record_lst_t){.value = REAL_MEAS_VALUE, .real_val = range_max};
++  return no_kpm_config_value();
++}
++
+ static nr_rlc_statistics_t get_rlc_stats_per_drb(const rnti_t rnti, const int rb_id)
+ {
+   nr_rlc_statistics_t rlc = {0};
+@@ -399,6 +518,11 @@ static kv_measure_t lst_measure[] = {
+   {.key = "RRU.PrbTotUl", .value =  fill_RRU_PrbTotUl }, 
+   {.key = "CARR.PDSCHMCSDist", .value = fill_CARR_PDSCHMCSDist },
+   {.key = "CARR.PUSCHMCSDist", .value = fill_CARR_PUSCHMCSDist },
++  {.key = "RAN.UE.DlPrbCap", .value = fill_RAN_UE_DlPrbCap },
++  {.key = "RAN.UE.PfWeight", .value = fill_RAN_UE_PfWeight },
++  {.key = "RAN.Cell.DlMcsBounds", .value = fill_RAN_Cell_DlMcsBounds },
++  {.key = "RAN.SlicePrbQuotaMin", .value = fill_RAN_SlicePrbQuotaMin },
++  {.key = "RAN.Cell.TxAttenuationDb", .value = fill_RAN_Cell_TxAttenuationDb },
+ #endif
+ }; 
+ 
+

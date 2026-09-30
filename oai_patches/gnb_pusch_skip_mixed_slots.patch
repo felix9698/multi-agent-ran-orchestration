@@ -1,0 +1,76 @@
+diff --git a/openair2/LAYER2/NR_MAC_gNB/config.c b/openair2/LAYER2/NR_MAC_gNB/config.c
+index 06b6972379..1820acf17d 100644
+--- a/openair2/LAYER2/NR_MAC_gNB/config.c
++++ b/openair2/LAYER2/NR_MAC_gNB/config.c
+@@ -286,6 +286,22 @@ nfapi_nr_pm_list_t init_DL_MIMO_codebook(gNB_MAC_INST *gNB, nr_pdsch_AntennaPort
+  * @param mixed indicates whether to include in the count also mixed slot with UL symbols or only full UL slot
+  * @return slot index
+  */
++/* AIC 2026-09-29: keep dedicated UL (PUSCH, SR, CSI, HARQ-ACK) out of TDD mixed
++ * slots -- some UEs are DTX there (ue3: 149/150 PUSCH DTX in slots 7/17, SR never
++ * heard).  Only when a full UL slot exists.  AIC_UL_IN_MIXED=1 restores stock. */
++bool nr_skip_mixed_ul(const frame_structure_t *fs)
++{
++  static int skip = -1;
++  if (skip < 0) {
++    const char *e = getenv("AIC_UL_IN_MIXED");
++    bool full_ul = false;
++    for (int i = 0; fs->frame_type == TDD && !full_ul && i < fs->numb_slots_period; i++)
++      full_ul = fs->period_cfg.tdd_slot_bitmap[i].slot_type == TDD_NR_UPLINK_SLOT;
++    skip = fs->frame_type == TDD && full_ul && !(e && e[0] == '1');
++  }
++  return skip;
++}
++
+ int get_first_ul_slot(const frame_structure_t *fs, bool mixed)
+ {
+   DevAssert(fs);
+diff --git a/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_ulsch.c b/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_ulsch.c
+index 9537127963..d563478a84 100644
+--- a/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_ulsch.c
++++ b/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_ulsch.c
+@@ -2568,7 +2568,9 @@ void nr_ulsch_preprocessor(gNB_MAC_INST *nr_mac, post_process_pusch_t *pp_pusch)
+   while (max_dci > 0) {
+     /* go to the next UL slot, skipping DL if necessary */
+     *next = fsn_get_max(*next, min_next);
+-    while (!is_ul_slot(next->s, fs))
++    /* AIC 2026-09-29: no PUSCH in mixed slots, see nr_skip_mixed_ul() */
++    const bool skip_mixed = nr_skip_mixed_ul(fs);
++    while (!is_ul_slot(next->s, fs) || (skip_mixed && is_mixed_slot(next->s, fs)))
+       *next = fsn_add_delta(*next, 1);
+     if (!is_dl_slot(current.s, fs)) // if current slot is not DL, nothing to do
+       break;
+diff --git a/openair2/LAYER2/NR_MAC_gNB/mac_proto.h b/openair2/LAYER2/NR_MAC_gNB/mac_proto.h
+index 2416e05ef9..1fe5cb5367 100644
+--- a/openair2/LAYER2/NR_MAC_gNB/mac_proto.h
++++ b/openair2/LAYER2/NR_MAC_gNB/mac_proto.h
+@@ -22,6 +22,7 @@ int get_NTN_Koffset(const NR_ServingCellConfigCommon_t *scc);
+ bool is_ssb_configured(const NR_ServingCellConfigCommon_t *scc, int ssb_index);
+ int get_max_ssbs(const NR_ServingCellConfigCommon_t *scc);
+ int get_first_ul_slot(const frame_structure_t *fs, bool mixed);
++bool nr_skip_mixed_ul(const frame_structure_t *fs);
+ int get_ul_slots_per_period(const frame_structure_t *fs);
+ int get_ul_slots_per_frame(const frame_structure_t *fs);
+ int get_dl_slots_per_period(const frame_structure_t *fs);
+diff --git a/openair2/LAYER2/NR_MAC_gNB/nr_radio_config.c b/openair2/LAYER2/NR_MAC_gNB/nr_radio_config.c
+index 9ce6719848..4b74b5264f 100644
+--- a/openair2/LAYER2/NR_MAC_gNB/nr_radio_config.c
++++ b/openair2/LAYER2/NR_MAC_gNB/nr_radio_config.c
+@@ -1359,7 +1361,7 @@ static void set_SR_periodandoffset(NR_SchedulingRequestResourceConfig_t *schedul
+   const frame_structure_t *fs = &RC.nrmac[0]->frame_structure;
+   int sr_slot = 1; // in FDD SR in slot 1
+   if (fs->frame_type == TDD)
+-    sr_slot = get_first_ul_slot(fs, true);
++    sr_slot = get_first_ul_slot(fs, !nr_skip_mixed_ul(fs));
+ 
+   schedulingRequestResourceConfig->periodicityAndOffset = calloc(1,sizeof(*schedulingRequestResourceConfig->periodicityAndOffset));
+ 
+@@ -1963,7 +1965,7 @@ static void set_csi_meas_periodicity(const NR_ServingCellConfigCommon_t *scc,
+   const int num_pucch2 = get_nb_pucch2_per_slot(scc, curr_bwp, antennaports);
+   const int idx = (uid * 2 / num_pucch2) + is_rsrp;
+   frame_structure_t *fs = &RC.nrmac[0]->frame_structure;
+-  int offset = get_ul_slot_offset(fs, idx, true);
++  int offset = get_ul_slot_offset(fs, idx, !nr_skip_mixed_ul(fs));
+   LOG_D(NR_MAC, "set_csi_meas_periodicity: uid = %d, offset = %d, ideal_period = %d", uid, offset, ideal_period);
+   // checked for validity in verify_radio_configuration
+   AssertFatal(offset < 320, "Not enough UL slots to accomodate all possible UEs. Need to rework the implementation\n");

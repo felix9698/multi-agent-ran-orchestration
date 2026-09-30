@@ -1,0 +1,19 @@
+{
+  "href": "https://oai-gnb.example/o1/managed-objects/SubNetwork=oran-lab,ManagedElement=oai-gnb,PerfMetricJob=oran-aic-nrcelldu-60s",
+  "notificationId": 1,
+  "notificationType": "notifyFileReady",
+  "eventTime": "2026-08-04T00:02:02Z",
+  "systemDN": "SubNetwork=oran-lab,ManagedElement=oai-gnb,MnsAgent=o1-agent",
+  "fileInfoList": [
+    {
+      "fileLocation": "sftp://oai-gnb.example/pm/B20260804.0001+0000-0002+0000_-oran-aic-nrcelldu-60s_oai-gnb.xml",
+      "fileSize": 1297,
+      "fileReadyTime": "2026-08-04T00:02:02Z",
+      "fileExpirationTime": "2026-08-05T00:02:02Z",
+      "fileCompression": "",
+      "fileFormat": "32.435 V10.0 XML-schema",
+      "fileDataType": "PERFORMANCE",
+      "jobId": "oran-aic-nrcelldu-60s"
+    }
+  ]
+}

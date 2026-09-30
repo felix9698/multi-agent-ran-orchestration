@@ -1,0 +1,4 @@
+{"event":"kpm_indication","recv_unix_us":1787206801000000,"slot":0,"e2_node":"gNB1","connection_epoch":161,"slot_sequence":1,"measurements":[{"name":"RRC.ConnMean","type":"int","value":1}]}
+{"event":"kpm_indication","recv_unix_us":1787206802000000,"slot":0,"e2_node":"gNB1","connection_epoch":999,"slot_sequence":2,"measurements":[{"name":"RRC.ConnMean","type":"int","value":2}]}
+not-json
+{"event":"kpm_indication","recv_unix_us":1787206803000000,"slot":0,"e2_node":"gNB1","connection_epoch":161,"slot_sequence":3,"ues":[{"amf_ue_ngap_id":130,"guami":{"mcc":208,"mnc":95},"ran_ue_id":1,"measurements":[{"name":"DRB.UEThpDl","type":"real","value":0.792}]}]}

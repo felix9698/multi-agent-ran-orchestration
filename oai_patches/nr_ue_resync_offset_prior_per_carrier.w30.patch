@@ -1,0 +1,34 @@
+--- a/executables/nr-ue.c
++++ b/executables/nr-ue.c
+@@ -233,6 +233,31 @@
+       // SNR but undecodable at MCS 0, then UL failure and release.
+       const openair0_config_t *cfg0 = &openair0_cfg[UE->rf_map.card];
+       freq_offset += (int)lround(cfg0->rx_freq[UE->rf_map.chain] - (double)dl_carrier);
++      /* aic 2026-09-25: the absolute offset of one carrier barely moves (ue3 on gnb2: 878..1036 Hz over
++       * a day), but a handover re-sync can still read a wrong one below the 1500 Hz guard (board 627:
++       * -1192 Hz after rejecting 3.5-12.8 kHz, first RAR undecodable, T304).  Remember the last offset
++       * that worked on each carrier; re-sync on fresh samples when a new estimate is more than 700 Hz
++       * away, and after six such tries use the remembered offset. */
++      static struct { uint64_t carrier; int off; } fo_prior[4];
++      static int fo_prior_retries = 0;
++      int k = 0;
++      while (k < 4 && fo_prior[k].carrier && fo_prior[k].carrier != dl_carrier)
++        k++;
++      if (k < 4 && fo_prior[k].carrier == dl_carrier && abs(freq_offset - fo_prior[k].off) > 700) {
++        if (fo_prior_retries < 6) {
++          fo_prior_retries++;
++          LOG_W(PHY, "re-sync: offset %d Hz is %d Hz from the last good %d Hz on this carrier, re-syncing (%d/6)\n",
++                freq_offset, freq_offset - fo_prior[k].off, fo_prior[k].off, fo_prior_retries);
++          return;
++        }
++        LOG_W(PHY, "re-sync: using the remembered offset %d Hz instead of %d Hz\n", fo_prior[k].off, freq_offset);
++        freq_offset = fo_prior[k].off;
++      }
++      fo_prior_retries = 0;
++      if (k == 4)
++        k = 3;                    // table full (never on this bed: two carriers): overwrite the last slot
++      fo_prior[k].carrier = dl_carrier;
++      fo_prior[k].off = freq_offset;
+     }
+     const int hw_slot_offset =
+         ((ret.rx_offset << 1) / fp->samples_per_subframe * fp->slots_per_subframe)

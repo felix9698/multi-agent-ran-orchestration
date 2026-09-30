@@ -1,0 +1,38 @@
+--- a/executables/nr-ue.c	2026-09-27 18:56:46.230758919 +0900
++++ b/executables/nr-ue.c	2026-09-27 18:56:46.244757880 +0900
+@@ -236,14 +236,14 @@
+       /* aic 2026-09-25: the absolute offset of one carrier barely moves (ue3 on gnb2: 878..1036 Hz over
+        * a day), but a handover re-sync can still read a wrong one below the 1500 Hz guard (board 627:
+        * -1192 Hz after rejecting 3.5-12.8 kHz, first RAR undecodable, T304).  Remember the last offset
+-       * that worked on each carrier; re-sync on fresh samples when a new estimate is more than 700 Hz
++       * that worked on each carrier; re-sync on fresh samples when a new estimate is more than 300 Hz
+        * away, and after six such tries use the remembered offset. */
+       static struct { uint64_t carrier; int off; } fo_prior[4];
+       static int fo_prior_retries = 0;
+       int k = 0;
+       while (k < 4 && fo_prior[k].carrier && fo_prior[k].carrier != dl_carrier)
+         k++;
+-      if (k < 4 && fo_prior[k].carrier == dl_carrier && abs(freq_offset - fo_prior[k].off) > 700) {
++      if (k < 4 && fo_prior[k].carrier == dl_carrier && abs(freq_offset - fo_prior[k].off) > 300) {
+         if (fo_prior_retries < 6) {
+           fo_prior_retries++;
+           LOG_W(PHY, "re-sync: offset %d Hz is %d Hz from the last good %d Hz on this carrier, re-syncing (%d/6)\n",
+@@ -254,10 +254,16 @@
+         freq_offset = fo_prior[k].off;
+       }
+       fo_prior_retries = 0;
++      /* aic 2026-09-27: the remembered offset is the anchor of the first sync on the carrier; an accepted
++       * re-sync no longer replaces it.  Replacing it let hand-backs walk it 692 Hz at a time under the old
++       * 700 Hz window (ue2 on gnb1: 46 -> -450 -> -1142 Hz, contexts at MCS 9 then 0 with BLER 0.5; ue3
++       * 853 -> 712 -> 20 Hz, MCS 2) while a fresh process read 46 / 807-860 Hz and ran MCS 19-26. */
+       if (k == 4)
+         k = 3;                    // table full (never on this bed: two carriers): overwrite the last slot
+-      fo_prior[k].carrier = dl_carrier;
+-      fo_prior[k].off = freq_offset;
++      if (fo_prior[k].carrier != dl_carrier) {
++        fo_prior[k].carrier = dl_carrier;
++        fo_prior[k].off = freq_offset;
++      }
+     }
+     const int hw_slot_offset =
+         ((ret.rx_offset << 1) / fp->samples_per_subframe * fp->slots_per_subframe)

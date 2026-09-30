@@ -1,0 +1,155 @@
+{
+  "bundleVersion": "oran-aic-shared-contract-bundle/1.0.1",
+  "contractProfile": "oran-aic/1.0.1",
+  "hashAlgorithm": "SHA-256",
+  "canonicalization": "RFC8785",
+  "selfExcluded": true,
+  "pathOrder": "LEXICOGRAPHIC",
+  "files": [
+    {
+      "path": "AIC_UECellSteering_1.0.0.policy.schema.json",
+      "byteCount": 8133,
+      "byteSha256": "fa676d9cb3293080c6f1e7489c16999026c045e6185f9f162dabfdfe0eb9697e"
+    },
+    {
+      "path": "AIC_UECellSteering_1.0.0.status.schema.json",
+      "byteCount": 50176,
+      "byteSha256": "fb29aedc85b8d96f5a2758658978bf9074a97df92190fa318c98216d19e0cc88"
+    },
+    {
+      "path": "aic.policy-evidence-filter.1.0.0.schema.json",
+      "byteCount": 738,
+      "byteSha256": "9b4a22304cb39845f596a52e2d1ead1f04b5ba4b0d0f0c35695dd937405a75fd"
+    },
+    {
+      "path": "aic.policy-evidence.1.0.0.schema.json",
+      "byteCount": 18390,
+      "byteSha256": "c63cc82a58573a38552402d4e0440d2ffb9436d7371a92bd662357fdbc088cff"
+    },
+    {
+      "path": "aic.ran-capability.1.0.0.schema.json",
+      "byteCount": 23160,
+      "byteSha256": "f82d187cc710ce6d5ba267bd5b9a95e49780e4f4fbcd1b2726681cdbd8a5da97"
+    },
+    {
+      "path": "backend-release-manifest.1.0.0.schema.json",
+      "byteCount": 19450,
+      "byteSha256": "d0bc9f3cc8e7115a5fab4a40b5909f6979876c008bc1af856136d33538afa4a5"
+    },
+    {
+      "path": "deployment-test-vector.1.0.0.schema.json",
+      "byteCount": 12413,
+      "byteSha256": "eb67fc5812914d50c249460616ad1152f610494e557b5f58b333204d51301948"
+    },
+    {
+      "path": "e2-capability-inventory.1.0.0.schema.json",
+      "byteCount": 12749,
+      "byteSha256": "84feb6f6d0b1af7a4a49c365ee4c09066e4e0635267645ef796f7e6cd2cea5fe"
+    },
+    {
+      "path": "execution-profile-assignment.1.0.1.json",
+      "byteCount": 160703,
+      "byteSha256": "3091b8afcad362c2dffaaa97acb1a551786ca8f2d41b70edef38fcb7ee9fde2c"
+    },
+    {
+      "path": "execution-profile-assignment.1.0.1.schema.json",
+      "byteCount": 20488,
+      "byteSha256": "3647f5898cd97cd78ce7f2180afc9a4ae8efa1ae415df7b711f64248f84c60f6"
+    },
+    {
+      "path": "golden/golden-vectors.1.0.0.json",
+      "byteCount": 24033,
+      "byteSha256": "4bf9ccf356a2879f2163b80fbbfa3c714a7e133492d8f4abebeeb468ae14b76f"
+    },
+    {
+      "path": "golden/o1/netconf/create-perfmetricjob-locked.xml",
+      "byteCount": 1267,
+      "byteSha256": "2e4c580ab09665baf34e8abca3483a04316fba4eb6e9a0128106b11eef7f79a3"
+    },
+    {
+      "path": "golden/o1/netconf/delete-perfmetricjob.xml",
+      "byteCount": 812,
+      "byteSha256": "f15393ff8ec862992f595899a793cec62bfaf1e8540e6f0964c581c33061c5b0"
+    },
+    {
+      "path": "golden/o1/netconf/get-perfmetricjob.xml",
+      "byteCount": 581,
+      "byteSha256": "88245e9d744420c46196b07100aec39091c9537731a1125754c769ec38a295a5"
+    },
+    {
+      "path": "golden/o1/netconf/get-schema-mount.xml",
+      "byteCount": 612,
+      "byteSha256": "f1cd6064bd49ca59535b0ed60c7e68097cf3621a5cc88c4de6ad0aa2641ae62e"
+    },
+    {
+      "path": "golden/o1/netconf/lock-perfmetricjob.xml",
+      "byteCount": 940,
+      "byteSha256": "60993ee73e87b5ebc6dc4bbfc7f6b702d7db74cf85d44ac03d8c5d71752fa3b8"
+    },
+    {
+      "path": "golden/o1/netconf/lock-running.xml",
+      "byteCount": 168,
+      "byteSha256": "1f6d80a339aafab7ebb677eaf8ba466464019e5da687ec6c1e1021a6422245a4"
+    },
+    {
+      "path": "golden/o1/netconf/unlock-perfmetricjob.xml",
+      "byteCount": 942,
+      "byteSha256": "9b97bc2669478380469e83587dd602dd8dc4f62c757d57aa0c6612a9a0954bc6"
+    },
+    {
+      "path": "golden/o1/netconf/unlock-running.xml",
+      "byteCount": 172,
+      "byteSha256": "ac84fa501438056920745e0e48bd299d0e275855beeae6ccc42aebe33503fdf2"
+    },
+    {
+      "path": "golden/o1/notify-file-ready.json",
+      "byteCount": 747,
+      "byteSha256": "4cfc4f324c731cb6d594173d28a097d7787189c886cd5dced2952a342444f240"
+    },
+    {
+      "path": "golden/o1/null-prb.xml",
+      "byteCount": 1136,
+      "byteSha256": "60ae726c0d70c4268b2a6c5b8311f041484115d3556efc6c17b3813a56e8dff1"
+    },
+    {
+      "path": "golden/o1/overlap-context.json",
+      "byteCount": 236,
+      "byteSha256": "5015f97d0c306ac0073249aabb675a4ba0466b910f5e776c62342d023ec66896"
+    },
+    {
+      "path": "golden/o1/suspect-prb.xml",
+      "byteCount": 1137,
+      "byteSha256": "7c798d39ea80189afd42a1834aefedb8c7d59a820d0a3d0950be73e630250c14"
+    },
+    {
+      "path": "golden/o1/valid-prb.xml",
+      "byteCount": 1297,
+      "byteSha256": "beaab08dc59fa26489ebed1e6a9725bed0d5171c1773b2e9d416b649e906ab5f"
+    },
+    {
+      "path": "integration-values.1.0.0.schema.json",
+      "byteCount": 12392,
+      "byteSha256": "a5d321720d30bd352f9e9433fd22ad070a32f432e97855726025832d1c86c9fb"
+    },
+    {
+      "path": "o1-netconf-yang-profile.1.0.0.json",
+      "byteCount": 11458,
+      "byteSha256": "34793beca68878f83e2f8713eb866b727ec75b600c3b46aeb44a55407930151b"
+    },
+    {
+      "path": "oran-aic-o1-pa-file.1.0.0.json",
+      "byteCount": 5167,
+      "byteSha256": "1b02bbcda0e7f2f61349cf044f8c04beb1c19d558768be0d7841bec1f7882999"
+    },
+    {
+      "path": "scenario-catalog.1.0.1.json",
+      "byteCount": 269733,
+      "byteSha256": "0f28720007cba46722aee4f13fb6ce67c3d61ba27c2f264106e63b5649fbfc26"
+    },
+    {
+      "path": "scenario-runner-contract.1.0.1.json",
+      "byteCount": 34579,
+      "byteSha256": "4e9a2f8c802594490c2c6f4cb71f34723b0698bf9fefc6d36eefb163fb480390"
+    }
+  ]
+}

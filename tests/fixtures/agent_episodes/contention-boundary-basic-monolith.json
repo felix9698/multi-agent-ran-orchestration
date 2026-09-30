@@ -1,0 +1,443 @@
+{
+  "schemaVersion": "agent-episode/1.0.0",
+  "episodeId": "contention-boundary-basic-monolith",
+  "method": "basic-monolith",
+  "sessionMode": "MOCK",
+  "condition": {
+    "name": "contention-boundary",
+    "caseType": "joint-concession",
+    "offeredLoadMbps": {
+      "131": 3,
+      "132": 3
+    }
+  },
+  "block": 0,
+  "repetition": 0,
+  "models": {
+    "target": "mock:deterministic",
+    "control": "mock:deterministic",
+    "trajectory": "mock:deterministic",
+    "monolith": null
+  },
+  "intents": [
+    {
+      "intentId": "I1",
+      "owner": "video",
+      "ueId": "131",
+      "priority": 1,
+      "sentence": "Video needs 3 Mbps",
+      "requirement": {
+        "reqId": "r1",
+        "kpi": "dlGoodputMbps",
+        "scope": "ue@131",
+        "op": ">=",
+        "value": 3,
+        "unit": "Mbps",
+        "relaxLimit": 1,
+        "relaxable": true
+      }
+    },
+    {
+      "intentId": "I2",
+      "owner": "maps",
+      "ueId": "132",
+      "priority": 2,
+      "sentence": "Maps needs 2 Mbps",
+      "requirement": {
+        "reqId": "r2",
+        "kpi": "dlGoodputMbps",
+        "scope": "ue@132",
+        "op": ">=",
+        "value": 2,
+        "unit": "Mbps",
+        "relaxLimit": 1,
+        "relaxable": true
+      }
+    }
+  ],
+  "T": {
+    "schemaVersion": "agent-target-contract/1.0.0",
+    "t0": {
+      "targetId": "T0",
+      "requirements": {
+        "r1": 3,
+        "r2": 2
+      }
+    },
+    "alternatives": [
+      {
+        "targetId": "T1",
+        "requirements": {
+          "r1": 2,
+          "r2": 1.5
+        }
+      }
+    ],
+    "authorization": {
+      "r1": {
+        "original": 3,
+        "limit": 1,
+        "op": ">="
+      },
+      "r2": {
+        "original": 2,
+        "limit": 1,
+        "op": ">="
+      }
+    },
+    "preference": {
+      "rule": "lexicographic(D_max, D_mean)",
+      "ownerPriority": [
+        "video",
+        "maps"
+      ]
+    },
+    "jointConditions": [],
+    "provenance": {
+      "model": "mock:deterministic",
+      "fallback": null,
+      "rationale": "Synthetic fixture"
+    }
+  },
+  "C": {
+    "schemaVersion": "agent-control-candidates/1.0.0",
+    "candidates": [
+      {
+        "controlId": "C0",
+        "configuration": {
+          "pfWeight@131": "8"
+        }
+      },
+      {
+        "controlId": "C1",
+        "configuration": {
+          "pfWeight@131": "12"
+        }
+      }
+    ],
+    "actionSpace": {
+      "pfWeight@131": [
+        "8",
+        "12"
+      ]
+    },
+    "constructionPolicy": {
+      "maxCandidates": 2,
+      "mustIncludeBaseline": true
+    },
+    "provenance": {
+      "model": "mock:deterministic",
+      "fallback": null,
+      "rationale": "Fixture"
+    }
+  },
+  "budget": {
+    "trialsK": 3,
+    "deadlineBMs": 15000,
+    "horizonHMs": 20000,
+    "qualityThresholdsA": [
+      0,
+      0.25,
+      0.5,
+      1
+    ],
+    "binDeltaMs": 5000
+  },
+  "timing": {
+    "prepStart": "2026-09-06T23:59:59Z",
+    "prepEnd": "2026-09-07T00:00:00Z",
+    "t0": "2026-09-07T00:00:00Z",
+    "end": "2026-09-07T00:00:15Z",
+    "timingMode": "prepared"
+  },
+  "calls": [
+    {
+      "role": "trajectory",
+      "model": "mock:deterministic",
+      "phase": "selection",
+      "startedAt": "2026-09-07T00:00:00Z",
+      "latencyMs": 100,
+      "inputTokens": 20,
+      "outputTokens": 5,
+      "accepted": true,
+      "fallbackReason": null,
+      "repairRetries": 0
+    }
+  ],
+  "trials": [
+    {
+      "trialIndex": 1,
+      "proposedTargetId": "T1",
+      "controlId": "C0",
+      "configuration": {
+        "pfWeight@131": "8"
+      },
+      "catalogCandidateId": "cand-1",
+      "decisionLatencyMs": 100,
+      "appliedAt": "2026-09-07T00:00:00Z",
+      "window": {
+        "start": "2026-09-07T00:00:01Z",
+        "end": "2026-09-07T00:00:05Z",
+        "valid": true,
+        "reason": ""
+      },
+      "kpis": {
+        "dlGoodputMbps@131": 0.5,
+        "dlGoodputMbps@132": 0.5
+      },
+      "verdicts": {
+        "T0": {
+          "r1": "FAIL",
+          "r2": "FAIL"
+        },
+        "T1": {
+          "r1": "FAIL",
+          "r2": "FAIL"
+        }
+      },
+      "success": {
+        "T0": false,
+        "T1": false
+      },
+      "kernel": {
+        "trialId": "trial:1",
+        "terminalState": "SETTLED_SUCCESS",
+        "outcome": "FAIL"
+      },
+      "rolledBack": true,
+      "decision": {
+        "role": "trajectory",
+        "model": "mock:deterministic",
+        "fallback": null,
+        "rationale": "Fixture"
+      }
+    },
+    {
+      "trialIndex": 2,
+      "proposedTargetId": "T1",
+      "controlId": "C1",
+      "configuration": {
+        "pfWeight@131": "12"
+      },
+      "catalogCandidateId": "cand-2",
+      "decisionLatencyMs": 100,
+      "appliedAt": "2026-09-07T00:00:05Z",
+      "window": {
+        "start": "2026-09-07T00:00:06Z",
+        "end": "2026-09-07T00:00:10Z",
+        "valid": true,
+        "reason": ""
+      },
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      },
+      "verdicts": {
+        "T0": {
+          "r1": "FAIL",
+          "r2": "FAIL"
+        },
+        "T1": {
+          "r1": "PASS",
+          "r2": "PASS"
+        }
+      },
+      "success": {
+        "T0": false,
+        "T1": true
+      },
+      "kernel": {
+        "trialId": "trial:2",
+        "terminalState": "SETTLED_SUCCESS",
+        "outcome": "PASS"
+      },
+      "rolledBack": true,
+      "decision": {
+        "role": "trajectory",
+        "model": "mock:deterministic",
+        "fallback": null,
+        "rationale": "Fixture"
+      }
+    }
+  ],
+  "serviceTrace": [
+    {
+      "t": "2026-09-07T00:00:00Z",
+      "kpis": {
+        "dlGoodputMbps@131": 1,
+        "dlGoodputMbps@132": 1
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:01Z",
+      "kpis": {
+        "dlGoodputMbps@131": 1,
+        "dlGoodputMbps@132": 1
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:02Z",
+      "kpis": {
+        "dlGoodputMbps@131": 1,
+        "dlGoodputMbps@132": 1
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:03Z",
+      "kpis": {
+        "dlGoodputMbps@131": 1,
+        "dlGoodputMbps@132": 1
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:04Z",
+      "kpis": {
+        "dlGoodputMbps@131": 1,
+        "dlGoodputMbps@132": 1
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:05Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:06Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:07Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:08Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:09Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:10Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:11Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:12Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:13Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:14Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:15Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:16Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:17Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:18Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    },
+    {
+      "t": "2026-09-07T00:00:19Z",
+      "kpis": {
+        "dlGoodputMbps@131": 2.2,
+        "dlGoodputMbps@132": 1.6
+      }
+    }
+  ],
+  "bestAttained": {
+    "targetId": "T1",
+    "controlId": "C1",
+    "trialIndex": 2,
+    "elapsedMs": 10000,
+    "concession": {
+      "perOwner": {
+        "video": 0.5,
+        "maps": 0.5
+      },
+      "mean": 0.5,
+      "max": 0.5
+    }
+  },
+  "retained": {
+    "targetId": "T1",
+    "controlId": "C1",
+    "qualified": true
+  },
+  "firstSuccess": {
+    "trialIndex": 2,
+    "elapsedMs": 10000
+  },
+  "t0Success": false,
+  "termination": {
+    "reason": "BUDGET_EXHAUSTED",
+    "detail": "Synthetic fixture"
+  },
+  "resourceCost": {
+    "prepMs": 1000,
+    "totalMs": 15000,
+    "llmCalls": 1,
+    "inputTokens": 20,
+    "outputTokens": 5,
+    "decisionLatenciesMs": [
+      100
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+From: O-RAN testbed maintenance
+Subject: [PATCH] NR UE: restart the NH chain (NCC 0) on each new AS security context
+
+TS 33.501 6.9.2.1.1: the initial AS security context starts at NCC 0.  The UE
+kept rrc->nhcc/nh across an RRCSetup + re-registration, so after one N2
+handover (NCC 2) the next context's first N2 handover received NCC 2, matched
+the stale nhcc, derived KgNB* horizontally, while the target gNB derived it
+vertically from the AMF's NH.  Every SRB1 PDU (RRCReconfigurationComplete)
+then failed integrity at the target ("discard NR PDU, integrity failed"), the
+target never completed the handover, ue->ho_context stayed, and the next
+handover was refused ("Ongoing handover for UE 4, cannot trigger new").
+
+Reset nhcc and nh when the AS Security Mode Command is accepted.
+
+diff --git a/openair2/RRC/NR_UE/rrc_UE.c b/openair2/RRC/NR_UE/rrc_UE.c
+index bbfd01e48d..312897a719 100644
+--- a/openair2/RRC/NR_UE/rrc_UE.c
++++ b/openair2/RRC/NR_UE/rrc_UE.c
+@@ -2529,6 +2529,13 @@ static void nr_rrc_ue_process_securityModeCommand(NR_UE_RRC_INST_t *ue_rrc,
+   LOG_T(NR_RRC, "\n");
+ 
+   ue_rrc->as_security_activated = true;
++  /* TS 33.501 6.9.2.1.1: a new AS security context starts a new NH chain at NCC 0.
++   * Without this reset the NCC of a previous context (e.g. 2 after an N2 handover)
++   * survived an RRCSetup + re-registration; the next N2 handover then received
++   * NCC 2 == stale nhcc, derived KgNB* horizontally while the target gNB derived it
++   * vertically from the AMF NH, and every SRB1 PDU failed integrity at the target. */
++  ue_rrc->nhcc = 0;
++  memset(ue_rrc->nh, 0, sizeof(ue_rrc->nh));
+   srb_id = 1; // SecurityModeComplete in SRB1
+   nr_pdcp_data_req_srb(ue_rrc->ue_id, srb_id, 0, (enc_rval.encoded + 7) / 8, buffer, deliver_pdu_srb_rlc, NULL);
+ 

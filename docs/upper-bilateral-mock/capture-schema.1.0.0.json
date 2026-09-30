@@ -1,0 +1,570 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:oran-aic:upper-bilateral-mock:capture:1.0.0",
+  "title": "Upper Bilateral Mock machine-readable capture",
+  "description": "Observation record produced by the upper-bilateral-mock/1.0.0 release. It records what the upper artifact actually did so the lower frozen runner can combine it with its own evidence. It contains no verdict: the oracle is the lower runner and lives in scenario-catalog.1.0.1.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "captureId",
+    "notAVerdict",
+    "oracleOwnership",
+    "run",
+    "revisions",
+    "contract",
+    "deployment",
+    "scenario",
+    "logicalClock",
+    "exchanges",
+    "harnessOperations",
+    "state",
+    "coordinator",
+    "simulatedWrites",
+    "externalCalls",
+    "appliedRules",
+    "redaction"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "oran-aic-upper-bilateral-mock-capture/1.0.0" },
+    "captureId": { "$ref": "#/$defs/uuid" },
+    "notAVerdict": {
+      "const": true,
+      "description": "The artifact never produces a PASS/FAIL. This member is a machine-readable restatement of that rule."
+    },
+    "oracleOwnership": {
+      "const": "LOWER_FROZEN_RUNNER_51d73ca098743b25fe074d184904e695af37fd95",
+      "description": "Final disposition belongs to the lower runner at this commit; nothing in this document is a judgement."
+    },
+
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runId", "scenarioId", "startedAtLogical", "endedAtLogical", "sequenceHighWaterMark", "orderingRule", "stepIndexBase"],
+      "properties": {
+        "runId": { "$ref": "#/$defs/nonEmptyId" },
+        "scenarioId": { "$ref": "#/$defs/scenarioId" },
+        "startedAtLogical": { "$ref": "#/$defs/utcInstant" },
+        "endedAtLogical": { "$ref": "#/$defs/utcInstant" },
+        "sequenceHighWaterMark": { "type": "integer", "minimum": 0 },
+        "orderingRule": { "const": "ATMS_THEN_ARRAY_ORDER" },
+        "stepIndexBase": { "const": 0 }
+      }
+    },
+
+    "revisions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "upperReleaseId", "upperReleaseVersion", "upperReleaseContentSha256",
+        "upperReleaseManifestSha256", "upperSourceCommit", "upperSourceTree",
+        "testedCodeCommit", "lowerReleaseName", "lowerReleaseCommit",
+        "lowerReleaseTree", "lowerReleaseArchiveSha256"
+      ],
+      "properties": {
+        "upperReleaseId": { "const": "upper-bilateral-mock" },
+        "upperReleaseVersion": { "$ref": "#/$defs/semver" },
+        "upperReleaseContentSha256": {
+          "$ref": "#/$defs/sha256",
+          "description": "RELEASE-MANIFEST.json#/releaseContentSha256: the digest of the packaged MEMBERS, not of the .tar.gz container. It will not equal `sha256sum` on the downloaded archive, and it is not meant to; the container digest is published as `tarballSha256` in OUT-OF-BAND-SHA256.txt. Correlate a capture with an archive by comparing this against the manifest field of the same name."
+        },
+        "upperReleaseManifestSha256": { "$ref": "#/$defs/sha256" },
+        "upperSourceCommit": { "$ref": "#/$defs/gitOid" },
+        "upperSourceTree": { "$ref": "#/$defs/gitOid" },
+        "testedCodeCommit": {
+          "$ref": "#/$defs/gitOid",
+          "description": "The commit whose bytes were executed. It may differ from the commit that stores this evidence; the two must never be conflated."
+        },
+        "lowerReleaseName": { "const": "lower-local-69-1.0.1-51d73ca" },
+        "lowerReleaseCommit": { "const": "51d73ca098743b25fe074d184904e695af37fd95" },
+        "lowerReleaseTree": { "const": "54ca268c08f03f2610c65c0ef5f0b25c3091d8ef" },
+        "lowerReleaseArchiveSha256": { "const": "3e3bdfbfd8552b356f31cd2f01c249d45ade3dc91d90642b1a8a3d021c2a8b2d" }
+      }
+    },
+
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractProfile", "correctedHandoff", "handoffManifestSha256",
+        "bundleManifestSha256", "catalogSha256", "runnerContractSha256",
+        "profileAssignmentSha256", "deploymentVectorSchemaSha256"
+      ],
+      "properties": {
+        "contractProfile": { "const": "oran-aic/1.0.1" },
+        "correctedHandoff": { "const": "1.0.1" },
+        "handoffManifestSha256": { "const": "40c2a1b6a53058853da6f595eb7d28bfae0beb46be2b615a31c74d4476e49047" },
+        "bundleManifestSha256": { "const": "c01dfb46518af0e6f2687e073158ae3e408f199ecd09a1405b1f162c98d7c0b1" },
+        "catalogSha256": { "const": "0f28720007cba46722aee4f13fb6ce67c3d61ba27c2f264106e63b5649fbfc26" },
+        "runnerContractSha256": { "const": "4e9a2f8c802594490c2c6f4cb71f34723b0698bf9fefc6d36eefb163fb480390" },
+        "profileAssignmentSha256": { "const": "3091b8afcad362c2dffaaa97acb1a551786ca8f2d41b70edef38fcb7ee9fde2c" },
+        "deploymentVectorSchemaSha256": { "const": "eb67fc5812914d50c249460616ad1152f610494e557b5f58b333204d51301948" }
+      }
+    },
+
+    "deployment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vectorVersion", "vectorSha256", "basedOnLowerVectorSha256", "bindingDocSha256", "placeholderFree", "resolvedRoots"],
+      "properties": {
+        "vectorVersion": { "const": "oran-aic-deployment-test-vector/1.0.0" },
+        "vectorSha256": { "$ref": "#/$defs/sha256" },
+        "basedOnLowerVectorSha256": { "const": "288f2fbc120bf49064a0fc4439323b0d4752f583976b9f19972e8e80072f550f" },
+        "bindingDocSha256": { "$ref": "#/$defs/sha256" },
+        "placeholderFree": { "const": true },
+        "resolvedRoots": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["r1ApiRoot", "rAppCallbackRoot", "a1ApiRoot", "a1StatusCallbackRoot", "policyEvidencePushBaseUri", "mnsRoot", "o1ConsumerRoot"],
+          "properties": {
+            "r1ApiRoot": { "$ref": "#/$defs/httpsUri" },
+            "rAppCallbackRoot": { "$ref": "#/$defs/httpsUri" },
+            "a1ApiRoot": { "$ref": "#/$defs/httpsUri" },
+            "a1StatusCallbackRoot": { "$ref": "#/$defs/httpsUri" },
+            "policyEvidencePushBaseUri": { "$ref": "#/$defs/httpsUri" },
+            "mnsRoot": { "$ref": "#/$defs/httpsUri" },
+            "o1ConsumerRoot": { "$ref": "#/$defs/httpsUri" }
+          }
+        }
+      }
+    },
+
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarioId", "catalogPointer", "expectedPointer", "rulesPointer", "fixtureMode", "executionProfile", "counterpartProvisioning", "declaredFaultCount"],
+      "properties": {
+        "scenarioId": { "$ref": "#/$defs/scenarioId" },
+        "catalogPointer": { "type": "string", "pattern": "^/scenarios/(0|[1-9][0-9]{0,2})$" },
+        "expectedPointer": { "type": "string", "pattern": "^/scenarios/(0|[1-9][0-9]{0,2})/expected$" },
+        "rulesPointer": { "type": "string", "pattern": "^/scenarios/(0|[1-9][0-9]{0,2})/rules$" },
+        "fixtureMode": { "const": "EXACT_BUNDLE" },
+        "executionProfile": { "const": "bilateral-mock" },
+        "counterpartProvisioning": { "const": "UPPER_SUPPLIED_AGREED_MOCK" },
+        "declaredFaultCount": { "const": 0 }
+      }
+    },
+
+    "logicalClock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "origin", "evaluationNow", "wallClockReadsOnRequestPath", "hiddenSleepCount"],
+      "properties": {
+        "mode": { "const": "FIXED_LOGICAL" },
+        "origin": { "$ref": "#/$defs/utcInstant" },
+        "evaluationNow": { "$ref": "#/$defs/utcInstant" },
+        "wallClockReadsOnRequestPath": { "const": 0 },
+        "hiddenSleepCount": { "const": 0 }
+      }
+    },
+
+    "exchanges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/exchange" }
+    },
+
+    "harnessOperations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/harnessOperation" }
+    },
+
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["before", "after", "diffPointers"],
+      "properties": {
+        "before": { "$ref": "#/$defs/stateSnapshot" },
+        "after": { "$ref": "#/$defs/stateSnapshot" },
+        "diffPointers": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^(/[^/~]*(~[01][^/~]*)*)*$" },
+          "description": "RFC 6901 pointers, relative to the snapshot object, whose values changed."
+        }
+      }
+    },
+
+    "coordinator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "processIntentCallsBefore", "processIntentCallsAfter", "processIntentCallsDelta",
+        "executionMode", "fsmHistory", "terminalOutcome", "terminalOutcomeCount",
+        "terminalEvidenceRef", "ledgerReferences", "requiresRealCoordinatorExecution"
+      ],
+      "properties": {
+        "processIntentCallsBefore": { "type": "integer", "minimum": 0 },
+        "processIntentCallsAfter": { "type": "integer", "minimum": 0 },
+        "processIntentCallsDelta": { "type": "integer", "minimum": 0 },
+        "executionMode": { "enum": ["REAL_PROCESS_INTENT", "NOT_INVOKED"] },
+        "fsmHistory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to", "origin"],
+            "properties": {
+              "from": { "$ref": "#/$defs/fsmState" },
+              "to": { "$ref": "#/$defs/fsmState" },
+              "outcome": { "type": ["string", "null"], "maxLength": 128 },
+              "origin": { "const": "REAL" }
+            }
+          }
+        },
+        "terminalOutcome": { "type": ["string", "null"], "maxLength": 128 },
+        "terminalOutcomeCount": { "type": "integer", "minimum": 0 },
+        "terminalEvidenceRef": { "type": ["string", "null"], "maxLength": 512 },
+        "ledgerReferences": { "type": "array", "items": { "type": "string", "maxLength": 512 } },
+        "requiresRealCoordinatorExecution": { "type": "boolean" }
+      }
+    },
+
+    "simulatedWrites": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["normalRanWrites", "rollbackRanWrites", "ledger"],
+      "properties": {
+        "normalRanWrites": { "type": "integer", "minimum": 0 },
+        "rollbackRanWrites": { "type": "integer", "minimum": 0 },
+        "ledger": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sequence", "kind", "simulated", "logicalTimeMs"],
+            "properties": {
+              "sequence": { "type": "integer", "minimum": 0 },
+              "kind": { "enum": ["NORMAL", "ROLLBACK"] },
+              "simulated": { "const": true },
+              "logicalTimeMs": { "type": "integer", "minimum": 0 },
+              "targetRef": { "type": "string", "maxLength": 512 }
+            }
+          }
+        }
+      }
+    },
+
+    "externalCalls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["externalLiveTargetCalls", "hardwareCalls", "attemptedAuthorities", "authorityAllowlist", "guardInstalled", "guardArmedNow", "guardMethod", "scope", "hardwareDefinitionSource", "connectionAttempts", "approvedConnectionAttempts", "violations", "liveOutboundConnections", "peerAttributionAmbiguities"],
+      "properties": {
+        "externalLiveTargetCalls": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "MEASURED, not asserted: the number of outbound attempts the runtime egress guard classified outside the declared authority allowlist. Deliberately not `const: 0` -- a schema that cannot express a violation cannot distinguish \"measured and found zero\" from \"written as zero\". A non-zero value is still a failed run: the guard refuses the attempt, so the request that made it fails and the scenario with it."
+        },
+        "hardwareCalls": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "MEASURED the same way, against release-gates.1.0.0.json#/hardwareControlSurfaces, which names the TCP ports and executables that constitute hardware control. Counted from connection attempts and process spawns alike."
+        },
+        "guardInstalled": {
+          "type": "boolean",
+          "description": "Whether the egress guard was armed for this scenario. A capture written with the guard absent reports false, so it cannot be mistaken for a clean measurement."
+        },
+        "guardArmedNow": {
+          "type": "boolean",
+          "description": "Whether the guard was still armed at the instant this document was assembled. `guardInstalled` answers the question that matters -- were these counters measured at all -- and stays true after an orderly shutdown disarms the guard."
+        },
+        "guardMethod": { "$ref": "#/$defs/safeString" },
+        "scope": {
+          "const": "scenario",
+          "description": "A capture describes ONE scenario, so these counters are the per-scenario slice, reset when the scenario is reset. The process-lifetime totals are reported by readiness instead; a cumulative counter here would make the same scenario report different numbers depending on how many ran before it, which G-DET-4 would correctly read as state leakage."
+        },
+        "hardwareDefinitionSource": { "$ref": "#/$defs/safeString" },
+        "connectionAttempts": { "type": "integer", "minimum": 0 },
+        "liveOutboundConnections": { "type": "integer", "minimum": 0 },
+        "peerAttributionAmbiguities": {
+          "type": "array",
+          "description": "One entry per request whose originator could not be resolved to a single live connection. Empty on a clean run; a non-empty array is a finding the self-test consumes, because an unresolved originator must never be filed as UPPER_SELF.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["clientAddress", "listener"],
+            "properties": {
+              "clientAddress": { "$ref": "#/$defs/authority" },
+              "listener": { "$ref": "#/$defs/authority" },
+              "liveRemotes": { "type": "array", "items": { "$ref": "#/$defs/authority" } }
+            }
+          }
+        },
+        "approvedConnectionAttempts": { "type": "integer", "minimum": 0 },
+        "violations": {
+          "type": "array",
+          "description": "One entry per refused attempt: what was tried and how it was classified. Empty on a clean run.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "classification"],
+            "properties": {
+              "kind": { "enum": ["CONNECT", "SPAWN"] },
+              "classification": { "enum": ["EXTERNAL_LIVE_TARGET", "HARDWARE_CONTROL"] },
+              "authority": { "$ref": "#/$defs/authority" },
+              "executable": { "$ref": "#/$defs/safeString" }
+            }
+          }
+        },
+        "attemptedAuthorities": { "type": "array", "items": { "$ref": "#/$defs/authority" } },
+        "authorityAllowlist": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/authority" } }
+      }
+    },
+
+    "appliedRules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ruleId", "declaredInCatalog", "inputs", "observations"],
+        "properties": {
+          "ruleId": { "type": "string", "pattern": "^RULE-[A-Z0-9-]+$" },
+          "declaredInCatalog": { "type": "boolean" },
+          "inputs": { "type": "array", "items": { "type": "string", "maxLength": 256 } },
+          "observations": {
+            "type": "object",
+            "description": "Observed values the rule ranges over. Never a rule verdict.",
+            "additionalProperties": { "$ref": "#/$defs/observationValue" }
+          }
+        }
+      }
+    },
+
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy", "redactedHeaderNames", "redactedBodyPointers", "secretReferencesObserved", "secretValuesCaptured", "credentialMaterialCaptured"],
+      "properties": {
+        "policy": { "const": "oran-aic-upper-bilateral-mock-redaction/1.0.0" },
+        "redactedHeaderNames": { "type": "array", "items": { "$ref": "#/$defs/headerName" } },
+        "redactedBodyPointers": { "type": "array", "items": { "type": "string", "maxLength": 256 } },
+        "secretReferencesObserved": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^(secret|vault|k8s-secret|env|file|k8s|keychain)://" },
+          "description": "Reference URIs only. Resolved filesystem paths and material are never recorded."
+        },
+        "secretValuesCaptured": { "const": false },
+        "credentialMaterialCaptured": { "const": false }
+      }
+    }
+  },
+
+  "$defs": {
+    "uuid": { "type": "string", "format": "uuid" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "gitOid": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "semver": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$" },
+    "nonEmptyId": { "type": "string", "minLength": 1, "maxLength": 255 },
+    "scenarioId": { "enum": ["SC-062", "SC-083", "SC-091", "SC-092"] },
+    "utcInstant": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "httpsUri": { "type": "string", "format": "uri", "pattern": "^https://" },
+    "authority": { "type": "string", "pattern": "^[A-Za-z0-9._~:\\[\\]-]+:[0-9]{1,5}$" },
+    "fsmState": { "enum": ["S0", "S1", "S2", "S3", "S4", "S5", "S6"] },
+
+    "safeString": {
+      "type": "string",
+      "maxLength": 4096,
+      "not": { "pattern": "-----BEGIN|Bearer |password=|secret=|BEGIN (RSA|EC|OPENSSH|PRIVATE)" },
+      "description": "Free-form slot that must never carry credential material."
+    },
+
+    "observationValue": {
+      "anyOf": [
+        { "type": ["integer", "number", "boolean", "null"] },
+        { "$ref": "#/$defs/safeString" },
+        { "type": "array", "items": { "$ref": "#/$defs/observationValue" } }
+      ]
+    },
+
+    "headerName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9!#$%&'*+.^_`|~-]+$"
+    },
+
+    "headerNameList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/headerName" },
+          {
+            "not": {
+              "pattern": "^([Aa][Uu][Tt][Hh][Oo][Rr][Ii][Zz][Aa][Tt][Ii][Oo][Nn]|[Pp][Rr][Oo][Xx][Yy]-[Aa][Uu][Tt][Hh][Oo][Rr][Ii][Zz][Aa][Tt][Ii][Oo][Nn]|[Cc][Oo][Oo][Kk][Ii][Ee]|[Ss][Ee][Tt]-[Cc][Oo][Oo][Kk][Ii][Ee])$"
+            }
+          },
+          { "not": { "pattern": "[Tt][Oo][Kk][Ee][Nn]|[Ss][Ee][Cc][Rr][Ee][Tt]|[Cc][Rr][Ee][Dd][Ee][Nn][Tt][Ii][Aa][Ll]|[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Aa][Pp][Ii][-_]?[Kk][Ee][Yy]" } }
+        ]
+      },
+      "description": "Header NAMES only, with credential-bearing names excluded. Header values are never recorded; only the redacted header-block digest is."
+    },
+
+    "messageDigest": {
+      "type": "object",
+      "description": "Digest of one HTTP message. The member set is closed at every use site with `unevaluatedProperties: false` rather than here with `additionalProperties: false`: `additionalProperties` sees only the `properties` of the schema object that declares it, so a sibling `allOf` branch contributing `status` (see `#/$defs/exchange/properties/response`) would be rejected by this subschema while being required by the other, making the composition unsatisfiable. `unevaluatedProperties` at the use site sees both branches' annotations and closes the composed object exactly once.",
+      "required": ["headerNamesPresent", "headerBlockSha256", "bodyByteCount", "bodyRawSha256"],
+      "properties": {
+        "headerNamesPresent": { "$ref": "#/$defs/headerNameList" },
+        "headerBlockSha256": {
+          "$ref": "#/$defs/sha256",
+          "description": "SHA-256 over the REDACTED canonical header block: lowercased name, ': ', value, '\\n', names sorted ascending. Redacted headers contribute nothing."
+        },
+        "contentType": { "type": ["string", "null"], "maxLength": 128 },
+        "bodyByteCount": { "type": "integer", "minimum": 0 },
+        "bodyRawSha256": {
+          "$ref": "#/$defs/sha256",
+          "description": "SHA-256 over the exact wire bytes of the body, before any parsing."
+        },
+        "bodyJcsSha256": {
+          "$ref": "#/$defs/sha256",
+          "description": "RFC 8785 canonical JSON digest. Present only when the body parses as JSON."
+        },
+        "headerBlockCanonicalSha256": {
+          "$ref": "#/$defs/sha256",
+          "description": "The redacted canonical header block digested AFTER every identifier this run assigned is replaced by its role token. This is the header digest a two-run comparison can use: the raw one embeds a freshly minted identifier and could only be excluded, and an excluded slot detects nothing."
+        },
+        "bodyCanonicalSha256": {
+          "$ref": "#/$defs/sha256",
+          "description": "SHA-256 over the exact wire body bytes with every identifier this run assigned replaced by its role token. Present whenever the run had assigned an identifier by the time this message was digested; compared byte-for-byte across runs, so a change to any OTHER byte of the body is still detected."
+        },
+        "bodyJsonPointerDigests": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/sha256" },
+          "description": "Optional per-pointer JCS digests, e.g. '/policyObject', used to prove a sub-document was forwarded unmodified."
+        }
+      }
+    },
+
+    "exchange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence", "stepId", "stepIndex", "logicalTimeMs", "direction", "role", "peer",
+        "transport", "method", "resolvedUri", "endpointRef", "bindings",
+        "request", "response", "attemptCount", "retryPolicy", "timeoutMs", "timedOut",
+        "correlationId", "idempotencyKey", "capturedOutputs", "declaredExpectedHttpStatus"
+      ],
+      "properties": {
+        "sequence": { "type": "integer", "minimum": 0 },
+        "stepId": { "$ref": "#/$defs/nonEmptyId" },
+        "stepIndex": { "type": "integer", "minimum": 0 },
+        "logicalTimeMs": { "type": "integer", "minimum": 0 },
+        "direction": { "enum": ["UPPER_INBOUND", "UPPER_OUTBOUND"] },
+        "role": { "enum": ["SERVER", "CLIENT"] },
+        "peer": {
+          "enum": ["LOWER_RUNNER", "LOWER_A1", "UPPER_SELF", "UNATTRIBUTED"],
+          "description": "Who originated the exchange. UPPER_SELF is claimed only when a LIVE connection this release opened has exactly this request's client address as its local endpoint AND this listener as its remote endpoint -- a recycled source port pointing elsewhere does not qualify. UNATTRIBUTED is the fail-closed outcome when the originator cannot be established; it is a finding, never a default."
+        },
+        "transport": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scheme", "peerAuthority"],
+          "properties": {
+            "scheme": { "const": "https" },
+            "peerAuthority": { "$ref": "#/$defs/authority" },
+            "tlsProtocol": {
+              "type": ["string", "null"],
+              "maxLength": 32,
+              "description": "Negotiated protocol name. Declared volatile: excluded from two-run byte equality."
+            },
+            "peerAuthenticated": { "type": "boolean" }
+          }
+        },
+        "method": { "enum": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"] },
+        "resolvedUri": { "$ref": "#/$defs/httpsUri" },
+        "endpointRef": {
+          "type": ["string", "null"],
+          "pattern": "^#/endpointTemplates/[A-Za-z0-9]+$",
+          "description": "The catalog endpoint template this URI expanded from, or null for a non-template control-plane path."
+        },
+        "bindings": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/safeString" },
+          "description": "Scalar endpoint-template bindings actually used for expansion."
+        },
+        "request": { "$ref": "#/$defs/messageDigest", "unevaluatedProperties": false },
+        "response": {
+          "allOf": [
+            { "$ref": "#/$defs/messageDigest" },
+            {
+              "type": "object",
+              "required": ["status"],
+              "properties": {
+                "status": { "type": "integer", "minimum": 100, "maximum": 599 },
+                "locationHeader": { "type": ["string", "null"], "maxLength": 2048 },
+                "locationLastPathSegment": { "type": ["string", "null"], "maxLength": 255 }
+              }
+            }
+          ],
+          "unevaluatedProperties": false
+        },
+        "attemptCount": { "type": "integer", "minimum": 1 },
+        "retryPolicy": { "const": "NO_RETRY_DECLARED" },
+        "timeoutMs": { "type": "integer", "minimum": 1 },
+        "timedOut": { "type": "boolean" },
+        "correlationId": { "type": ["string", "null"], "maxLength": 255 },
+        "idempotencyKey": { "type": ["string", "null"], "maxLength": 255 },
+        "capturedOutputs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "policyId": { "$ref": "#/$defs/nonEmptyId" },
+            "dataJobId": { "$ref": "#/$defs/nonEmptyId" },
+            "deliveryBindingId": { "type": "string", "minLength": 22, "maxLength": 128, "pattern": "^[A-Za-z0-9._~-]+$" },
+            "registrationId": { "$ref": "#/$defs/nonEmptyId" },
+            "subscriptionId": { "$ref": "#/$defs/nonEmptyId" },
+            "policyObjectJcsSha256": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "declaredExpectedHttpStatus": {
+          "type": ["integer", "null"],
+          "minimum": 100,
+          "maximum": 599,
+          "description": "Copied from the catalog step for traceability. The comparison against `response.status` is performed by the lower runner, not here."
+        }
+      }
+    },
+
+    "harnessOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sequence", "logicalTimeMs", "component", "op", "allowed", "argumentKeys", "httpStatus", "event"],
+      "properties": {
+        "sequence": { "type": "integer", "minimum": 0 },
+        "logicalTimeMs": { "type": "integer", "minimum": 0 },
+        "component": { "enum": ["nonrt", "rapp", "o1_provider", "o1_consumer"] },
+        "op": { "type": "string", "pattern": "^[A-Z0-9_:]+$" },
+        "allowed": { "type": "boolean" },
+        "argumentKeys": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "maxLength": 128 },
+          "description": "Key names only. Argument VALUES are never audited, so seed material cannot leak."
+        },
+        "httpStatus": { "type": "integer", "minimum": 100, "maximum": 599 },
+        "event": { "enum": ["ICS_OP", "ICS_OP_NOT_ALLOWED", "ICS_STATE_READ"] },
+        "outputKeys": { "type": "array", "uniqueItems": true, "items": { "type": "string", "maxLength": 128 } }
+      }
+    },
+
+    "stateSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["jcsSha256", "policyCount", "statusCount", "dmeDataJobCount", "deliveryBindingCount", "acceptedPushPayloadCounts", "subscriptionCount", "evidenceCommitCount"],
+      "properties": {
+        "jcsSha256": { "$ref": "#/$defs/sha256" },
+        "policyCount": { "type": "integer", "minimum": 0 },
+        "statusCount": { "type": "integer", "minimum": 0 },
+        "dmeDataJobCount": { "type": "integer", "minimum": 0 },
+        "deliveryBindingCount": { "type": "integer", "minimum": 0 },
+        "acceptedPushPayloadCounts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 },
+          "description": "Keyed by deliveryBindingId."
+        },
+        "subscriptionCount": { "type": "integer", "minimum": 0 },
+        "evidenceCommitCount": { "type": "integer", "minimum": 0 },
+        "policyIds": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/nonEmptyId" } }
+      }
+    }
+  }
+}

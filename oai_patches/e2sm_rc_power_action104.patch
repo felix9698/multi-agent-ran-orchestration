@@ -1,0 +1,513 @@
+diff --git a/common/utils/telnetsrv/telnetsrv_ci.c b/common/utils/telnetsrv/telnetsrv_ci.c
+index dbf29eb..7704c5f 100644
+--- a/common/utils/telnetsrv/telnetsrv_ci.c
++++ b/common/utils/telnetsrv/telnetsrv_ci.c
+@@ -409,22 +409,31 @@ static int set_pusch_target_snr(char *buf, int debug, telnet_printfunc_t prnt)
+  * Used by the intent coordinator as the per-cell power-offset knob. */
+ static int rfatt_cmd(char *buf, int debug, telnet_printfunc_t prnt)
+ {
+-  if (RC.nb_RU < 1 || !RC.ru[0])
+-    ERROR_MSG_RET("no RU present\n");
+-  RU_t *ru = RC.ru[0];
++  /* Frozen lab surface.  The [0,60] dB bound, the check order and the "%.1f"
++   * grammar below are parsed by existing tooling, so they are preserved
++   * verbatim; only the serialisation changed -- this knob and the E2SM-RC
++   * Action 104 handler now share one process-local RF mutex.  The live
++   * device-range bound, the UHD-coerced readback and the campaign cooldown
++   * are deliberate corrections that belong to Action 104, not here. */
++  enum { LAB_OK = 0, LAB_NO_RU = -2, LAB_NO_GAIN_SETTER = -8 };
++  extern int nr_ru_lab_get_tx_attenuation(double *configured_att_db);
++  extern int nr_ru_lab_set_tx_attenuation(double att_db);
++  double configured = 0.0;
++  if (nr_ru_lab_get_tx_attenuation(&configured) == LAB_NO_RU)
++    ERROR_MSG_RET("no RU present\n");
+   double att;
+   if (!buf || sscanf(buf, "%lf", &att) != 1) {
+-    prnt("current TX attenuation %.1f dB\n", ru->openair0_cfg.tx_gain[0]);
++    prnt("current TX attenuation %.1f dB\n", configured);
+     return 0;
+   }
+   if (att < 0.0 || att > 60.0)
+     ERROR_MSG_RET("attenuation %.1f out of range [0,60] dB\n", att);
+-  if (!ru->rfdevice.trx_set_gains_func)
+-    ERROR_MSG_RET("RF device does not support runtime gain setting\n");
+-  for (int i = 0; i < ru->nb_tx && i < 8; ++i)
+-    ru->openair0_cfg.tx_gain[i] = att;
+-  ru->rfdevice.trx_set_gains_func(&ru->rfdevice, &ru->openair0_cfg);
++  const int rc = nr_ru_lab_set_tx_attenuation(att);
++  if (rc == LAB_NO_RU)
++    ERROR_MSG_RET("no RU present\n");
++  if (rc == LAB_NO_GAIN_SETTER)
++    ERROR_MSG_RET("RF device does not support runtime gain setting\n");
+   prnt("TX attenuation set to %.1f dB\n", att);
+   return 0;
+ }
+ 
+diff --git a/executables/nr-ru.c b/executables/nr-ru.c
+index e3f3ba9..8fe5652 100644
+--- a/executables/nr-ru.c
++++ b/executables/nr-ru.c
+@@ -49,6 +49,185 @@ static int DEFRUTPCORES[] = {-1,-1,-1,-1};
+ 
+ static void NRRCconfig_RU(configmodule_interface_t *cfg);
+ 
++/* Runtime cell-TX attenuation adapter shared by E2SM-RC and the legacy
++ * telnet setup surface.  Keep all config/readback/UHD gain operations under
++ * one process-local lock: UHD does not promise concurrent control-call
++ * safety, and these two callers live on independent pthreads. */
++enum {
++  NR_RU_TX_ATT_OK = 0,
++  NR_RU_TX_ATT_BAD_ARGUMENT = -1,
++  NR_RU_TX_ATT_NOT_READY = -2,
++  NR_RU_TX_ATT_UNSUPPORTED_TOPOLOGY = -3,
++  NR_RU_TX_ATT_NO_READBACK = -4,
++  NR_RU_TX_ATT_OUT_OF_RANGE = -5,
++  NR_RU_TX_ATT_COOLDOWN = -6,
++  NR_RU_TX_ATT_PARTIAL_APPLY = -7,
++  NR_RU_TX_ATT_NO_GAIN_SETTER = -8,
++};
++
++#define NR_RU_TX_ATT_MIN_WRITE_INTERVAL_NS 15000000000LL
++
++static pthread_mutex_t nr_ru_tx_attenuation_mutex = PTHREAD_MUTEX_INITIALIZER;
++static struct timespec nr_ru_tx_attenuation_last_write;
++static bool nr_ru_tx_attenuation_has_last_write;
++static double nr_ru_previous_tx_attenuation_db;
++static bool nr_ru_has_previous_tx_attenuation;
++
++static int nr_ru_read_tx_attenuation_locked(double *configured_att_db,
++                                             double *applied_gain_db,
++                                             double *range_max_db)
++{
++  if (configured_att_db == NULL || applied_gain_db == NULL || range_max_db == NULL)
++    return NR_RU_TX_ATT_BAD_ARGUMENT;
++  if (RC.nb_RU < 1 || RC.ru == NULL || RC.ru[0] == NULL)
++    return NR_RU_TX_ATT_NOT_READY;
++
++  RU_t *ru = RC.ru[0];
++  if (ru->nb_tx != 1)
++    return NR_RU_TX_ATT_UNSUPPORTED_TOPOLOGY;
++  if (ru->rfdevice.trx_set_gains_func == NULL || ru->rfdevice.trx_get_tx_gain_func == NULL)
++    return NR_RU_TX_ATT_NO_READBACK;
++
++  double gain = 0.0;
++  double range = 0.0;
++  if (ru->rfdevice.trx_get_tx_gain_func(&ru->rfdevice, 0, &gain, &range) != 0
++      || !isfinite(gain) || !isfinite(range) || range < 0.0)
++    return NR_RU_TX_ATT_NO_READBACK;
++
++  *configured_att_db = ru->openair0_cfg.tx_gain[0];
++  *applied_gain_db = gain;
++  *range_max_db = range;
++  return NR_RU_TX_ATT_OK;
++}
++
++int nr_ru_get_tx_attenuation(double *configured_att_db,
++                             double *applied_gain_db,
++                             double *range_max_db)
++{
++  pthread_mutex_lock(&nr_ru_tx_attenuation_mutex);
++  const int rc = nr_ru_read_tx_attenuation_locked(configured_att_db, applied_gain_db, range_max_db);
++  pthread_mutex_unlock(&nr_ru_tx_attenuation_mutex);
++  return rc;
++}
++
++int nr_ru_get_previous_tx_attenuation(double *previous_att_db)
++{
++  if (previous_att_db == NULL)
++    return NR_RU_TX_ATT_BAD_ARGUMENT;
++  pthread_mutex_lock(&nr_ru_tx_attenuation_mutex);
++  if (!nr_ru_has_previous_tx_attenuation) {
++    pthread_mutex_unlock(&nr_ru_tx_attenuation_mutex);
++    return NR_RU_TX_ATT_NOT_READY;
++  }
++  *previous_att_db = nr_ru_previous_tx_attenuation_db;
++  pthread_mutex_unlock(&nr_ru_tx_attenuation_mutex);
++  return NR_RU_TX_ATT_OK;
++}
++
++static int64_t nr_ru_timespec_delta_ns(const struct timespec *newer, const struct timespec *older)
++{
++  return (int64_t)(newer->tv_sec - older->tv_sec) * 1000000000LL + newer->tv_nsec - older->tv_nsec;
++}
++
++int nr_ru_set_tx_attenuation(double att_db,
++                             double *applied_gain_db,
++                             double *range_max_db)
++{
++  if (!isfinite(att_db) || applied_gain_db == NULL || range_max_db == NULL)
++    return NR_RU_TX_ATT_BAD_ARGUMENT;
++
++  pthread_mutex_lock(&nr_ru_tx_attenuation_mutex);
++
++  double configured = 0.0;
++  double prior_gain = 0.0;
++  double range = 0.0;
++  int rc = nr_ru_read_tx_attenuation_locked(&configured, &prior_gain, &range);
++  if (rc != NR_RU_TX_ATT_OK) {
++    pthread_mutex_unlock(&nr_ru_tx_attenuation_mutex);
++    return rc;
++  }
++  if (att_db < 0.0 || att_db > range) {
++    pthread_mutex_unlock(&nr_ru_tx_attenuation_mutex);
++    return NR_RU_TX_ATT_OUT_OF_RANGE;
++  }
++
++  struct timespec now = {0};
++  if (clock_gettime(CLOCK_MONOTONIC, &now) != 0) {
++    pthread_mutex_unlock(&nr_ru_tx_attenuation_mutex);
++    return NR_RU_TX_ATT_NOT_READY;
++  }
++  if (nr_ru_tx_attenuation_has_last_write
++      && nr_ru_timespec_delta_ns(&now, &nr_ru_tx_attenuation_last_write) < NR_RU_TX_ATT_MIN_WRITE_INTERVAL_NS) {
++    pthread_mutex_unlock(&nr_ru_tx_attenuation_mutex);
++    return NR_RU_TX_ATT_COOLDOWN;
++  }
++
++  /* The live hardware value, not the last commanded config value, is the
++   * restorable predecessor. */
++  nr_ru_previous_tx_attenuation_db = range - prior_gain;
++  nr_ru_has_previous_tx_attenuation = true;
++
++  RU_t *ru = RC.ru[0];
++  ru->openair0_cfg.tx_gain[0] = att_db;
++  const int set_rc = ru->rfdevice.trx_set_gains_func(&ru->rfdevice, &ru->openair0_cfg);
++  nr_ru_tx_attenuation_last_write = now;
++  nr_ru_tx_attenuation_has_last_write = true;
++
++  double ignored_configured = 0.0;
++  const int read_rc = nr_ru_read_tx_attenuation_locked(&ignored_configured, applied_gain_db, range_max_db);
++  pthread_mutex_unlock(&nr_ru_tx_attenuation_mutex);
++  if (read_rc != NR_RU_TX_ATT_OK)
++    return read_rc;
++
++  /* trx_usrp_set_gains() applies TX before its RX-range check.  A non-zero
++   * result is therefore a reported partial apply, never an ACK. */
++  return set_rc == 0 ? NR_RU_TX_ATT_OK : NR_RU_TX_ATT_PARTIAL_APPLY;
++}
++
++/* Legacy `ci rfatt` lab surface.  Same mutex as the E2 path, so the two
++ * writers serialise, but none of the Action-104 policy: no cooldown, no live
++ * device-range bound, no coerced readback, and no dependency on
++ * trx_get_tx_gain_func -- only the USRP driver supplies one, while ten other
++ * radio backends supply trx_set_gains_func alone.  Those corrections belong to
++ * Action 104; `ci rfatt` is a frozen surface whose grammar tooling parses. */
++int nr_ru_lab_get_tx_attenuation(double *configured_att_db)
++{
++  if (configured_att_db == NULL)
++    return NR_RU_TX_ATT_BAD_ARGUMENT;
++  pthread_mutex_lock(&nr_ru_tx_attenuation_mutex);
++  if (RC.nb_RU < 1 || RC.ru == NULL || RC.ru[0] == NULL) {
++    pthread_mutex_unlock(&nr_ru_tx_attenuation_mutex);
++    return NR_RU_TX_ATT_NOT_READY;
++  }
++  *configured_att_db = RC.ru[0]->openair0_cfg.tx_gain[0];
++  pthread_mutex_unlock(&nr_ru_tx_attenuation_mutex);
++  return NR_RU_TX_ATT_OK;
++}
++
++int nr_ru_lab_set_tx_attenuation(double att_db)
++{
++  if (!isfinite(att_db))
++    return NR_RU_TX_ATT_BAD_ARGUMENT;
++  pthread_mutex_lock(&nr_ru_tx_attenuation_mutex);
++  if (RC.nb_RU < 1 || RC.ru == NULL || RC.ru[0] == NULL) {
++    pthread_mutex_unlock(&nr_ru_tx_attenuation_mutex);
++    return NR_RU_TX_ATT_NOT_READY;
++  }
++  RU_t *ru = RC.ru[0];
++  if (ru->rfdevice.trx_set_gains_func == NULL) {
++    pthread_mutex_unlock(&nr_ru_tx_attenuation_mutex);
++    return NR_RU_TX_ATT_NO_GAIN_SETTER;
++  }
++  /* The Action-104 rollback baseline is deliberately not updated here: it
++   * holds a hardware-truth quantity this knob cannot produce.  A gNB restart
++   * remains the documented undo for a telnet-applied value. */
++  for (int i = 0; i < ru->nb_tx && i < 8; ++i)
++    ru->openair0_cfg.tx_gain[i] = att_db;
++  ru->rfdevice.trx_set_gains_func(&ru->rfdevice, &ru->openair0_cfg);
++  pthread_mutex_unlock(&nr_ru_tx_attenuation_mutex);
++  return NR_RU_TX_ATT_OK;
++}
++
+ /*************************************************************/
+ /* Southbound Fronthaul functions, RCC/RAU                   */
+ 
+@@ -1178,4 +1312,3 @@ static void NRRCconfig_RU(configmodule_interface_t *cfg)
+   } // j=0..num_rus
+   return;
+ }
+-
+diff --git a/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_rc.c b/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_rc.c
+index a3101c5..3313aee 100644
+--- a/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_rc.c
++++ b/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_rc.c
+@@ -45,6 +45,23 @@
+ #pragma weak nr_mac_set_slice_prb_quotas
+ #pragma weak nr_mac_get_slice_prb_quotas
+ #pragma weak nr_mac_get_previous_slice_prb_quotas
++#pragma weak nr_ru_set_tx_attenuation
++#pragma weak nr_ru_get_tx_attenuation
++#pragma weak nr_ru_get_previous_tx_attenuation
++
++extern int nr_ru_set_tx_attenuation(double att_db, double *applied_gain_db, double *range_max_db);
++extern int nr_ru_get_tx_attenuation(double *configured_att_db, double *applied_gain_db, double *range_max_db);
++extern int nr_ru_get_previous_tx_attenuation(double *previous_att_db);
++
++enum {
++  NR_RU_TX_ATT_OK = 0,
++  NR_RU_TX_ATT_NOT_READY = -2,
++  NR_RU_TX_ATT_UNSUPPORTED_TOPOLOGY = -3,
++  NR_RU_TX_ATT_NO_READBACK = -4,
++  NR_RU_TX_ATT_OUT_OF_RANGE = -5,
++  NR_RU_TX_ATT_COOLDOWN = -6,
++  NR_RU_TX_ATT_PARTIAL_APPLY = -7,
++};
+ 
+ enum {
+   RC_STYLE_2_RADIO_RESOURCE_ALLOCATION = 2,
+@@ -64,6 +81,7 @@ enum {
+   RC_ACTION_101_DL_MCS_BOUNDS = 101,
+   RC_ACTION_102_UE_DL_PRB_CAP = 102,
+   RC_ACTION_103_UE_PF_WEIGHT = 103,
++  RC_ACTION_104_CELL_DL_TX_POWER = 104,
+   RC_DL_MCS_BOUNDS = 201,
+   RC_DL_MCS_MAX = 202,
+   RC_DL_MCS_MIN = 203,
+@@ -71,6 +89,9 @@ enum {
+   RC_MAX_DL_PRBS = 212,
+   RC_UE_PF_WEIGHT = 221,
+   RC_PF_WEIGHT = 222,
++  RC_CELL_DL_TX_POWER = 231,
++  RC_DL_TX_ATTENUATION_DB = 232,
++  RC_TARGET_GNB_ID = 233,
+ };
+ 
+ static pthread_once_t once_rc_mutex = PTHREAD_ONCE_INIT;
+@@ -469,6 +490,14 @@ static ran_param_def_t* rc_style2_ue_pf_weight_definition(void)
+   return definition;
+ }
+ 
++static ran_param_def_t* rc_style2_cell_tx_power_definition(void)
++{
++  ran_param_def_t* definition = rc_compound_definition(STRUCTURE_RAN_PARAMETER_DEF_TYPE, 2);
++  rc_definition_child(definition, 0, RC_DL_TX_ATTENUATION_DB, "DL TX Attenuation dB", NULL);
++  rc_definition_child(definition, 1, RC_TARGET_GNB_ID, "Target gNB ID", NULL);
++  return definition;
++}
++
+ static void rc_style2_append_local_action(seq_ctrl_style_t* style,
+                                           uint16_t action_id,
+                                           const char* action_name,
+@@ -592,6 +621,12 @@ static void fill_ctrl_style_2_radio_resource_allocation(seq_ctrl_style_t* ctrl_s
+                                 RC_UE_PF_WEIGHT,
+                                 "UE PF Weight",
+                                 rc_style2_ue_pf_weight_definition());
++  rc_style2_append_local_action(ctrl_style,
++                                RC_ACTION_104_CELL_DL_TX_POWER,
++                                "Cell DL TX power (deployment-local)",
++                                RC_CELL_DL_TX_POWER,
++                                "Cell DL TX Power Control",
++                                rc_style2_cell_tx_power_definition());
+   ctrl_style->sz_ran_param_ctrl_out = 0;
+   ctrl_style->ran_param_ctrl_out = NULL;
+ }
+@@ -1492,6 +1527,120 @@ static sm_ag_if_ans_t rc_ctrl_style_2_dl_mcs_bounds(const e2sm_rc_ctrl_msg_frmt_
+   return rc_ctrl_empty_outcome();
+ }
+ 
++static sm_ag_if_ans_t rc_ctrl_style_2_cell_tx_power(const e2sm_rc_ctrl_msg_frmt_1_t* m)
++{
++  const char* why = "";
++  const ran_param_struct_t* power = rc_style2_structure_root(m, RC_CELL_DL_TX_POWER, &why);
++  static const uint32_t child_ids[] = {RC_DL_TX_ATTENUATION_DB, RC_TARGET_GNB_ID};
++  if (power == NULL
++      || !rc_exact_parameter_ids(power->ran_param_struct, power->sz_ran_param_struct, child_ids, 2, &why))
++    return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, RC_ACTION_104_CELL_DL_TX_POWER, why);
++
++  const seq_ran_param_t* att_param = rc_find_ran_param(
++      power->ran_param_struct, power->sz_ran_param_struct, RC_DL_TX_ATTENUATION_DB);
++  if (att_param == NULL
++      || att_param->ran_param_val.type != ELEMENT_KEY_FLAG_FALSE_RAN_PARAMETER_VAL_TYPE
++      || att_param->ran_param_val.flag_false == NULL)
++    return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT,
++                          2,
++                          RC_ACTION_104_CELL_DL_TX_POWER,
++                          "DL TX Attenuation dB has wrong key flag or is absent");
++
++  const ran_parameter_value_t* att_value = att_param->ran_param_val.flag_false;
++  double att_db = 0.0;
++  if (att_value->type == REAL_RAN_PARAMETER_VALUE)
++    att_db = att_value->real_ran;
++  else if (att_value->type == INTEGER_RAN_PARAMETER_VALUE)
++    att_db = att_value->int_ran;
++  else
++    return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT,
++                          2,
++                          RC_ACTION_104_CELL_DL_TX_POWER,
++                          "DL TX Attenuation dB is not a REAL or INTEGER");
++  if (!isfinite(att_db))
++    return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT,
++                          2,
++                          RC_ACTION_104_CELL_DL_TX_POWER,
++                          "DL TX Attenuation dB is not finite");
++
++  const ran_parameter_value_t* target = rc_false_element(
++      rc_find_ran_param(power->ran_param_struct, power->sz_ran_param_struct, RC_TARGET_GNB_ID),
++      INTEGER_RAN_PARAMETER_VALUE,
++      &why);
++  if (target == NULL)
++    return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, RC_ACTION_104_CELL_DL_TX_POWER, why);
++  if (RC.nrrrc == NULL || RC.nrrrc[0] == NULL || target->int_ran < 0
++      || target->int_ran > UINT32_MAX || (uint32_t)target->int_ran != RC.nrrrc[0]->node_id)
++    return rc_ctrl_reject(RC_CTRL_REJ_IDENTITY_OR_TARGET,
++                          2,
++                          RC_ACTION_104_CELL_DL_TX_POWER,
++                          "Target gNB ID does not match this E2 node");
++
++  if (nr_ru_set_tx_attenuation == NULL || nr_ru_get_tx_attenuation == NULL
++      || nr_ru_get_previous_tx_attenuation == NULL)
++    return rc_ctrl_reject(RC_CTRL_REJ_CAPABILITY_STATE,
++                          2,
++                          RC_ACTION_104_CELL_DL_TX_POWER,
++                          "RF gain adapter is not linked in this node role");
++
++  double configured = 0.0;
++  double applied_gain = 0.0;
++  double range_max = 0.0;
++  const int read_rc = nr_ru_get_tx_attenuation(&configured, &applied_gain, &range_max);
++  if (read_rc != NR_RU_TX_ATT_OK)
++    return rc_ctrl_reject(RC_CTRL_REJ_CAPABILITY_STATE,
++                          2,
++                          RC_ACTION_104_CELL_DL_TX_POWER,
++                          read_rc == NR_RU_TX_ATT_UNSUPPORTED_TOPOLOGY
++                              ? "runtime TX attenuation requires exactly one TX chain"
++                              : "RF gain or hardware readback is not ready");
++  if (att_db < 0.0 || att_db > range_max)
++    return rc_ctrl_reject(RC_CTRL_REJ_POLICY_OR_ADMISSION,
++                          2,
++                          RC_ACTION_104_CELL_DL_TX_POWER,
++                          "DL TX Attenuation dB is outside the live device range");
++
++  const int set_rc = nr_ru_set_tx_attenuation(att_db, &applied_gain, &range_max);
++  if (set_rc == NR_RU_TX_ATT_COOLDOWN)
++    return rc_ctrl_reject(RC_CTRL_REJ_POLICY_OR_ADMISSION,
++                          2,
++                          RC_ACTION_104_CELL_DL_TX_POWER,
++                          "minimum 15000 ms RF write interval has not elapsed");
++  if (set_rc == NR_RU_TX_ATT_OUT_OF_RANGE)
++    return rc_ctrl_reject(RC_CTRL_REJ_POLICY_OR_ADMISSION,
++                          2,
++                          RC_ACTION_104_CELL_DL_TX_POWER,
++                          "DL TX Attenuation dB is outside the live device range");
++  if (set_rc == NR_RU_TX_ATT_PARTIAL_APPLY)
++    return rc_ctrl_reject(RC_CTRL_REJ_CAPABILITY_STATE,
++                          2,
++                          RC_ACTION_104_CELL_DL_TX_POWER,
++                          "RF gain call partially applied TX and skipped RX");
++  if (set_rc != NR_RU_TX_ATT_OK)
++    return rc_ctrl_reject(RC_CTRL_REJ_CAPABILITY_STATE,
++                          2,
++                          RC_ACTION_104_CELL_DL_TX_POWER,
++                          "RF gain apply or hardware readback failed");
++
++  double previous_att = 0.0;
++  if (nr_ru_get_previous_tx_attenuation(&previous_att) != NR_RU_TX_ATT_OK)
++    return rc_ctrl_reject(RC_CTRL_REJ_CAPABILITY_STATE,
++                          2,
++                          RC_ACTION_104_CELL_DL_TX_POWER,
++                          "RF write completed without a restorable predecessor");
++
++  printf("[E2 AGENT] RIC CONTROL Style 2 / Action %u applied: attenuation=%.3f dB "
++         "applied_gain=%.3f dB range_max=%.3f dB predecessor=%.3f dB "
++         "(CONTROL ACK confirms the RF call returned)\n",
++         RC_ACTION_104_CELL_DL_TX_POWER,
++         range_max - applied_gain,
++         applied_gain,
++         range_max,
++         previous_att);
++  fflush(stdout);
++  return rc_ctrl_empty_outcome();
++}
++
+ static bool rc_plmn_matches_local(const byte_array_t* value, const char** why)
+ {
+   if (value == NULL || value->buf == NULL || value->len != 3 || RC.nrrrc[0] == NULL) {
+@@ -2038,6 +2187,10 @@ sm_ag_if_ans_t write_ctrl_rc_sm(void const* data)
+           || h->ctrl_act_id == RC_ACTION_103_UE_PF_WEIGHT))
+     return rc_ctrl_style_2_ue_action(h, m);
+ 
++  if (h->ric_style_type == RC_STYLE_2_RADIO_RESOURCE_ALLOCATION
++      && h->ctrl_act_id == RC_ACTION_104_CELL_DL_TX_POWER)
++    return rc_ctrl_style_2_cell_tx_power(m);
++
+   if (h->ric_style_type == 3 && h->ctrl_act_id == 1)
+     return rc_ctrl_style_3_handover_control(h, m);
+ 
+diff --git a/radio/COMMON/common_lib.h b/radio/COMMON/common_lib.h
+index 2fb51a5..ada65b0 100644
+--- a/radio/COMMON/common_lib.h
++++ b/radio/COMMON/common_lib.h
+@@ -528,6 +528,18 @@ struct openair0_device {
+    */
+   int (*trx_set_gains_func)(openair0_device_t *device, openair0_config_t *openair0_cfg);
+ 
++  /*! \brief Read the applied TX gain and the device TX-gain maximum.
++   * \param device the hardware to query
++   * \param channel RF channel index
++   * \param[out] applied_gain_db hardware-coerced TX gain in dB
++   * \param[out] range_max_db maximum of the device TX-gain range in dB
++   * \returns 0 on success
++   */
++  int (*trx_get_tx_gain_func)(openair0_device_t *device,
++                              int channel,
++                              double *applied_gain_db,
++                              double *range_max_db);
++
+   /*! \brief Set tx/rx beams
+    *
+    * Set the tx/rx beams. This has to be done in advance of the reception in order to
+@@ -660,4 +672,3 @@ void openair0_write_reorder_clear_context(openair0_device_t *device);
+ #endif
+ 
+ #endif // COMMON_LIB_H
+-
+diff --git a/radio/USRP/usrp_lib.cpp b/radio/USRP/usrp_lib.cpp
+index 6c05069..7a63cfe 100644
+--- a/radio/USRP/usrp_lib.cpp
++++ b/radio/USRP/usrp_lib.cpp
+@@ -876,6 +876,25 @@ int trx_usrp_set_gains(openair0_device_t *device,
+   return(0);
+ }
+ 
++/*! \brief Read the hardware-coerced TX gain and device-specific range. */
++int trx_usrp_get_tx_gain(openair0_device_t *device,
++                         int channel,
++                         double *applied_gain_db,
++                         double *range_max_db)
++{
++  if (device == NULL || device->priv == NULL || channel < 0
++      || applied_gain_db == NULL || range_max_db == NULL)
++    return -1;
++
++  usrp_state_t *s = (usrp_state_t *)device->priv;
++  if (channel >= (int)s->usrp->get_tx_num_channels())
++    return -1;
++
++  *applied_gain_db = s->usrp->get_tx_gain(channel);
++  *range_max_db = s->usrp->get_tx_gain_range(channel).stop();
++  return 0;
++}
++
+ /*! \brief Stop USRP
+  * \param card refers to the hardware index to use
+  */
+@@ -1065,6 +1084,7 @@ extern "C" {
+     device->trx_stop_func  = trx_usrp_stop;
+     device->trx_set_freq_func = trx_usrp_set_freq;
+     device->trx_set_gains_func   = trx_usrp_set_gains;
++    device->trx_get_tx_gain_func = trx_usrp_get_tx_gain;
+     device->trx_write_init = trx_usrp_write_init;
+ 
+ 
+

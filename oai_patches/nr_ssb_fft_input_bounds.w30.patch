@@ -1,0 +1,83 @@
+From: O-RAN testbed maintenance
+Subject: [PATCH] NR UE: validate the actual SSB FFT input span before DFT
+
+For the w30 nr_initial_sync.c with SHA256
+ab128f896b5695957b015c4ee5cc8740375264a1722afae66fee590da39afaa7.
+
+The PSS search includes sample zero. Subtracting the CP advance in an
+unsigned FFT offset can wrap a near-zero PSS position by 2^32 samples.
+The unaligned DFT path then copies from that out-of-bounds input address.
+
+Compute the actual first FFT sample in signed wide arithmetic, reject an
+out-of-buffer first or exclusive end sample, and pass the checked offset
+to DFT. Do not reject a negative CP start when the actual FFT reads fit.
+Accept an exclusive end equal to the buffer length. Valid interior input
+samples and the configured CP advance remain unchanged.
+
+This patch text does not constitute deployment or an OTA recovery result.
+
+--- a/openair1/PHY/NR_UE_TRANSPORT/nr_initial_sync.c
++++ b/openair1/PHY/NR_UE_TRANSPORT/nr_initial_sync.c
+@@ -159,7 +159,7 @@
+                           symbol_rotation);
+ }
+
+-static void do_time_to_freq(nr_ssb_search_params_t *params, uint32_t sample_offset)
++static void do_time_to_freq(nr_ssb_search_params_t *params, uint32_t first_sample)
+ {
+   c16_t timeshift_symbol_rotation[params->ofdm_symbol_size];
+   c16_t symbol_rotation[224];
+@@ -171,10 +171,8 @@
+
+   for (int symb = 0; symb < NR_N_SYMBOLS_SSB; symb++) {
+     // For Sidelink 16 frames worth of samples is processed to find SSB, for 5G-NR 2.
+-    unsigned int rx_offset = sample_offset + params->nb_prefix_samples;
++    unsigned int rx_offset = first_sample;
+     rx_offset += symb * (params->nb_prefix_samples + params->ofdm_symbol_size);
+-    // use OFDM symbol from within 1/8th of the CP to avoid ISI
+-    rx_offset -= params->nb_prefix_samples / params->ofdm_offset_divisor;
+     for (unsigned char aa = 0; aa < params->nb_antennas_rx; aa++) {
+       c16_t *rxF = rxdataF[symb][aa];
+       dft(dftsize, (int16_t *)&params->rxdata[aa][rx_offset], (int16_t *)rxF, 1);
+@@ -213,18 +211,26 @@
+   if (!params->pss_res.success)
+     return false;
+
+-  const int ssb_time_offset = params->pss_res.pos - params->nb_prefix_samples;
+-
+ #ifdef DEBUG_INITIAL_SYNCH
+   LOG_I(PHY, "Initial sync : Estimated PSS position %d, Nid2 %d, ssb offset %d\n", sync_pos, nid2, ssb_offset);
+ #endif
+
+-  // Check that SSB fits within buffer
+-  if (ssb_time_offset + NR_N_SYMBOLS_SSB * (params->ofdm_symbol_size + params->nb_prefix_samples) >= params->rxdata_size) {
++  if (params->ofdm_offset_divisor == 0) {
++    LOG_E(PHY, "Invalid OFDM offset divisor 0\n");
++    return false;
++  }
++
++  // Check the actual FFT input span, including the advance into the CP.
++  // A negative CP start can still have a valid first FFT sample.
++  const int64_t first_sample = (int64_t)params->pss_res.pos
++                               - params->nb_prefix_samples / params->ofdm_offset_divisor;
++  const int64_t end_sample = first_sample
++                             + (NR_N_SYMBOLS_SSB - 1) * ((int64_t)params->ofdm_symbol_size + params->nb_prefix_samples)
++                             + params->ofdm_symbol_size;
++  if (first_sample < 0 || end_sample > params->rxdata_size) {
+     LOG_D(PHY,
+-          "SSB extends beyond buffer boundary (sync_pos %d, ssb_offset %d, buffer_size %d)\n",
++          "SSB FFT input extends beyond buffer boundary (PSS pos %d, buffer_size %u)\n",
+           params->pss_res.pos,
+-          ssb_time_offset,
+           params->rxdata_size);
+     return false;
+   }
+@@ -236,7 +242,7 @@
+
+   // Extract SSB symbols to frequency domain
+   // Symbol ordering: 0=PSS, 1=PBCH, 2=SSS, 3=PBCH
+-  do_time_to_freq(params, ssb_time_offset);
++  do_time_to_freq(params, (uint32_t)first_sample);
+
+   // Perform SSS detection
+   nr_sss_params_t p_sss = (nr_sss_params_t){.nb_antennas_rx = params->nb_antennas_rx,

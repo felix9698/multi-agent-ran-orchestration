@@ -1,0 +1,379 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:oran-aic:schema:AIC_UECellSteering:policy:1.0.0",
+  "title": "AIC UE Cell Steering Policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "scope",
+    "steeringObjective",
+    "constraints",
+    "validity",
+    "priority",
+    "rollbackPolicy",
+    "trace"
+  ],
+  "properties": {
+    "scope": {
+      "$ref": "#/$defs/Scope"
+    },
+    "steeringObjective": {
+      "$ref": "#/$defs/SteeringObjective"
+    },
+    "constraints": {
+      "$ref": "#/$defs/Constraints"
+    },
+    "validity": {
+      "$ref": "#/$defs/Validity"
+    },
+    "priority": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "rollbackPolicy": {
+      "$ref": "#/$defs/RollbackPolicy"
+    },
+    "trace": {
+      "$ref": "#/$defs/Trace"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "steeringObjective": {
+            "properties": {
+              "kind": {
+                "const": "BALANCE_PRB_LOAD"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "steeringObjective": {
+            "required": [
+              "improvementThresholdPrb"
+            ]
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "steeringObjective": {
+            "not": {
+              "required": [
+                "improvementThresholdPrb"
+              ]
+            },
+            "properties": {
+              "actionEnvelope": {
+                "properties": {
+                  "allowedCells": {
+                    "maxItems": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "UtcDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z$"
+    },
+    "PlmnId": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mcc",
+        "mnc"
+      ],
+      "properties": {
+        "mcc": {
+          "type": "string",
+          "pattern": "^[0-9]{3}$"
+        },
+        "mnc": {
+          "type": "string",
+          "pattern": "^[0-9]{2,3}$"
+        }
+      }
+    },
+    "GuAmI": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "plmnId",
+        "amfRegionId",
+        "amfSetId",
+        "amfPointer"
+      ],
+      "properties": {
+        "plmnId": {
+          "$ref": "#/$defs/PlmnId"
+        },
+        "amfRegionId": {
+          "type": "string",
+          "pattern": "^[A-Fa-f0-9]{2}$"
+        },
+        "amfSetId": {
+          "type": "string",
+          "pattern": "^[0-3][A-Fa-f0-9]{2}$"
+        },
+        "amfPointer": {
+          "type": "string",
+          "pattern": "^[0-3][A-Fa-f0-9]{1}$"
+        }
+      }
+    },
+    "GuAmfUeNgapId": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "guAmI",
+        "amfUeNgapId"
+      ],
+      "properties": {
+        "guAmI": {
+          "$ref": "#/$defs/GuAmI"
+        },
+        "amfUeNgapId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1099511627775
+        }
+      }
+    },
+    "UeId": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "guAmfUeNgapId"
+      ],
+      "properties": {
+        "guAmfUeNgapId": {
+          "$ref": "#/$defs/GuAmfUeNgapId"
+        }
+      }
+    },
+    "CId": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ncI"
+      ],
+      "properties": {
+        "ncI": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 68719476735
+        }
+      }
+    },
+    "CellId": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "plmnId",
+        "cId"
+      ],
+      "properties": {
+        "plmnId": {
+          "$ref": "#/$defs/PlmnId"
+        },
+        "cId": {
+          "$ref": "#/$defs/CId"
+        }
+      }
+    },
+    "Scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ueId"
+      ],
+      "properties": {
+        "ueId": {
+          "$ref": "#/$defs/UeId"
+        }
+      }
+    },
+    "ActionEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowedCells",
+        "forbiddenCells"
+      ],
+      "properties": {
+        "allowedCells": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/CellId"
+          }
+        },
+        "forbiddenCells": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/CellId"
+          }
+        }
+      }
+    },
+    "SteeringObjective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "actionEnvelope"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "BALANCE_PRB_LOAD",
+            "PIN_TO_CELL"
+          ]
+        },
+        "actionEnvelope": {
+          "$ref": "#/$defs/ActionEnvelope"
+        },
+        "improvementThresholdPrb": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "Constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxActuationsPerEpisode",
+        "minSecondsBetweenActuations",
+        "requiredKpiFreshnessMs",
+        "actionDeadlineMs"
+      ],
+      "properties": {
+        "maxActuationsPerEpisode": {
+          "const": 1
+        },
+        "minSecondsBetweenActuations": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 86400
+        },
+        "requiredKpiFreshnessMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60000
+        },
+        "actionDeadlineMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120000
+        }
+      }
+    },
+    "Validity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "notBefore",
+        "expiresAt"
+      ],
+      "properties": {
+        "notBefore": {
+          "$ref": "#/$defs/UtcDateTime"
+        },
+        "expiresAt": {
+          "$ref": "#/$defs/UtcDateTime"
+        }
+      }
+    },
+    "RollbackPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "on",
+        "timeoutMs"
+      ],
+      "properties": {
+        "on": {
+          "type": "array",
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "READBACK_MISMATCH",
+              "APPLY_FAILED"
+            ]
+          }
+        },
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120000
+        }
+      }
+    },
+    "Trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "intentId",
+        "intentRevision",
+        "policyRevision",
+        "idempotencyKey",
+        "correlationId",
+        "producerId"
+      ],
+      "properties": {
+        "intentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "intentRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "policyRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._:/-]+$"
+        },
+        "correlationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "producerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._:/-]+$"
+        }
+      }
+    }
+  }
+}

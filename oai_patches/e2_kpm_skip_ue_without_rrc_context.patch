@@ -1,0 +1,12 @@
+--- a/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_kpm.c
++++ b/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_kpm.c
+@@ -291,6 +291,9 @@
+           arr_ue_id.ue_id[arr_ue_id.sz] = fill_ue_id_data[ngran_gNB_DU](NULL, rrc_ue_id.secondary_ue, 0);
+         } else {
+           rrc_gNB_ue_context_t* rrc_ue_context = rrc_gNB_get_ue_context_by_rnti(RC.nrrrc[0], -1, ue->rnti);
++          /* UE mid re-establishment/handover: MAC has it, RRC does not => not reportable yet */
++          if (rrc_ue_context == NULL)
++            continue;
+           /* UE has no AMF UE NGAP ID yet => can't send message */
+           if (rrc_ue_context->ue_context.amf_ue_ngap_id >= (1LL << 40))
+             continue;

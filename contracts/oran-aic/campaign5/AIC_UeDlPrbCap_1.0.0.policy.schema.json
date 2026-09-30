@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:oran-aic:schema:AIC_UeDlPrbCap:policy:1.0.0",
+  "title": "AIC UE Downlink PRB Cap Policy",
+  "description": "Campaign 5 official-path A1 policy binding to E2SM-RC Style 2.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "config",
+    "validity",
+    "trace"
+  ],
+  "properties": {
+    "config": {
+      "$ref": "#/$defs/Config"
+    },
+    "validity": {
+      "$ref": "#/$defs/Validity"
+    },
+    "trace": {
+      "$ref": "#/$defs/Trace"
+    }
+  },
+  "$defs": {
+    "Config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cellId",
+        "ueId",
+        "maxDlPrbs"
+      ],
+      "properties": {
+        "cellId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Deployment-local NR cell identity (CGI text or ncI decimal)."
+        },
+        "ueId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Deployment-local UE anchor reference (e.g. RNTI hex or IMSI ref)."
+        },
+        "maxDlPrbs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 275,
+          "description": "Downlink PRB grant cap; 0 removes the cap."
+        }
+      }
+    },
+    "Validity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "notBefore",
+        "notAfter"
+      ],
+      "properties": {
+        "notBefore": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "notAfter": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "Trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "traceId",
+        "revision",
+        "fencingToken"
+      ],
+      "properties": {
+        "traceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "fencingToken": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

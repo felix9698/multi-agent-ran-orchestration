@@ -1,0 +1,150 @@
+{
+  "profileId": "oran-aic-o1-pa-file/1.0.0",
+  "interfaceSpecification": {
+    "id": "ETSI-TS-104-043",
+    "version": "11.0.0"
+  },
+  "genericManagementSpecification": {
+    "id": "ETSI-TS-128-532",
+    "version": "18.3.0"
+  },
+  "genericNrmSpecification": {
+    "id": "ETSI-TS-128-622",
+    "version": "18.7.0"
+  },
+  "genericNrmYangSpecification": {
+    "id": "ETSI-TS-128-623",
+    "version": "18.7.0",
+    "profileArtifact": "o1-netconf-yang-profile.1.0.0.json"
+  },
+  "measurementSpecification": {
+    "id": "ETSI-TS-128-552",
+    "version": "18.11.0"
+  },
+  "performanceDataFileSpecification": {
+    "id": "ETSI-TS-132-435",
+    "version": "10.0.0",
+    "grammarBranch": "LEGACY_MEASCOLLECFILE_TS_32_432_32_435"
+  },
+  "delivery": {
+    "mode": "FILE",
+    "fileReadyFormat": "SDO",
+    "notificationType": "notifyFileReady",
+    "notificationTransport": "HTTPS",
+    "mutualTls": true,
+    "retrievalScheme": "SFTP",
+    "compression": "NONE",
+    "fileEncoding": "XML",
+    "fileContentProfile": "ETSI-TS-128-532-11.3.2.1.2",
+    "xmlProfile": "ETSI-TS-132-435-V10.0.0-measCollec.xsd",
+    "xmlRoot": "measCollecFile",
+    "xmlNamespace": "http://www.3gpp.org/ftp/specs/archive/32_series/32.435#measCollec",
+    "fileFormat": "32.435 V10.0 XML-schema",
+    "xmlStylesheetProcessingInstruction": "<?xml-stylesheet type=\"text/xsl\" href=\"MeasDataCollection.xsl\"?>",
+    "subscription": {
+      "service": "FileDataReportingMnS",
+      "operation": "subscribe",
+      "collectionResource": "{MnSRoot}/FileDataReportingMnS/{MnSVersion}/subscriptions",
+      "createHttpMethod": "POST",
+      "createSuccessStatus": 201,
+      "itemResource": "{MnSRoot}/FileDataReportingMnS/{MnSVersion}/subscriptions/{subscriptionId}",
+      "deleteHttpMethod": "DELETE",
+      "deleteSuccessStatus": 204,
+      "deleteAlreadyAbsentStatus": 404,
+      "notificationSuccessStatus": 204,
+      "filesResource": "{MnSRoot}/FileDataReportingMnS/{MnSVersion}/files",
+      "listFilesHttpMethod": "GET",
+      "listFilesRequiredQuery": [
+        "fileDataType",
+        "beginTime",
+        "endTime"
+      ],
+      "listFilesTimeFilterField": "fileReadyTime",
+      "beginOffsetFromMeasurementWindowEndMs": 0,
+      "endOffsetFromMeasurementWindowEndMs": 120000,
+      "listFilesTimeInterval": "BEGIN_INCLUSIVE_END_EXCLUSIVE",
+      "rawPmWindowFinalMatchRequired": true,
+      "listFilesSuccessStatus": 200,
+      "notificationLossRecovery": "LIST_AVAILABLE_FILES_THEN_MISSING",
+      "consumerCreatesBeforeJobUnlock": true,
+      "getOperationAvailable": false,
+      "consumerPersistsSubscriptionId": true,
+      "providerRestartBehavior": "PERSIST_OR_DELETE_RETURNS_404",
+      "uncertainStateRecovery": "LOCK_JOB_DELETE_STORED_ID_BEFORE_RECREATE",
+      "consumerReferenceWireField": "consumerReference",
+      "consumerReferenceConfigurationKey": "o1.fileDataReporting.consumerReference",
+      "consumerReferenceFixture": "https://smo.example/o1/file-data-reporting/notifications",
+      "timeTick": 0,
+      "timeTickSemantics": "INFINITE",
+      "expectedNotifications": [
+        "notifyFileReady",
+        "notifyFilePreparationError"
+      ]
+    }
+  },
+  "perfMetricJob": {
+    "ioc": "PerfMetricJob",
+    "configurationProtocol": "NETCONF",
+    "jobId": "oran-aic-nrcelldu-60s",
+    "administrativeState": "UNLOCKED",
+    "performanceMetrics": [
+      "RRU.PrbDl",
+      "DRB.UEThpDl"
+    ],
+    "granularityPeriodSeconds": 60,
+    "reportingCtrl": {
+      "case": "file-based-reporting",
+      "fileReportingPeriodMinutes": 1,
+      "fileLocationPresence": "ABSENT_PRODUCER_SELECTED"
+    }
+  },
+  "measurements": [
+    {
+      "name": "RRU.PrbDl",
+      "clause": "5.1.1.2.1",
+      "managedObjectClass": "NRCellDU",
+      "unit": "percent",
+      "valueKind": "INTEGER",
+      "minimum": 0,
+      "maximum": 100,
+      "aggregation": "PERIOD_MEAN",
+      "required": true
+    },
+    {
+      "name": "DRB.UEThpDl",
+      "clause": "5.1.1.3.1",
+      "managedObjectClass": "NRCellDU",
+      "unit": "kbit/s",
+      "valueKind": "REAL",
+      "minimum": 0,
+      "aggregation": "DERIVED_RATIO",
+      "required": false,
+      "identitySemantics": "CELL_AGGREGATE_NOT_UNIQUE_UE"
+    }
+  ],
+  "identity": {
+    "mappingSource": "backend-capability-manifest.json/topology.cells",
+    "managedObjectDnField": "managedObjectDn",
+    "cellIdField": "cellId",
+    "mappingCardinality": "BIJECTIVE",
+    "forbidUeInferenceFromNrCellDuPm": true
+  },
+  "time": {
+    "timestampFormat": "RFC3339_UTC_Z",
+    "durationClock": "MONOTONIC",
+    "clockSource": "NTP_OR_PTP",
+    "maxClockSkewMs": 250,
+    "evidenceFreshnessLimitMs": 120000,
+    "windowInterval": "HALF_OPEN_START_INCLUSIVE_END_EXCLUSIVE",
+    "notificationEventTimeEqualsFileReadyTime": true,
+    "fileReadyBeforeExpirationRequired": true,
+    "retrievalInterval": "fileReadyTime <= retrievedAt < fileExpirationTime"
+  },
+  "normalization": {
+    "dmeTypeId": "aic:policy-evidence:1.0.0",
+    "missingValueEncoding": "NULL_WITH_QUALITY",
+    "rawFileSha256Required": true,
+    "positionalMeasTypeMappingRequired": true,
+    "duplicateKey": "fileSha256+perfMetricJobId+managedObjectDn+window+measurementName"
+  }
+}

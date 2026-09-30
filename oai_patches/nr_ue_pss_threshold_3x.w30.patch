@@ -1,0 +1,21 @@
+--- a/openair1/PHY/NR_UE_TRANSPORT/pss_nr.c
++++ b/openair1/PHY/NR_UE_TRANSPORT/pss_nr.c
+@@ -243,8 +243,17 @@
+         dB_fixed64(avg[pss_source]),
+         ffo_est);
+ 
+-  if (peak_value == 0 || peak_value < 5 * avg[pss_source])
++  /* 2026-09-24 (O-RAN testbed): 5x (~7 dB) made PSS acquisition on marginal links take
++   * minutes (initial attach 2.5-6.5 min, handover target 163 s); SSS and the PBCH CRC still
++   * reject a false peak, so 3x (~4.8 dB) only costs a few wasted attempts.  Misses are
++   * sampled so the peak-over-average margin can be measured. */
++  if (peak_value == 0 || peak_value < 3 * avg[pss_source]) {
++    static int pss_misses = 0;
++    if (++pss_misses % 200 == 0)
++      LOG_I(PHY, "[UE] PSS miss %d: peak %d dB, avg %d dB (need > avg + 4.8 dB)\n",
++            pss_misses, dB_fixed64(peak_value), dB_fixed64(avg[pss_source]));
+     return (pss_detection_result_t){.success = false};
++  }
+ 
+ #ifdef DBG_PSS_NR
+   static int debug_cnt = 0;

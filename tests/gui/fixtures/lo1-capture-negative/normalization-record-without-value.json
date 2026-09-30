@@ -1,0 +1,20 @@
+{
+  "case": "normalization-record-without-value",
+  "expect": {
+    "loads": true,
+    "nullSampleCount": 1
+  },
+  "mutations": [
+    {
+      "op": "set",
+      "pointer": "/normalization/records/0/value",
+      "value": null
+    },
+    {
+      "op": "set",
+      "pointer": "/normalization/records/0/quality",
+      "value": "MISSING"
+    }
+  ],
+  "why": "A PM record with no value is honest-unknown: it becomes a null sample with quality MISSING, never a zero."
+}

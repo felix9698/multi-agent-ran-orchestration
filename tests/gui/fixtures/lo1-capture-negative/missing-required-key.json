@@ -1,0 +1,16 @@
+{
+  "case": "missing-required-key",
+  "expect": {
+    "detailContains": [
+      "normalization"
+    ],
+    "kind": "SCHEMA_MISMATCH"
+  },
+  "mutations": [
+    {
+      "op": "remove",
+      "pointer": "/normalization"
+    }
+  ],
+  "why": "A required top-level section is absent."
+}

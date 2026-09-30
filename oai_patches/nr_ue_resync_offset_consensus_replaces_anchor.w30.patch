@@ -1,0 +1,36 @@
+--- a/executables/nr-ue.c
++++ b/executables/nr-ue.c
+@@ -243,15 +243,30 @@
+       int k = 0;
+       while (k < 4 && fo_prior[k].carrier && fo_prior[k].carrier != dl_carrier)
+         k++;
++      /* aic 2026-09-27 19:5x: the anchor itself can be wrong (ue2's first gnb2 sync was a handover read of
++       * -988 Hz; fresh re-syncs then agreed on 442-461 Hz and were all overridden, the context died).
++       * Fresh-sample estimates that agree with each other win over the anchor and replace it. */
++      static int fo_seen_min, fo_seen_max;
+       if (k < 4 && fo_prior[k].carrier == dl_carrier && abs(freq_offset - fo_prior[k].off) > 300) {
+-        if (fo_prior_retries < 6) {
++        if (fo_prior_retries == 0) {
++          fo_seen_min = fo_seen_max = freq_offset;
++        } else {
++          fo_seen_min = freq_offset < fo_seen_min ? freq_offset : fo_seen_min;
++          fo_seen_max = freq_offset > fo_seen_max ? freq_offset : fo_seen_max;
++        }
++        if (fo_prior_retries >= 2 && fo_seen_max - fo_seen_min <= 150) {
++          LOG_W(PHY, "re-sync: %d fresh estimates agree (%d..%d Hz); replacing the remembered %d Hz with %d Hz\n",
++                fo_prior_retries + 1, fo_seen_min, fo_seen_max, fo_prior[k].off, freq_offset);
++          fo_prior[k].off = freq_offset;
++        } else if (fo_prior_retries < 6) {
+           fo_prior_retries++;
+           LOG_W(PHY, "re-sync: offset %d Hz is %d Hz from the last good %d Hz on this carrier, re-syncing (%d/6)\n",
+                 freq_offset, freq_offset - fo_prior[k].off, fo_prior[k].off, fo_prior_retries);
+           return;
++        } else {
++          LOG_W(PHY, "re-sync: using the remembered offset %d Hz instead of %d Hz\n", fo_prior[k].off, freq_offset);
++          freq_offset = fo_prior[k].off;
+         }
+-        LOG_W(PHY, "re-sync: using the remembered offset %d Hz instead of %d Hz\n", fo_prior[k].off, freq_offset);
+-        freq_offset = fo_prior[k].off;
+       }
+       fo_prior_retries = 0;
+       /* aic 2026-09-27: the remembered offset is the anchor of the first sync on the carrier; an accepted

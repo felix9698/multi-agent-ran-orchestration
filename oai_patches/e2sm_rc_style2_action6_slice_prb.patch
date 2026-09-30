@@ -1,0 +1,821 @@
+diff --git a/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_rc.c b/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_rc.c
+--- a/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_rc.c
++++ b/openair2/E2AP/RAN_FUNCTION/O-RAN/ran_func_rc.c
+@@ -21,6 +21,33 @@
+  * which carries nr_rrc_e2_ho_control_req_t and NR_RRC_E2_HANDOVER_CONTROL_REQ. */
+ #include "intertask_interface.h"
+ #include "../../flexric/src/sm/rc_sm/ie/ir/ran_param_struct.h"
++#include "LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch_default_policies.h"
++#include <stdlib.h>
++#include <string.h>
++
++/* ran_func_rc.c is also linked into the CU-UP executable, which intentionally
++ * has no gNB MAC scheduler. Keep that target linkable and reject Style 2 at
++ * runtime unless the monolithic gNB supplies both atomic quota symbols. */
++#pragma weak nr_mac_set_slice_prb_quotas
++#pragma weak nr_mac_get_slice_prb_quotas
++#pragma weak nr_mac_get_previous_slice_prb_quotas
++
++enum {
++  RC_STYLE_2_RADIO_RESOURCE_ALLOCATION = 2,
++  RC_ACTION_6_SLICE_PRB_QUOTA = 6,
++  RC_RRM_POLICY_RATIO_LIST = 1,
++  RC_RRM_POLICY_RATIO_GROUP = 2,
++  RC_RRM_POLICY = 3,
++  RC_RRM_POLICY_MEMBER_LIST = 5,
++  RC_RRM_POLICY_MEMBER = 6,
++  RC_PLMN_IDENTITY = 7,
++  RC_S_NSSAI = 8,
++  RC_SST = 9,
++  RC_SD = 10,
++  RC_MIN_PRB_POLICY_RATIO = 11,
++  RC_MAX_PRB_POLICY_RATIO = 12,
++  RC_DEDICATED_PRB_POLICY_RATIO = 13,
++};
+ 
+ static pthread_once_t once_rc_mutex = PTHREAD_ONCE_INIT;
+ static rc_subs_data_t rc_subs_data = {0};
+@@ -365,6 +392,37 @@
+   ctrl_style->ran_param_ctrl_out = NULL;
+ }
+ 
++static ran_param_def_t* rc_compound_definition(ran_parameter_def_type_e type, size_t child_count)
++{
++  assert(type == LIST_RAN_PARAMETER_DEF_TYPE || type == STRUCTURE_RAN_PARAMETER_DEF_TYPE);
++  assert(child_count > 0);
++  ran_param_def_t* definition = calloc(1, sizeof(*definition));
++  assert(definition != NULL && "Memory exhausted");
++  definition->type = type;
++  ran_param_type_t** compound = type == LIST_RAN_PARAMETER_DEF_TYPE ? &definition->lst : &definition->strct;
++  *compound = calloc(1, sizeof(**compound));
++  assert(*compound != NULL && "Memory exhausted");
++  (*compound)->sz_ran_param = child_count;
++  (*compound)->ran_param = calloc(child_count, sizeof(*(*compound)->ran_param));
++  assert((*compound)->ran_param != NULL && "Memory exhausted");
++  return definition;
++}
++
++static void rc_definition_child(ran_param_def_t* parent,
++                                size_t index,
++                                uint32_t id,
++                                const char* name,
++                                ran_param_def_t* child_definition)
++{
++  assert(parent != NULL && name != NULL);
++  ran_param_type_t* compound = parent->type == LIST_RAN_PARAMETER_DEF_TYPE ? parent->lst : parent->strct;
++  assert(compound != NULL && index < compound->sz_ran_param);
++  ran_param_lst_struct_t* child = &compound->ran_param[index];
++  child->ran_param_id = id;
++  child->ran_param_name = cp_str_to_ba(name);
++  child->ran_param_def = child_definition;
++}
++
+ /* Build one STRUCTURE node of the verified 8.4.4.1 parameter profile.  The
+  * returned definition owns child_definition.  This mirrors FlexRIC's existing
+  * Style 1 construction above and is consumed by its normal ASN.1 encoder/free
+@@ -392,6 +450,62 @@
+   return definition;
+ }
+ 
++/* E2SM-RC v01.03 clause 8.4.3.6, exact Action 6 definition tree:
++ * 1 LIST -> 2 STRUCTURE -> {3 STRUCTURE -> 5 LIST -> 6 STRUCTURE ->
++ * {7 ELEMENT, 8 STRUCTURE -> {9 ELEMENT, 10 ELEMENT}}, 11, 12, 13}.
++ * IDs 4 and 6 are intentionally non-contiguous in the frozen specification. */
++static ran_param_def_t* rc_style2_rrm_policy_ratio_list_definition(void)
++{
++  ran_param_def_t* snssai = rc_compound_definition(STRUCTURE_RAN_PARAMETER_DEF_TYPE, 2);
++  rc_definition_child(snssai, 0, RC_SST, "SST", NULL);
++  rc_definition_child(snssai, 1, RC_SD, "SD", NULL);
++
++  ran_param_def_t* member = rc_compound_definition(STRUCTURE_RAN_PARAMETER_DEF_TYPE, 2);
++  rc_definition_child(member, 0, RC_PLMN_IDENTITY, "PLMN Identity", NULL);
++  rc_definition_child(member, 1, RC_S_NSSAI, "S-NSSAI", snssai);
++
++  ran_param_def_t* member_list = rc_compound_definition(LIST_RAN_PARAMETER_DEF_TYPE, 1);
++  rc_definition_child(member_list, 0, RC_RRM_POLICY_MEMBER, "RRM Policy Member", member);
++
++  ran_param_def_t* policy = rc_compound_definition(STRUCTURE_RAN_PARAMETER_DEF_TYPE, 1);
++  rc_definition_child(policy, 0, RC_RRM_POLICY_MEMBER_LIST, "RRM Policy Member List", member_list);
++
++  ran_param_def_t* group = rc_compound_definition(STRUCTURE_RAN_PARAMETER_DEF_TYPE, 4);
++  rc_definition_child(group, 0, RC_RRM_POLICY, "RRM Policy", policy);
++  rc_definition_child(group, 1, RC_MIN_PRB_POLICY_RATIO, "Min PRB Policy Ratio", NULL);
++  rc_definition_child(group, 2, RC_MAX_PRB_POLICY_RATIO, "Max PRB Policy Ratio", NULL);
++  rc_definition_child(group, 3, RC_DEDICATED_PRB_POLICY_RATIO, "Dedicated PRB Policy Ratio", NULL);
++
++  ran_param_def_t* list = rc_compound_definition(LIST_RAN_PARAMETER_DEF_TYPE, 1);
++  rc_definition_child(list, 0, RC_RRM_POLICY_RATIO_GROUP, "RRM Policy Ratio Group", group);
++  return list;
++}
++
++static void fill_ctrl_style_2_radio_resource_allocation(seq_ctrl_style_t* ctrl_style)
++{
++  ctrl_style->style_type = RC_STYLE_2_RADIO_RESOURCE_ALLOCATION;
++  ctrl_style->name = cp_str_to_ba("Radio resource allocation control");
++  ctrl_style->hdr = FORMAT_1_E2SM_RC_CTRL_HDR;
++  ctrl_style->msg = FORMAT_1_E2SM_RC_CTRL_MSG;
++  ctrl_style->call_proc_id_type = NULL;
++  ctrl_style->out_frmt = FORMAT_1_E2SM_RC_CTRL_OUT;
++
++  ctrl_style->sz_seq_ctrl_act = 1;
++  ctrl_style->seq_ctrl_act = calloc(1, sizeof(*ctrl_style->seq_ctrl_act));
++  assert(ctrl_style->seq_ctrl_act != NULL && "Memory exhausted");
++  seq_ctrl_act_2_t* action = &ctrl_style->seq_ctrl_act[0];
++  action->id = RC_ACTION_6_SLICE_PRB_QUOTA;
++  action->name = cp_str_to_ba("Slice-level PRB quota");
++  action->sz_seq_assoc_ran_param = 1;
++  action->assoc_ran_param = calloc(1, sizeof(*action->assoc_ran_param));
++  assert(action->assoc_ran_param != NULL && "Memory exhausted");
++  action->assoc_ran_param[0].id = RC_RRM_POLICY_RATIO_LIST;
++  action->assoc_ran_param[0].name = cp_str_to_ba("RRM Policy Ratio List");
++  action->assoc_ran_param[0].def = rc_style2_rrm_policy_ratio_list_definition();
++  ctrl_style->sz_ran_param_ctrl_out = 0;
++  ctrl_style->ran_param_ctrl_out = NULL;
++}
++
+ /* [T10/PATCH-A] CONTROL Style 3 "Connected Mode Mobility", Control Action 1
+  * "Handover Control"  (E2SM-RC v1.03 7.6.4 / 8.4.4.1).
+  *
+@@ -471,12 +585,13 @@
+ {
+   // Sequence of CONTROL styles
+   // [1 - 63]
+-  ctrl->sz_seq_ctrl_style = 2;
++  ctrl->sz_seq_ctrl_style = 3;
+   ctrl->seq_ctrl_style = calloc(ctrl->sz_seq_ctrl_style, sizeof(seq_ctrl_style_t));
+   assert(ctrl->seq_ctrl_style != NULL && "Memory exhausted");
+ 
+   fill_ctrl_style_1_radio_bearer_control(&ctrl->seq_ctrl_style[0]);
+-  fill_ctrl_style_3_connected_mode_mobility(&ctrl->seq_ctrl_style[1]);
++  fill_ctrl_style_2_radio_resource_allocation(&ctrl->seq_ctrl_style[1]);
++  fill_ctrl_style_3_connected_mode_mobility(&ctrl->seq_ctrl_style[2]);
+ }
+ 
+ static ran_function_name_t fill_rc_ran_func_name(void)
+@@ -1079,30 +1194,17 @@
+   return ans;
+ }
+ 
+-/* Refuse a RIC Control Request without changing any RAN state.
+- *
+- * KNOWN GAP (reported as OPEN_QUESTION, not silently papered over): at FlexRIC
+- * pin ef6d722f the E2 agent cannot turn this into an E2AP RIC CONTROL FAILURE.
+- *   flexric/src/agent/msg_handler_agent.c:246 e2ap_handle_control_request_agent()
+- *     unconditionally builds e2ap_msg_t{.type = RIC_CONTROL_ACKNOWLEDGE};
+- *   flexric/src/sm/agent_if/ans/sm_ag_if_ans.h:85 sm_ag_if_ans_t and
+- *   flexric/src/sm/sm_proc_data.h:79 sm_ctrl_out_data_t carry no failure
+- *     discriminant, and flexric/src/sm/rc_sm/rc_sm_agent.c:133-134 asserts the
+- *     return type is CTRL_OUTCOME_SM_AG_IF_ANS_V0.
+- * e2_send_control_failure() (flexric/src/agent/e2_agent.c:624) exists but has
+- * no caller on the control-request path.  Emitting a Failure therefore needs a
+- * FlexRIC change, which contract 9.4 puts out of scope for this patch.
+- *
+- * What this function does guarantee, and what the contract calls the primary
+- * success criterion (3.3, 9.3): the request is refused, the RAN is untouched,
+- * the taxonomy class is on the record, and the gNB stays alive. */
++/* Refuse a RIC Control Request without changing any RAN state.  The companion
++ * FlexRIC changes in this patch preserve the failure discriminant through the
++ * service-model boundary and emit RIC CONTROL FAILURE instead of converting a
++ * rejection into an acknowledgement. */
+ static sm_ag_if_ans_t rc_ctrl_reject(rc_ctrl_verdict_e verdict, uint32_t style, uint32_t act_id, const char* reason)
+ {
+   printf("[E2 AGENT] RIC CONTROL REJECTED class=%s style=%u action=%u reason=%s "
+-         "(RAN state unchanged; see ran_func_rc.c rc_ctrl_reject for why this is not an E2AP CONTROL FAILURE)\n",
++         "(RAN state unchanged; RIC CONTROL FAILURE follows)\n",
+          rc_ctrl_verdict_str(verdict), style, act_id, reason);
+   fflush(stdout);
+-  return rc_ctrl_empty_outcome();
++  return (sm_ag_if_ans_t){.type = CTRL_FAILURE_SM_AG_IF_ANS_V0};
+ }
+ 
+ /* ---------------------------------------------------------------------------
+@@ -1195,6 +1297,258 @@
+                            child_id);
+ }
+ 
++static bool rc_exact_parameter_ids(const seq_ran_param_t* params,
++                                   size_t count,
++                                   const uint32_t* expected,
++                                   size_t expected_count,
++                                   const char** why)
++{
++  if (params == NULL || count != expected_count) {
++    *why = "RAN Parameter membership count mismatch";
++    return false;
++  }
++  for (size_t i = 0; i < count; ++i) {
++    bool known = false;
++    for (size_t j = 0; j < expected_count; ++j)
++      known |= params[i].ran_param_id == expected[j];
++    if (!known) {
++      *why = "unexpected RAN Parameter ID";
++      return false;
++    }
++    for (size_t j = i + 1; j < count; ++j) {
++      if (params[i].ran_param_id == params[j].ran_param_id) {
++        *why = "duplicate RAN Parameter ID";
++        return false;
++      }
++    }
++  }
++  for (size_t i = 0; i < expected_count; ++i) {
++    if (rc_find_ran_param(params, count, expected[i]) == NULL) {
++      *why = "required RAN Parameter ID is absent";
++      return false;
++    }
++  }
++  return true;
++}
++
++static const ran_parameter_value_t* rc_false_element(const seq_ran_param_t* param,
++                                                      ran_parameter_value_e type,
++                                                      const char** why)
++{
++  if (param == NULL || param->ran_param_val.type != ELEMENT_KEY_FLAG_FALSE_RAN_PARAMETER_VAL_TYPE
++      || param->ran_param_val.flag_false == NULL || param->ran_param_val.flag_false->type != type) {
++    *why = "ELEMENT has wrong key flag or value type";
++    return NULL;
++  }
++  return param->ran_param_val.flag_false;
++}
++
++static bool rc_plmn_matches_local(const byte_array_t* value, const char** why)
++{
++  if (value == NULL || value->buf == NULL || value->len != 3 || RC.nrrrc[0] == NULL) {
++    *why = "PLMN Identity is unavailable or not exactly 3 octets";
++    return false;
++  }
++  const uint8_t* b = value->buf;
++  uint8_t mcc1 = b[0] & 0x0f, mcc2 = b[0] >> 4, mcc3 = b[1] & 0x0f;
++  uint8_t mnc3 = b[1] >> 4, mnc1 = b[2] & 0x0f, mnc2 = b[2] >> 4;
++  if (mcc1 > 9 || mcc2 > 9 || mcc3 > 9 || mnc1 > 9 || mnc2 > 9 || (mnc3 > 9 && mnc3 != 0x0f)) {
++    *why = "PLMN Identity contains invalid BCD digits";
++    return false;
++  }
++  plmn_id_t decoded = {
++      .mcc = mcc1 * 100 + mcc2 * 10 + mcc3,
++      .mnc = mnc3 == 0x0f ? mnc1 * 10 + mnc2 : mnc1 * 100 + mnc2 * 10 + mnc3,
++      .mnc_digit_length = mnc3 == 0x0f ? 2 : 3,
++  };
++  plmn_id_t local = RC.nrrrc[0]->configuration.plmn[0];
++  if (decoded.mcc != local.mcc || decoded.mnc != local.mnc || decoded.mnc_digit_length != local.mnc_digit_length) {
++    *why = "RRM Policy Member PLMN does not match this E2 node";
++    return false;
++  }
++  return true;
++}
++
++static bool rc_style2_extract_snssai(const seq_ran_param_t* member,
++                                     size_t member_count, nr_slice_prb_quota_t* quota,
++                                     const char** why)
++{
++  static const uint32_t member_ids[] = {RC_PLMN_IDENTITY, RC_S_NSSAI};
++  if (!rc_exact_parameter_ids(member, member_count, member_ids, 2, why))
++    return false;
++
++  const ran_parameter_value_t* plmn = rc_false_element(
++      rc_find_ran_param(member, 2, RC_PLMN_IDENTITY), OCTET_STRING_RAN_PARAMETER_VALUE, why);
++  if (plmn == NULL || !rc_plmn_matches_local(&plmn->octet_str_ran, why))
++    return false;
++
++  const seq_ran_param_t* snssai = rc_find_ran_param(member, 2, RC_S_NSSAI);
++  if (snssai == NULL || snssai->ran_param_val.type != STRUCTURE_RAN_PARAMETER_VAL_TYPE
++      || snssai->ran_param_val.strct == NULL) {
++    *why = "S-NSSAI is not a STRUCTURE";
++    return false;
++  }
++  const ran_param_struct_t* s = snssai->ran_param_val.strct;
++  static const uint32_t sst_only[] = {RC_SST};
++  static const uint32_t sst_and_sd[] = {RC_SST, RC_SD};
++  if (s->sz_ran_param_struct == 1) {
++    if (!rc_exact_parameter_ids(s->ran_param_struct, s->sz_ran_param_struct, sst_only, 1, why))
++      return false;
++  } else if (s->sz_ran_param_struct == 2) {
++    if (!rc_exact_parameter_ids(s->ran_param_struct, s->sz_ran_param_struct, sst_and_sd, 2, why))
++      return false;
++  } else {
++    *why = "S-NSSAI must contain SST and optional SD";
++    return false;
++  }
++  const ran_parameter_value_t* sst = rc_false_element(
++      rc_find_ran_param(s->ran_param_struct, s->sz_ran_param_struct, RC_SST), OCTET_STRING_RAN_PARAMETER_VALUE, why);
++  const seq_ran_param_t* sd_param = rc_find_ran_param(s->ran_param_struct, s->sz_ran_param_struct, RC_SD);
++  const ran_parameter_value_t* sd = sd_param == NULL ? NULL
++      : rc_false_element(sd_param, OCTET_STRING_RAN_PARAMETER_VALUE, why);
++  if (sst == NULL || sst->octet_str_ran.buf == NULL || sst->octet_str_ran.len != 1
++      || (sd_param != NULL && (sd == NULL || sd->octet_str_ran.buf == NULL || sd->octet_str_ran.len != 3))) {
++    *why = "SST or optional SD has the wrong octet length";
++    return false;
++  }
++  quota->nssai.sst = sst->octet_str_ran.buf[0];
++  quota->nssai.sd = sd == NULL ? 0xffffff
++      : (uint32_t)sd->octet_str_ran.buf[0] << 16
++        | (uint32_t)sd->octet_str_ran.buf[1] << 8
++        | sd->octet_str_ran.buf[2];
++  if (quota->nssai.sst == 0) {
++    *why = "SST zero is not an admitted slice identifier";
++    return false;
++  }
++  return true;
++}
++
++static bool rc_style2_extract_ratio(const seq_ran_param_t* group,
++                                    size_t count,
++                                    uint32_t id,
++                                    uint8_t* out,
++                                    const char** why)
++{
++  const ran_parameter_value_t* value = rc_false_element(
++      rc_find_ran_param(group, count, id), INTEGER_RAN_PARAMETER_VALUE, why);
++  if (value == NULL || value->int_ran < 0 || value->int_ran > 100) {
++    *why = "PRB Policy Ratio is outside 0..100";
++    return false;
++  }
++  *out = value->int_ran;
++  return true;
++}
++
++static bool rc_style2_matches_bootstrap(const nr_slice_prb_quota_t* quotas,
++                                        size_t count,
++                                        const char* configured)
++{
++  if (configured == NULL || count != 1)
++    return false;
++  const nr_slice_prb_quota_t* q = &quotas[0];
++  char canonical[64] = {0};
++  if (q->nssai.sd == 0xffffff)
++    snprintf(canonical, sizeof(canonical), "%u:-:%u:%u:%u",
++             q->nssai.sst, q->min_ratio, q->max_ratio, q->dedicated_ratio);
++  else
++    snprintf(canonical, sizeof(canonical), "%u:%06X:%u:%u:%u",
++             q->nssai.sst, q->nssai.sd, q->min_ratio, q->max_ratio, q->dedicated_ratio);
++  return strcmp(canonical, configured) == 0;
++}
++
++static sm_ag_if_ans_t rc_ctrl_style_2_slice_prb_quota(const e2sm_rc_ctrl_msg_frmt_1_t* m)
++{
++  const char* why = "";
++  static const uint32_t root_ids[] = {RC_RRM_POLICY_RATIO_LIST};
++  if (!rc_exact_parameter_ids(m->ran_param, m->sz_ran_param, root_ids, 1, &why))
++    return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, 6, why);
++
++  const seq_ran_param_t* root = &m->ran_param[0];
++  if (root->ran_param_val.type != LIST_RAN_PARAMETER_VAL_TYPE || root->ran_param_val.lst == NULL
++      || root->ran_param_val.lst->sz_lst_ran_param == 0) {
++    return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, 6, "RRM Policy Ratio List is empty or not a LIST");
++  }
++
++  nr_slice_prb_quota_t quotas[NR_MAX_SLICE_PRB_QUOTAS] = {0};
++  size_t quota_count = 0;
++  const ran_param_list_t* groups = root->ran_param_val.lst;
++  for (size_t gi = 0; gi < groups->sz_lst_ran_param; ++gi) {
++    const ran_param_struct_t* group = &groups->lst_ran_param[gi].ran_param_struct;
++    static const uint32_t group_ids[] = {
++        RC_RRM_POLICY, RC_MIN_PRB_POLICY_RATIO, RC_MAX_PRB_POLICY_RATIO, RC_DEDICATED_PRB_POLICY_RATIO};
++    if (!rc_exact_parameter_ids(group->ran_param_struct, group->sz_ran_param_struct, group_ids, 4, &why))
++      return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, 6, why);
++
++    uint8_t min_ratio, max_ratio, dedicated_ratio;
++    if (!rc_style2_extract_ratio(group->ran_param_struct, group->sz_ran_param_struct,
++                                 RC_MIN_PRB_POLICY_RATIO, &min_ratio, &why)
++        || !rc_style2_extract_ratio(group->ran_param_struct, group->sz_ran_param_struct,
++                                    RC_MAX_PRB_POLICY_RATIO, &max_ratio, &why)
++        || !rc_style2_extract_ratio(group->ran_param_struct, group->sz_ran_param_struct,
++                                    RC_DEDICATED_PRB_POLICY_RATIO, &dedicated_ratio, &why))
++      return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, 6, why);
++
++    const seq_ran_param_t* policy = rc_find_ran_param(group->ran_param_struct, group->sz_ran_param_struct, RC_RRM_POLICY);
++    if (policy == NULL || policy->ran_param_val.type != STRUCTURE_RAN_PARAMETER_VAL_TYPE
++        || policy->ran_param_val.strct == NULL) {
++      return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, 6, "RRM Policy is not a STRUCTURE");
++    }
++    const ran_param_struct_t* policy_struct = policy->ran_param_val.strct;
++    static const uint32_t policy_ids[] = {RC_RRM_POLICY_MEMBER_LIST};
++    if (!rc_exact_parameter_ids(policy_struct->ran_param_struct, policy_struct->sz_ran_param_struct,
++                                policy_ids, 1, &why))
++      return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, 6, why);
++
++    const seq_ran_param_t* member_list = &policy_struct->ran_param_struct[0];
++    if (member_list->ran_param_val.type != LIST_RAN_PARAMETER_VAL_TYPE || member_list->ran_param_val.lst == NULL
++        || member_list->ran_param_val.lst->sz_lst_ran_param == 0) {
++      return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, 6, "RRM Policy Member List is empty or not a LIST");
++    }
++    const ran_param_list_t* members = member_list->ran_param_val.lst;
++    for (size_t mi = 0; mi < members->sz_lst_ran_param; ++mi) {
++      if (quota_count == NR_MAX_SLICE_PRB_QUOTAS)
++        return rc_ctrl_reject(RC_CTRL_REJ_POLICY_OR_ADMISSION, 2, 6, "slice quota table capacity exceeded");
++      nr_slice_prb_quota_t* quota = &quotas[quota_count];
++      const ran_param_struct_t* member = &members->lst_ran_param[mi].ran_param_struct;
++      if (!rc_style2_extract_snssai(member->ran_param_struct,
++                                    member->sz_ran_param_struct, quota, &why))
++        return rc_ctrl_reject(RC_CTRL_REJ_PROTOCOL_CONTRACT, 2, 6, why);
++      quota->min_ratio = min_ratio;
++      quota->max_ratio = max_ratio;
++      quota->dedicated_ratio = dedicated_ratio;
++      ++quota_count;
++    }
++  }
++
++  if (nr_mac_set_slice_prb_quotas == NULL || nr_mac_get_slice_prb_quotas == NULL
++      || nr_mac_get_previous_slice_prb_quotas == NULL)
++    return rc_ctrl_reject(RC_CTRL_REJ_CAPABILITY_STATE, 2, 6, "MAC quota adapter is not linked in this node role");
++  if (RC.nrmac[0] == NULL)
++    return rc_ctrl_reject(RC_CTRL_REJ_CAPABILITY_STATE, 2, 6, "MAC instance is not ready");
++  const nr_slice_prb_quota_table_t previous = nr_mac_get_slice_prb_quotas(RC.nrmac[0]);
++  const char* configured_bootstrap = getenv("OAI_RC_STYLE2_BASELINE_BOOTSTRAP");
++  if (previous.count == 0
++      && (previous.generation != 0
++          || !rc_style2_matches_bootstrap(quotas, quota_count, configured_bootstrap)))
++    return rc_ctrl_reject(RC_CTRL_REJ_CAPABILITY_STATE, 2, 6, "no restorable slice quota baseline");
++  if (previous.count == 0) {
++    printf("[E2 AGENT] setup-only baseline bootstrap accepted; Lab Setup evidence, not policy success\n");
++    fflush(stdout);
++  }
++  char reason[160] = {0};
++  if (!nr_mac_set_slice_prb_quotas(RC.nrmac[0], quotas, quota_count, reason, sizeof(reason)))
++    return rc_ctrl_reject(RC_CTRL_REJ_POLICY_OR_ADMISSION, 2, 6, reason);
++
++  nr_slice_prb_quota_table_t applied = nr_mac_get_slice_prb_quotas(RC.nrmac[0]);
++  printf("[E2 AGENT] RIC CONTROL Style 2 / Action 6 applied atomically: generation=%lu slices=%zu "
++         "previous_generation=%lu previous_slices=%zu; previous table is exposed by "
++         "nr_mac_get_previous_slice_prb_quotas and can be restored by a fenced Action 6 request\n",
++         (unsigned long)applied.generation, applied.count,
++         (unsigned long)previous.generation, previous.count);
++  fflush(stdout);
++  return rc_ctrl_empty_outcome();
++}
++
+ /** @brief Extract the target cell identifier of an E2SM-RC Style 3 / Action 1
+  *         Handover Control message.
+  *
+@@ -1431,6 +1785,10 @@
+   if (h->ric_style_type == 1 && h->ctrl_act_id == 2)
+     return rc_ctrl_style_1_qos_flow_mapping(m);
+ 
++  if (h->ric_style_type == RC_STYLE_2_RADIO_RESOURCE_ALLOCATION
++      && h->ctrl_act_id == RC_ACTION_6_SLICE_PRB_QUOTA)
++    return rc_ctrl_style_2_slice_prb_quota(m);
++
+   if (h->ric_style_type == 3 && h->ctrl_act_id == 1)
+     return rc_ctrl_style_3_handover_control(h, m);
+ 
+diff --git a/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch_default_policies.c b/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch_default_policies.c
+--- a/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch_default_policies.c
++++ b/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch_default_policies.c
+@@ -27,6 +27,97 @@
+ #include "executables/softmodem-common.h"
+ #include "../../../nfapi/oai_integration/vendor_ext.h"
+ 
++#include <stdio.h>
++#include <string.h>
++
++static bool same_nssai(nssai_t a, nssai_t b)
++{
++  return a.sst == b.sst && a.sd == b.sd;
++}
++
++static void quota_reason(char *reason, size_t reason_len, const char *value)
++{
++  if (reason != NULL && reason_len > 0)
++    snprintf(reason, reason_len, "%s", value);
++}
++
++bool nr_mac_set_slice_prb_quotas(gNB_MAC_INST *mac,
++                                 const nr_slice_prb_quota_t *entries,
++                                 size_t count,
++                                 char *reason,
++                                 size_t reason_len)
++{
++  if (mac == NULL) {
++    quota_reason(reason, reason_len, "MAC instance is absent");
++    return false;
++  }
++  if (count > NR_MAX_SLICE_PRB_QUOTAS || (count > 0 && entries == NULL)) {
++    quota_reason(reason, reason_len, "slice quota table size is invalid");
++    return false;
++  }
++
++  unsigned min_sum = 0;
++  unsigned dedicated_sum = 0;
++  for (size_t i = 0; i < count; ++i) {
++    const nr_slice_prb_quota_t *q = &entries[i];
++    if (q->nssai.sst == 0 || q->nssai.sd > 0xffffff) {
++      quota_reason(reason, reason_len, "S-NSSAI is outside its encoded range");
++      return false;
++    }
++    if (q->dedicated_ratio > q->min_ratio || q->min_ratio > q->max_ratio || q->max_ratio > 100) {
++      quota_reason(reason, reason_len, "quota must satisfy dedicated <= min <= max <= 100");
++      return false;
++    }
++    for (size_t j = 0; j < i; ++j) {
++      if (same_nssai(q->nssai, entries[j].nssai)) {
++        quota_reason(reason, reason_len, "duplicate S-NSSAI in quota table");
++        return false;
++      }
++    }
++    min_sum += q->min_ratio;
++    dedicated_sum += q->dedicated_ratio;
++  }
++  if (min_sum > 100 || dedicated_sum > 100) {
++    quota_reason(reason, reason_len, "aggregate minimum or dedicated ratio exceeds 100");
++    return false;
++  }
++
++  NR_SCHED_LOCK(&mac->sched_lock);
++  uint64_t next_generation = mac->slice_prb_quotas.generation + 1;
++  mac->previous_slice_prb_quotas = mac->slice_prb_quotas;
++  memset(&mac->slice_prb_quotas, 0, sizeof(mac->slice_prb_quotas));
++  mac->slice_prb_quotas.generation = next_generation;
++  mac->slice_prb_quotas.count = count;
++  if (count > 0)
++    memcpy(mac->slice_prb_quotas.entries, entries, count * sizeof(*entries));
++  NR_SCHED_UNLOCK(&mac->sched_lock);
++
++  quota_reason(reason, reason_len, "accepted");
++  return true;
++}
++
++nr_slice_prb_quota_table_t nr_mac_get_slice_prb_quotas(gNB_MAC_INST *mac)
++{
++  nr_slice_prb_quota_table_t copy = {0};
++  if (mac == NULL)
++    return copy;
++  NR_SCHED_LOCK(&mac->sched_lock);
++  copy = mac->slice_prb_quotas;
++  NR_SCHED_UNLOCK(&mac->sched_lock);
++  return copy;
++}
++
++nr_slice_prb_quota_table_t nr_mac_get_previous_slice_prb_quotas(gNB_MAC_INST *mac)
++{
++  nr_slice_prb_quota_table_t copy = {0};
++  if (mac == NULL)
++    return copy;
++  NR_SCHED_LOCK(&mac->sched_lock);
++  copy = mac->previous_slice_prb_quotas;
++  NR_SCHED_UNLOCK(&mac->sched_lock);
++  return copy;
++}
++
+ // Default RI/PMI selector: reads rank and PMI from CSI feedback for new-tx,
+ // or from HARQ process state for retx.
+ void nr_dl_ri_pmi_select_default(const gNB_MAC_INST *mac, nr_dl_candidate_t *candidates, int n_candidates)
+@@ -183,6 +274,37 @@
+   return (wa < wb) - (wa > wb);
+ }
+ 
++static const nr_slice_prb_quota_t *find_slice_quota(const gNB_MAC_INST *mac, nssai_t nssai)
++{
++  const nr_slice_prb_quota_table_t *table = &mac->slice_prb_quotas;
++  for (size_t i = 0; i < table->count; ++i)
++    if (same_nssai(table->entries[i].nssai, nssai))
++      return &table->entries[i];
++  return NULL;
++}
++
++static int active_new_tx_peers(const nr_dl_candidate_t *const *order, int n_active, nssai_t nssai)
++{
++  int peers = 0;
++  for (int j = 0; j < n_active; ++j) {
++    const nr_dl_candidate_t *cand = order[j];
++    if (!cand->is_retx && cand->pending_bytes > 0 && same_nssai(cand->nssai, nssai))
++      ++peers;
++  }
++  return peers;
++}
++
++static unsigned dedicated_ratio_for_other_slices(const gNB_MAC_INST *mac, nssai_t nssai)
++{
++  unsigned reserved = 0;
++  for (size_t i = 0; i < mac->slice_prb_quotas.count; ++i) {
++    const nr_slice_prb_quota_t *quota = &mac->slice_prb_quotas.entries[i];
++    if (!same_nssai(quota->nssai, nssai))
++      reserved += quota->dedicated_ratio;
++  }
++  return reserved;
++}
++
+ int nr_dl_proportional_fair(const nr_dl_sched_params_t *params, nr_dl_candidate_t *candidates, int n_candidates)
+ {
+   const int min_rbSize = 5;
+@@ -246,6 +368,37 @@
+   // share RBs fairly between remaining allocatable UEs
+   int n_rb_per_ue = max(min_rbSize, max_rbSize / n_remain_ue);
+ 
++  /* Style 2 / Action 6 turns each configured slice's minimum ratio into its
++   * first-pass target and its maximum ratio into a hard per-slot ceiling.
++   * UEs inside one slice share that slice budget.  Dedicated ratios remain
++   * unavailable to other slices; other unreserved PRBs follow PF up to max.
++   * HARQ retransmissions retain priority and are deliberately outside this
++   * initial-transmission quota calculation. */
++  int target_rbs[MAX_MOBILES_PER_GNB] = {0};
++  int max_rbs[MAX_MOBILES_PER_GNB] = {0};
++  for (int j = 0; j < n_active; ++j) {
++    nr_dl_candidate_t *cand = order[j];
++    if (cand->is_retx || cand->pending_bytes == 0)
++      continue;
++    const nr_slice_prb_quota_t *quota = find_slice_quota(params->mac, cand->nssai);
++    if (params->mac->slice_prb_quotas.count == 0) {
++      target_rbs[j] = n_rb_per_ue;
++      max_rbs[j] = max_rbSize;
++      continue;
++    }
++    int peers = active_new_tx_peers((const nr_dl_candidate_t *const *)order, n_active, cand->nssai);
++    DevAssert(peers > 0);
++    const unsigned reserved_for_others = dedicated_ratio_for_other_slices(params->mac, cand->nssai);
++    const unsigned exclusive_ceiling = 100 - reserved_for_others;
++    const unsigned target_ratio = quota == NULL ? 0 : quota->min_ratio;
++    const unsigned ceiling_ratio = quota == NULL ? exclusive_ceiling : min(quota->max_ratio, exclusive_ceiling);
++    int slice_min = quota == NULL ? n_rb_per_ue * peers : (max_rbSize * target_ratio) / 100;
++    int slice_max = (max_rbSize * ceiling_ratio) / 100;
++    target_rbs[j] = slice_min == 0 ? 0 : max(min_rbSize, slice_min / peers);
++    max_rbs[j] = slice_max == 0 ? 0 : max(min_rbSize, slice_max / peers);
++    target_rbs[j] = min(target_rbs[j], max_rbs[j]);
++  }
++
+   /* Phase 3: New data UEs — PF priority order, count number of RBs required,
+    * store number of excess RBs for UEs. Check two additional UEs in case the
+    * first ones cannot be allocated (DCI alloc fail). This is only necessary
+@@ -282,7 +435,7 @@
+     if (n < n_remain_ue) {
+       // for the first n_remain_ue UEs: account number of RBs
+       // so excess RBs not used by some UEs could be given to others
+-      excess_total_rbs -= min(rbs_ue[j], n_rb_per_ue);
++      excess_total_rbs -= min(rbs_ue[j], target_rbs[j]);
+       excess_total_rbs = max(excess_total_rbs, 0);
+     }
+     n++;
+@@ -296,10 +449,13 @@
+ 
+     // give every UE its chunk of data. If total_rbs indicates excess RBs, give
+     // additionally as appropriate.
+-    int rb_req = min(rbs_ue[j], n_rb_per_ue);
++    int rb_req = min(rbs_ue[j], target_rbs[j]);
++    if (max_rbs[j] < min_rbSize)
++      continue;
+     int excess_req = max(rbs_ue[j] - rb_req, 0);
+     if (excess_total_rbs > 0 && excess_req > 0) {
+-      int excess_ack = min(excess_total_rbs, excess_req);
++      int quota_headroom = max(max_rbs[j] - rb_req, 0);
++      int excess_ack = min(excess_total_rbs, min(excess_req, quota_headroom));
+       rb_req += excess_ack;
+       excess_total_rbs -= excess_ack;
+       DevAssert(excess_total_rbs >= 0);
+diff --git a/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch_default_policies.h b/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch_default_policies.h
+--- a/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch_default_policies.h
++++ b/openair2/LAYER2/NR_MAC_gNB/gNB_scheduler_dlsch_default_policies.h
+@@ -22,6 +22,21 @@
+ 
+ int nr_dl_proportional_fair(const nr_dl_sched_params_t *params, nr_dl_candidate_t *candidates, int n_candidates);
+ 
++/* Replace the complete Style 2 / Action 6 policy atomically.  The caller must
++ * not hold sched_lock.  A zero-length table clears QoS control and restores
++ * the byte-for-byte legacy PF decision path. */
++bool nr_mac_set_slice_prb_quotas(gNB_MAC_INST *mac,
++                                 const nr_slice_prb_quota_t *entries,
++                                 size_t count,
++                                 char *reason,
++                                 size_t reason_len);
++
++/* Copy the currently active policy while holding sched_lock internally. */
++nr_slice_prb_quota_table_t nr_mac_get_slice_prb_quotas(gNB_MAC_INST *mac);
++
++/* Copy the exact predecessor saved by the most recent atomic replacement. */
++nr_slice_prb_quota_table_t nr_mac_get_previous_slice_prb_quotas(gNB_MAC_INST *mac);
++
+ void nr_dl_lcid_alloc_default(const gNB_MAC_INST *mac,
+                               const nr_dl_candidate_t *candidate,
+                               int tbs_available,
+diff --git a/openair2/LAYER2/NR_MAC_gNB/nr_mac_gNB.h b/openair2/LAYER2/NR_MAC_gNB/nr_mac_gNB.h
+--- a/openair2/LAYER2/NR_MAC_gNB/nr_mac_gNB.h
++++ b/openair2/LAYER2/NR_MAC_gNB/nr_mac_gNB.h
+@@ -1187,6 +1187,27 @@
+   uint32_t ss_rsrp_ssb_dist[NR_KPM_NB_SSB][NR_KPM_SS_RSRP_NB_LEVELS];
+ } NR_du_stats_t;
+ 
++/* O-RAN E2SM-RC v01.03, Control Style 2 / Action 6.
++ *
++ * Keep the policy in MAC-owned memory: the E2 agent publishes a complete
++ * table while holding sched_lock and the DL scheduler consumes the same
++ * immutable snapshot under that lock.  No pointer crosses the E2/MAC thread
++ * boundary and an empty table is exactly the legacy proportional-fair mode. */
++#define NR_MAX_SLICE_PRB_QUOTAS 16
++
++typedef struct nr_slice_prb_quota_s {
++  nssai_t nssai;
++  uint8_t min_ratio;
++  uint8_t max_ratio;
++  uint8_t dedicated_ratio;
++} nr_slice_prb_quota_t;
++
++typedef struct nr_slice_prb_quota_table_s {
++  uint64_t generation;
++  size_t count;
++  nr_slice_prb_quota_t entries[NR_MAX_SLICE_PRB_QUOTAS];
++} nr_slice_prb_quota_table_t;
++
+ /*! \brief top level eNB MAC structure */
+ typedef struct gNB_MAC_INST_s {
+   /// F1-C/U network configuration (addresses and ports)
+@@ -1272,6 +1293,11 @@
+   /// Optional state persistence for scheduling policies.
+   void *sched_stateful_data;
+ 
++  /// Active E2SM-RC Style 2 / Action 6 slice PRB policy.
++  nr_slice_prb_quota_table_t slice_prb_quotas;
++  /// Exact predecessor retained for a fenced restore request.
++  nr_slice_prb_quota_table_t previous_slice_prb_quotas;
++
+   nr_mac_config_t radio_config;
+   nr_rlc_configuration_t rlc_config;
+ 
+diff --git a/openair2/E2AP/flexric/src/sm/agent_if/ans/sm_ag_if_ans.h b/openair2/E2AP/flexric/src/sm/agent_if/ans/sm_ag_if_ans.h
+--- a/openair2/E2AP/flexric/src/sm/agent_if/ans/sm_ag_if_ans.h
++++ b/openair2/E2AP/flexric/src/sm/agent_if/ans/sm_ag_if_ans.h
+@@ -18,6 +18,8 @@
+ 
+ typedef enum {
+   CTRL_OUTCOME_SM_AG_IF_ANS_V0,
++  /* The RAN refused the control request without changing state. */
++  CTRL_FAILURE_SM_AG_IF_ANS_V0,
+   SUBS_OUTCOME_SM_AG_IF_ANS_V0,
+ 
+   NONE_SM_AG_IF_ANS_V0,
+@@ -85,4 +87,3 @@
+ } sm_ag_if_ans_t; 
+ 
+ #endif
+-
+diff --git a/openair2/E2AP/flexric/src/sm/sm_proc_data.h b/openair2/E2AP/flexric/src/sm/sm_proc_data.h
+--- a/openair2/E2AP/flexric/src/sm/sm_proc_data.h
++++ b/openair2/E2AP/flexric/src/sm/sm_proc_data.h
+@@ -8,6 +8,7 @@
+ #include "../lib/e2ap/e2ap_ran_function_wrapper.h"
+ 
+ #include <stddef.h>
++#include <stdbool.h>
+ #include <stdint.h>
+ 
+ ////////////////////////////////////
+@@ -76,6 +77,9 @@
+ typedef struct{
+   uint8_t* ctrl_out;
+   size_t len_out;
++  /* False by default for every existing service model.  RC sets this when its
++   * RAN callback returns CTRL_FAILURE_SM_AG_IF_ANS_V0. */
++  bool control_failed;
+ } sm_ctrl_out_data_t;
+ 
+ void free_sm_ctrl_out_data(sm_ctrl_out_data_t*);
+@@ -124,4 +128,3 @@
+ 
+ 
+ #endif
+-
+diff --git a/openair2/E2AP/flexric/src/sm/rc_sm/rc_sm_agent.c b/openair2/E2AP/flexric/src/sm/rc_sm/rc_sm_agent.c
+--- a/openair2/E2AP/flexric/src/sm/rc_sm/rc_sm_agent.c
++++ b/openair2/E2AP/flexric/src/sm/rc_sm/rc_sm_agent.c
+@@ -130,6 +130,8 @@
+   defer({ free_rc_ctrl_req_data(&rc_ctrl); });
+ 
+   sm_ag_if_ans_t ret = sm->base.io.write_ctrl(&rc_ctrl);
++  if (ret.type == CTRL_FAILURE_SM_AG_IF_ANS_V0)
++    return (sm_ctrl_out_data_t){.control_failed = true};
+   assert(ret.type == CTRL_OUTCOME_SM_AG_IF_ANS_V0);
+   assert(ret.ctrl_out.type == RAN_CTRL_V1_3_AGENT_IF_CTRL_ANS_V0);
+   defer({ free_e2sm_rc_ctrl_out(&ret.ctrl_out.rc); });
+@@ -267,4 +269,3 @@
+   return sm->base.ran_func_id;
+ }
+ */
+-
+diff --git a/openair2/E2AP/flexric/src/agent/msg_handler_agent.c b/openair2/E2AP/flexric/src/agent/msg_handler_agent.c
+--- a/openair2/E2AP/flexric/src/agent/msg_handler_agent.c
++++ b/openair2/E2AP/flexric/src/agent/msg_handler_agent.c
+@@ -264,6 +264,21 @@
+   sm_ctrl_out_data_t ctrl_ans = sm->proc.on_control(sm, &data);
+   defer({ free_sm_ctrl_out_data(&ctrl_ans); } );
+ 
++  if (ctrl_ans.control_failed) {
++    ric_control_failure_t ric_ctrl_fail = {
++        .ric_id = ctrl_req->ric_id,
++        .call_process_id = NULL,
++        .cause = {.present = CAUSE_RICREQUEST,
++                  .ricRequest = CAUSE_RIC_CONTROL_MESSAGE_INVALID},
++        .control_outcome = NULL,
++        .crit = NULL,
++    };
++    printf("[E2-AGENT]: CONTROL FAILURE tx\n");
++    e2ap_msg_t ans = {.type = RIC_CONTROL_FAILURE};
++    ans.u_msgs.ric_ctrl_fail = ric_ctrl_fail;
++    return ans;
++  }
++
+ 
+   byte_array_t* ba_ctrl_ans = ba_from_ctrl_out(&ctrl_ans);
+ 
+@@ -474,4 +489,3 @@
+   e2ap_msg_t ans = {.type = NONE_E2_MSG_TYPE};
+   return ans; 
+ }
+-

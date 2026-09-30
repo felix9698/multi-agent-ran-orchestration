@@ -1,0 +1,8 @@
+{
+  "inputArtifact": "golden/o1/valid-prb.xml",
+  "actionOccurredAt": "2026-08-04T00:01:30Z",
+  "evaluationNow": "2026-08-04T00:02:08Z",
+  "expectedPhase": "OVERLAPS_ACTION",
+  "expectedQuality": "AMBIGUOUS",
+  "commitAllowed": false
+}

@@ -1,0 +1,536 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:oran-aic:schema:execution-profile-assignment:1.0.1",
+  "title": "oran-aic execution-profile assignment 1.0.1",
+  "description": "하위 실행 대상 scenario마다 정확히 하나의 manifest-listed execution profile을 배정하고, 나머지 catalog scenario는 upper-only 근거를 남긴다. 하위 측은 이 문서 없이 profile을 추론하거나 로컬 default를 만들지 않는다. 어떤 profile도 USRP·OTA·live E2 control·live RAN write를 승인하지 않으며 `live-O1`도 예외가 아니다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "assignmentVersion",
+    "contractProfile",
+    "schemaRef",
+    "normative",
+    "contractDocumentRef",
+    "contractDocumentSection",
+    "catalogRef",
+    "runnerContractRef",
+    "scenarioIdIsAuthoritative",
+    "catalogPointerRule",
+    "inferenceProhibited",
+    "inferenceRule",
+    "hardwareAuthorization",
+    "profiles",
+    "counts",
+    "derivedFrom",
+    "assignments",
+    "notApplicable"
+  ],
+  "properties": {
+    "assignmentVersion": { "const": "oran-aic-execution-profile-assignment/1.0.1" },
+    "contractProfile": { "const": "oran-aic/1.0.1" },
+    "schemaRef": { "const": "urn:oran-aic:schema:execution-profile-assignment:1.0.1" },
+    "normative": { "const": true },
+    "contractDocumentRef": { "const": "02-rapp-xapp-backend-mandatory-contract.1.0.1.md" },
+    "contractDocumentSection": { "const": "17.3" },
+    "catalogRef": { "const": "scenario-catalog.1.0.1.json" },
+    "runnerContractRef": { "const": "scenario-runner-contract.1.0.1.json" },
+    "scenarioIdIsAuthoritative": { "const": true },
+    "catalogPointerRule": { "type": "string", "minLength": 1 },
+    "inferenceProhibited": { "const": true },
+    "inferenceRule": { "type": "string", "minLength": 1 },
+    "hardwareAuthorization": {
+      "description": "이 문서가 승인하지 않는 것을 명시한다. profile verification이 끝나기 전 target call은 0이어야 한다.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["usrp", "ota", "liveE2Control", "liveRanWrite", "note"],
+      "properties": {
+        "usrp": { "const": "NOT_AUTHORIZED" },
+        "ota": { "const": "NOT_AUTHORIZED" },
+        "liveE2Control": { "const": "NOT_AUTHORIZED" },
+        "liveRanWrite": { "const": "NOT_AUTHORIZED" },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "profiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lower-local", "bilateral-mock", "live-O1"],
+      "properties": {
+        "lower-local": { "$ref": "#/$defs/ProfileDefinition" },
+        "bilateral-mock": { "$ref": "#/$defs/ProfileDefinition" },
+        "live-O1": {
+          "allOf": [
+            { "$ref": "#/$defs/ProfileDefinition" },
+            {
+              "$comment": "ProfileDefinition을 좁히는 refinement다. 여기서 additionalProperties를 닫으면 $ref가 허용한 field까지 거절하므로 닫지 않는다.",
+              "required": ["requiresSeparateAuthority", "authorityToken", "liveScope", "notAnApprovalFor"],
+              "properties": {
+                "requiresSeparateAuthority": { "const": true },
+                "notAnApprovalFor": {
+                  "description": "`live-O1`은 live O1 Provider 검증 profile일 뿐이며 아래 항목의 승인이 아니다.",
+                  "type": "array",
+                  "uniqueItems": true,
+                  "minItems": 4,
+                  "items": {
+                    "enum": ["LIVE_E2_CONTROL", "LIVE_RAN_WRITE", "OTA_TRANSMISSION", "USRP_RADIO"]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "counts": {
+      "description": "합집합 검증용 고정 수치. assignments 74 + notApplicable 27 = catalog 101.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "catalogScenarioCount",
+        "lowerExecutionScenarioCount",
+        "notApplicableToLowerCount",
+        "byProfile"
+      ],
+      "properties": {
+        "catalogScenarioCount": { "const": 101 },
+        "lowerExecutionScenarioCount": { "const": 74 },
+        "notApplicableToLowerCount": { "const": 27 },
+        "byProfile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lower-local", "bilateral-mock", "live-O1"],
+          "properties": {
+            "lower-local": { "const": 69 },
+            "bilateral-mock": { "const": 4 },
+            "live-O1": { "const": 1 }
+          }
+        }
+      }
+    },
+    "derivedFrom": {
+      "description": "frozen 1.0.0 catalog와 하위 evidence에서 74/27을 재현한 근거. 값을 바꾸면 재현 주장이 깨진다.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["frozenCatalog", "lowerEvidence", "diagnosis"],
+      "properties": {
+        "frozenCatalog": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "byteSha256", "rule"],
+          "properties": {
+            "path": { "type": "string", "minLength": 1 },
+            "byteSha256": { "$ref": "#/$defs/Sha256" },
+            "rule": { "type": "string", "minLength": 1 }
+          }
+        },
+        "lowerEvidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["archive", "archiveByteSha256", "member", "memberByteSha256", "dependencyClassCounts"],
+          "properties": {
+            "archive": { "type": "string", "minLength": 1 },
+            "archiveByteSha256": { "$ref": "#/$defs/Sha256" },
+            "member": { "type": "string", "minLength": 1 },
+            "memberByteSha256": { "$ref": "#/$defs/Sha256" },
+            "dependencyClassCounts": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "HARDWARE_FREE_LOWER_PHASE_A",
+                "WAIT_FOR_CORRECTED_1.0.1",
+                "UPPER_CONTRACT_MOCK_OR_FINAL_INTEGRATION",
+                "FINAL_INTEGRATION_LIVE_O1_INVARIANT"
+              ],
+              "properties": {
+                "HARDWARE_FREE_LOWER_PHASE_A": { "const": 67 },
+                "WAIT_FOR_CORRECTED_1.0.1": { "const": 2 },
+                "UPPER_CONTRACT_MOCK_OR_FINAL_INTEGRATION": { "const": 4 },
+                "FINAL_INTEGRATION_LIVE_O1_INVARIANT": { "const": 1 }
+              }
+            }
+          }
+        },
+        "diagnosis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "entryScenarioId", "jsonPointer"],
+          "properties": {
+            "path": { "type": "string", "minLength": 1 },
+            "entryScenarioId": { "type": "string", "minLength": 1 },
+            "jsonPointer": { "type": "string", "pattern": "^/" }
+          }
+        }
+      }
+    },
+    "assignments": {
+      "description": "하위 실행 대상 74개. scenarioId는 정확히 한 번만 나타나며 배정 profile은 정확히 하나다.",
+      "type": "array",
+      "minItems": 74,
+      "maxItems": 74,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/Assignment" }
+    },
+    "notApplicable": {
+      "description": "하위 실행 대상이 아닌 27개. 항목별 upper-only 근거를 남긴다.",
+      "type": "array",
+      "minItems": 27,
+      "maxItems": 27,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/NotApplicable" }
+    }
+  },
+  "$defs": {
+    "Sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "ScenarioId": { "type": "string", "pattern": "^SC-[0-9]{3}$" },
+    "CatalogPointer": { "type": "string", "pattern": "^/scenarios/(0|[1-9][0-9]{0,2})$" },
+    "ExecutionProfile": { "enum": ["lower-local", "bilateral-mock", "live-O1"] },
+    "LowerSuite": {
+      "enum": [
+        "a1p-producer-conformance",
+        "end-to-end-contract",
+        "o1-lifecycle-contract",
+        "o1-provider-profile-conformance"
+      ]
+    },
+    "UpperSuite": {
+      "enum": ["r1-service-conformance", "o1-consumer-normalizer-conformance"]
+    },
+    "FixtureMode": {
+      "enum": [
+        "EXACT_BUNDLE",
+        "DEPLOYMENT_INVARIANT",
+        "LIVE_O1_INVARIANT",
+        "O1_LIFECYCLE_INVARIANT",
+        "O1_NOTIFICATION_FAILURE_INVARIANT",
+        "O1_RECOVERY_AMBIGUITY_INVARIANT",
+        "O1_TLS_FAILURE_INVARIANT"
+      ]
+    },
+    "TargetKind": {
+      "enum": [
+        "AGREED_BILATERAL_MOCK_ENDPOINT",
+        "LIVE_O1_PROVIDER_UNDER_SEPARATE_AUTHORITY",
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ]
+    },
+    "ProhibitedTargetKind": {
+      "enum": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ]
+    },
+    "ProhibitedTargetKinds": {
+      "type": "array",
+      "uniqueItems": true,
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/ProhibitedTargetKind" }
+    },
+    "EvidenceProducer": {
+      "enum": [
+        "LOWER_SIDE_CONFORMANCE_RUNNER",
+        "LOWER_SIDE_CONFORMANCE_RUNNER_WITH_UPPER_AGREED_CAPTURE",
+        "LOWER_SIDE_CONFORMANCE_RUNNER_UNDER_LIVE_O1_AUTHORITY",
+        "UPPER_SIDE_CONFORMANCE_RUNNER"
+      ]
+    },
+    "ProfileDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "semantics",
+        "requiresUpperSuppliedCounterpart",
+        "requiresSeparateAuthority",
+        "permittedTargetKinds",
+        "prohibitedTargetKinds",
+        "evidenceProducer",
+        "scenarioCount"
+      ],
+      "properties": {
+        "semantics": { "type": "string", "minLength": 1 },
+        "requiresUpperSuppliedCounterpart": { "type": "boolean" },
+        "requiresSeparateAuthority": { "type": "boolean" },
+        "authorityToken": { "const": "LIVE_O1_PROVIDER_VERIFICATION_AUTHORITY" },
+        "liveScope": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "O1_FILE_DATA_REPORTING_MNS",
+              "O1_NETCONF_YANG",
+              "O1_NOTIFICATION",
+              "O1_PM_FILE",
+              "O1_SFTP"
+            ]
+          }
+        },
+        "notAnApprovalFor": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["LIVE_E2_CONTROL", "LIVE_RAN_WRITE", "OTA_TRANSMISSION", "USRP_RADIO"] }
+        },
+        "permittedTargetKinds": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/TargetKind" }
+        },
+        "prohibitedTargetKinds": { "$ref": "#/$defs/ProhibitedTargetKinds" },
+        "evidenceProducer": { "$ref": "#/$defs/EvidenceProducer" },
+        "scenarioCount": { "type": "integer", "minimum": 1, "maximum": 74 }
+      }
+    },
+    "Assignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenarioId",
+        "catalogPointer",
+        "suite",
+        "fixtureMode",
+        "executionProfile",
+        "executedBy",
+        "targetOwner",
+        "suiteTargetToken",
+        "selectedTargetRole",
+        "counterpartRole",
+        "counterpartProvisioning",
+        "permittedTargetKinds",
+        "prohibitedTargetKinds",
+        "fixtureSource",
+        "oracleSource",
+        "evidenceProducer",
+        "evidenceLabel",
+        "lowerDependencyClass_1_0_0",
+        "rationale"
+      ],
+      "properties": {
+        "scenarioId": { "$ref": "#/$defs/ScenarioId" },
+        "catalogPointer": { "$ref": "#/$defs/CatalogPointer" },
+        "suite": { "$ref": "#/$defs/LowerSuite" },
+        "fixtureMode": { "$ref": "#/$defs/FixtureMode" },
+        "executionProfile": { "$ref": "#/$defs/ExecutionProfile" },
+        "executedBy": {
+          "description": "실행 주체.",
+          "const": "LOWER_SIDE_CONFORMANCE_RUNNER"
+        },
+        "targetOwner": {
+          "description": "이 profile 실행에서 시험 대상 구현을 소유·운영하는 측.",
+          "enum": ["LOWER_SIDE", "BOTH_SIDES"]
+        },
+        "suiteTargetToken": {
+          "description": "scenario-runner-contract suiteCatalog의 target token 그대로.",
+          "enum": [
+            "A1_P_PRODUCER",
+            "BOTH_O1_OWNERSHIP_DIRECTIONS",
+            "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+            "LOWER_MANAGED_ELEMENT_O1_PROVIDER"
+          ]
+        },
+        "selectedTargetRole": {
+          "description": "catalog suiteCatalog.targetRoles 중 이 profile이 실행하는 role.",
+          "enum": [
+            "A1_P_PRODUCER",
+            "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+            "LOWER_MANAGED_ELEMENT_O1_PROVIDER"
+          ]
+        },
+        "counterpartRole": {
+          "enum": [
+            "A1_CONSUMER_BLACK_BOX_HARNESS",
+            "O1_CONSUMER_HARNESS",
+            "R1_A1_E2_O1_BLACK_BOX_HARNESS"
+          ]
+        },
+        "counterpartProvisioning": {
+          "description": "counterpart harness/endpoint를 누가 공급하는가.",
+          "enum": [
+            "LOWER_BUILT_FROM_SHARED_BUNDLE",
+            "UPPER_SUPPLIED_AGREED_MOCK",
+            "LIVE_O1_AUTHORITY_APPROVED_HARNESS"
+          ]
+        },
+        "permittedTargetKinds": {
+          "description": "허용 target 종류. 여기에 없는 종류에는 call하지 않는다.",
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/TargetKind" }
+        },
+        "prohibitedTargetKinds": { "$ref": "#/$defs/ProhibitedTargetKinds" },
+        "fixtureSource": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["origin", "mode", "fixtureRefs"],
+          "properties": {
+            "origin": { "const": "SHARED_CONTRACT_BUNDLE_1_0_1" },
+            "mode": { "$ref": "#/$defs/FixtureMode" },
+            "fixtureRefs": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "type": "string", "pattern": "^fixture://[A-Za-z0-9]+$" }
+            }
+          }
+        },
+        "oracleSource": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["origin", "expectedPointer", "rulesPointer"],
+          "properties": {
+            "origin": { "const": "SCENARIO_CATALOG_1_0_1" },
+            "expectedPointer": { "type": "string", "pattern": "^/scenarios/(0|[1-9][0-9]{0,2})/expected$" },
+            "rulesPointer": { "type": "string", "pattern": "^/scenarios/(0|[1-9][0-9]{0,2})/rules$" }
+          }
+        },
+        "evidenceProducer": {
+          "description": "evidence 생성 주체.",
+          "enum": [
+            "LOWER_SIDE_CONFORMANCE_RUNNER",
+            "LOWER_SIDE_CONFORMANCE_RUNNER_WITH_UPPER_AGREED_CAPTURE",
+            "LOWER_SIDE_CONFORMANCE_RUNNER_UNDER_LIVE_O1_AUTHORITY"
+          ]
+        },
+        "evidenceLabel": { "$ref": "#/$defs/ExecutionProfile" },
+        "lowerDependencyClass_1_0_0": {
+          "description": "frozen 1.0.0 하위 evidence의 dependencyClass. 재현 좌표이며 실행 규칙이 아니다.",
+          "enum": [
+            "HARDWARE_FREE_LOWER_PHASE_A",
+            "WAIT_FOR_CORRECTED_1.0.1",
+            "UPPER_CONTRACT_MOCK_OR_FINAL_INTEGRATION",
+            "FINAL_INTEGRATION_LIVE_O1_INVARIANT"
+          ]
+        },
+        "rationale": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "executionProfile": { "const": "lower-local" } }, "required": ["executionProfile"] },
+          "then": {
+            "properties": {
+              "targetOwner": { "const": "LOWER_SIDE" },
+              "counterpartProvisioning": { "const": "LOWER_BUILT_FROM_SHARED_BUNDLE" },
+              "evidenceProducer": { "const": "LOWER_SIDE_CONFORMANCE_RUNNER" },
+              "evidenceLabel": { "const": "lower-local" },
+              "permittedTargetKinds": {
+                "items": {
+                  "enum": [
+                    "LOCAL_DETERMINISTIC_STUB",
+                    "LOCAL_FAULT_HARNESS",
+                    "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+                    "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "executionProfile": { "const": "bilateral-mock" } }, "required": ["executionProfile"] },
+          "then": {
+            "properties": {
+              "targetOwner": { "const": "BOTH_SIDES" },
+              "counterpartProvisioning": { "const": "UPPER_SUPPLIED_AGREED_MOCK" },
+              "evidenceProducer": { "const": "LOWER_SIDE_CONFORMANCE_RUNNER_WITH_UPPER_AGREED_CAPTURE" },
+              "evidenceLabel": { "const": "bilateral-mock" },
+              "permittedTargetKinds": {
+                "items": {
+                  "enum": [
+                    "AGREED_BILATERAL_MOCK_ENDPOINT",
+                    "LOCAL_DETERMINISTIC_STUB",
+                    "LOCAL_FAULT_HARNESS",
+                    "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "executionProfile": { "const": "live-O1" } }, "required": ["executionProfile"] },
+          "then": {
+            "properties": {
+              "targetOwner": { "const": "BOTH_SIDES" },
+              "fixtureMode": { "const": "LIVE_O1_INVARIANT" },
+              "counterpartProvisioning": { "const": "LIVE_O1_AUTHORITY_APPROVED_HARNESS" },
+              "evidenceProducer": { "const": "LOWER_SIDE_CONFORMANCE_RUNNER_UNDER_LIVE_O1_AUTHORITY" },
+              "evidenceLabel": { "const": "live-O1" }
+            }
+          }
+        }
+      ]
+    },
+    "NotApplicable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenarioId",
+        "catalogPointer",
+        "suite",
+        "applicability",
+        "reasonCode",
+        "selectedTargetRole",
+        "counterpartRole",
+        "targetOwner",
+        "executedBy",
+        "evidenceProducer",
+        "lowerContribution",
+        "rationale"
+      ],
+      "properties": {
+        "scenarioId": { "$ref": "#/$defs/ScenarioId" },
+        "catalogPointer": { "$ref": "#/$defs/CatalogPointer" },
+        "suite": { "$ref": "#/$defs/UpperSuite" },
+        "applicability": { "const": "UPPER_ONLY" },
+        "reasonCode": {
+          "enum": [
+            "TARGET_OWNED_BY_UPPER_SIDE_NON_RT_RIC_R1_SERVICE",
+            "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER"
+          ]
+        },
+        "selectedTargetRole": {
+          "enum": ["NON_RT_RIC_FRAMEWORK_R1_SERVICE", "O1_CONSUMER_NORMALIZER"]
+        },
+        "counterpartRole": {
+          "enum": ["RAPP_R1_CONSUMER_PROVIDER_HARNESS", "O1_PROVIDER_AND_DME_HARNESS"]
+        },
+        "targetOwner": { "const": "UPPER_SIDE" },
+        "executedBy": { "const": "UPPER_SIDE_CONFORMANCE_RUNNER" },
+        "evidenceProducer": { "const": "UPPER_SIDE_CONFORMANCE_RUNNER" },
+        "lowerContribution": {
+          "description": "하위 측이 이 scenario에 기여하는 범위. NONE이면 하위 산출물이 전혀 필요 없다.",
+          "enum": ["NONE", "FIXTURE_AND_PROVIDER_SUPPORT_ONLY"]
+        },
+        "rationale": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "suite": { "const": "r1-service-conformance" } }, "required": ["suite"] },
+          "then": {
+            "properties": {
+              "reasonCode": { "const": "TARGET_OWNED_BY_UPPER_SIDE_NON_RT_RIC_R1_SERVICE" },
+              "selectedTargetRole": { "const": "NON_RT_RIC_FRAMEWORK_R1_SERVICE" },
+              "lowerContribution": { "const": "NONE" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "suite": { "const": "o1-consumer-normalizer-conformance" } }, "required": ["suite"] },
+          "then": {
+            "properties": {
+              "reasonCode": { "const": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER" },
+              "selectedTargetRole": { "const": "O1_CONSUMER_NORMALIZER" },
+              "lowerContribution": { "const": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY" }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

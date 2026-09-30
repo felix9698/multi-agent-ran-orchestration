@@ -1,0 +1,452 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:oran-aic:schema:backend-release-manifest:1.0.0",
+  "title": "O-RAN AIC lower/backend reproducible release manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contractProfile",
+    "releaseId",
+    "createdAt",
+    "backendSource",
+    "oai",
+    "flexric",
+    "build",
+    "asn1ModuleSets",
+    "profiles",
+    "o1",
+    "deployment",
+    "topology"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "oran-aic-backend-release-manifest/1.0.0" },
+    "contractProfile": { "const": "oran-aic/1.0.0" },
+    "releaseId": { "type": "string", "format": "uuid" },
+    "createdAt": { "$ref": "#/$defs/UtcDateTime" },
+    "backendSource": { "$ref": "#/$defs/SourceCheckout" },
+    "oai": { "$ref": "#/$defs/OaiComponent" },
+    "flexric": { "$ref": "#/$defs/FlexRicComponent" },
+    "build": { "$ref": "#/$defs/BuildProfile" },
+    "asn1ModuleSets": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/Asn1ModuleSet" },
+      "allOf": [
+        { "contains": { "properties": { "model": { "const": "E2AP" } }, "required": ["model"] }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "properties": { "model": { "const": "E2SM-KPM" } }, "required": ["model"] }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "properties": { "model": { "const": "E2SM-RC" } }, "required": ["model"] }, "minContains": 1, "maxContains": 1 }
+      ]
+    },
+    "profiles": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/ProfileArtifact" },
+      "allOf": [
+        { "contains": { "properties": { "name": { "const": "E2SM-RC-STYLE3-ACTION1" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "properties": { "name": { "const": "E2SM-KPM-MEASUREMENT" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "properties": { "name": { "const": "E2-CONTROL-APER-VECTORS" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "properties": { "name": { "const": "OTA-READBACK-EVIDENCE" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 }
+      ]
+    },
+    "o1": { "$ref": "#/$defs/O1ImplementationProvenance" },
+    "deployment": { "$ref": "#/$defs/Deployment" },
+    "topology": { "$ref": "#/$defs/Topology" }
+  },
+  "$defs": {
+    "UtcDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z$"
+    },
+    "Sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "GitSha1": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "SecretReference": { "type": "string", "pattern": "^(?:env|file|vault|k8s|keychain)://[^\\s]+$" },
+    "Artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "sha256": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "SourceCheckout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit", "sourceTree", "dirty"],
+      "properties": {
+        "repository": { "type": "string", "format": "uri" },
+        "commit": { "$ref": "#/$defs/GitSha1" },
+        "sourceTree": { "$ref": "#/$defs/GitSha1" },
+        "dirty": { "const": false }
+      }
+    },
+    "Patch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "sha256": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "BuildArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactManifestPath", "artifactManifestSha256", "binaries"],
+      "properties": {
+        "imageDigest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "artifactManifestPath": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "artifactManifestSha256": { "$ref": "#/$defs/Sha256" },
+        "binaries": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/Artifact" }
+        }
+      }
+    },
+    "OaiComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "release", "baseCommit", "patches", "postPatchTree", "buildArtifact"],
+      "properties": {
+        "repository": { "const": "https://gitlab.eurecom.fr/oai/openairinterface5g.git" },
+        "release": { "const": "2026.w30" },
+        "baseCommit": { "const": "42bf80e9b25dbf521cc692fa6338cbbbebfbcd1d" },
+        "patches": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/Patch" }
+        },
+        "postPatchTree": { "$ref": "#/$defs/GitSha1" },
+        "buildArtifact": { "$ref": "#/$defs/BuildArtifact" }
+      }
+    },
+    "FlexRicComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit", "submoduleGitlinkCommit", "patches", "postPatchTree", "buildArtifact"],
+      "properties": {
+        "repository": { "const": "https://github.com/duranta-project/flexric.git" },
+        "commit": { "const": "ef6d722f22191eea74089966983da1f5ec1fedd4" },
+        "submoduleGitlinkCommit": { "const": "ef6d722f22191eea74089966983da1f5ec1fedd4" },
+        "patches": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/Patch" } },
+        "postPatchTree": { "$ref": "#/$defs/GitSha1" },
+        "buildArtifact": { "$ref": "#/$defs/BuildArtifact" }
+      }
+    },
+    "BuildProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "e2apVersionEnum",
+        "kpmVersionEnum",
+        "e2apEncoding",
+        "kpmEncoding",
+        "rcEncoding",
+        "compiler",
+        "compilerVersion",
+        "cmakeVersion",
+        "platform",
+        "configureCommandSha256"
+      ],
+      "properties": {
+        "e2apVersionEnum": { "const": "E2AP_V2" },
+        "kpmVersionEnum": { "const": "KPM_V2_03" },
+        "e2apEncoding": { "const": "ASN" },
+        "kpmEncoding": { "const": "ASN" },
+        "rcEncoding": { "const": "ASN" },
+        "compiler": { "type": "string", "minLength": 1 },
+        "compilerVersion": { "type": "string", "minLength": 1 },
+        "cmakeVersion": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "configureCommandSha256": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "Asn1Module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "path", "sha256"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "Asn1ModuleSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model", "specVersion", "modules", "aggregateSha256", "compiler", "compilerVersion", "codecArtifactSha256"],
+      "properties": {
+        "model": { "type": "string", "enum": ["E2AP", "E2SM-KPM", "E2SM-RC"] },
+        "specVersion": { "type": "string", "enum": ["2.03", "1.03"] },
+        "modules": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/Asn1Module" }
+        },
+        "aggregateSha256": { "$ref": "#/$defs/Sha256" },
+        "compiler": { "type": "string", "minLength": 1 },
+        "compilerVersion": { "type": "string", "minLength": 1 },
+        "codecArtifactSha256": { "$ref": "#/$defs/Sha256" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "model": { "const": "E2SM-RC" } }, "required": ["model"] },
+          "then": { "properties": { "specVersion": { "const": "1.03" } } },
+          "else": { "properties": { "specVersion": { "const": "2.03" } } }
+        }
+      ]
+    },
+    "ProfileArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "path", "sha256"],
+      "properties": {
+        "name": { "type": "string", "enum": ["E2SM-RC-STYLE3-ACTION1", "E2SM-KPM-MEASUREMENT", "E2-CONTROL-APER-VECTORS", "OTA-READBACK-EVIDENCE"] },
+        "version": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "PinnedProfileArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profileId", "path", "sha256"],
+      "properties": {
+        "profileId": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "path": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "sha256": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "YangModuleArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "revision", "namespace", "path", "sha256"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "revision": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "namespace": { "type": "string", "format": "uri" },
+        "path": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "sha256": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "EnabledYangFeature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["module", "feature"],
+      "properties": {
+        "module": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "feature": { "type": "string", "minLength": 1, "maxLength": 255 }
+      }
+    },
+    "YangModuleClosure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "threeGppSnapshotCommitSha1",
+        "modules",
+        "aggregateSha256",
+        "enabledFeatures",
+        "schemaMountConfiguration",
+        "mountedYangLibrarySnapshot",
+        "closureValidationReport",
+        "validationRule"
+      ],
+      "properties": {
+        "threeGppSnapshotCommitSha1": { "const": "dfada043e1a54453af779367615ad71e2a631268" },
+        "modules": {
+          "type": "array",
+          "minItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/YangModuleArtifact" },
+          "allOf": [
+            { "contains": { "properties": { "name": { "const": "_3gpp-common-subnetwork" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "_3gpp-common-managed-element" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "_3gpp-common-measurements" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "_3gpp-common-yang-types" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "_3gpp-common-top" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "_3gpp-common-yang-extensions" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "_3gpp-common-files" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "_3gpp-common-subscription-control" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "_3gpp-common-fm" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "_3gpp-common-trace" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "_3gpp-5gc-nrm-configurable5qiset" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "_3gpp-5gc-nrm-ecmconnectioninfo" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "ietf-inet-types" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "ietf-yang-types" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "ietf-yang-schema-mount" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "name": { "const": "ietf-yang-library" } }, "required": ["name"] }, "minContains": 1, "maxContains": 1 }
+          ]
+        },
+        "aggregateSha256": { "$ref": "#/$defs/Sha256" },
+        "enabledFeatures": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/EnabledYangFeature" },
+          "contains": {
+            "properties": {
+              "module": { "const": "_3gpp-common-managed-element" },
+              "feature": { "const": "MeasurementsUnderManagedElement" }
+            },
+            "required": ["module", "feature"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        "schemaMountConfiguration": { "$ref": "#/$defs/Artifact" },
+        "mountedYangLibrarySnapshot": { "$ref": "#/$defs/Artifact" },
+        "closureValidationReport": { "$ref": "#/$defs/Artifact" },
+        "validationRule": { "const": "ALL_IMPORTS_RESOLVE_OFFLINE_AND_MOUNTED_YANG_LIBRARY_EXACTLY_MATCHES_RELEASE_CLOSURE" }
+      }
+    },
+    "O1RuntimeComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implementationArtifacts", "configurationArtifacts"],
+      "properties": {
+        "implementationArtifacts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/Artifact" }
+        },
+        "configurationArtifacts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/Artifact" }
+        }
+      }
+    },
+    "O1NetconfYangProvider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["buildArtifact", "configurationArtifacts"],
+      "properties": {
+        "buildArtifact": { "$ref": "#/$defs/BuildArtifact" },
+        "configurationArtifacts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/Artifact" }
+        }
+      }
+    },
+    "O1ImplementationProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "yangModuleClosure",
+        "netconfYangProvider",
+        "netconfYangProfile",
+        "performanceAssuranceProfile",
+        "fileDataReportingProvider",
+        "pmFileGenerator",
+        "pmMeasurementMapping",
+        "notificationSender",
+        "sftpProvider"
+      ],
+      "properties": {
+        "yangModuleClosure": { "$ref": "#/$defs/YangModuleClosure" },
+        "netconfYangProvider": { "$ref": "#/$defs/O1NetconfYangProvider" },
+        "netconfYangProfile": {
+          "allOf": [
+            { "$ref": "#/$defs/PinnedProfileArtifact" },
+            { "properties": { "profileId": { "const": "oran-aic-o1-netconf-perfmetricjob/1.0.0" } } }
+          ]
+        },
+        "performanceAssuranceProfile": {
+          "allOf": [
+            { "$ref": "#/$defs/PinnedProfileArtifact" },
+            { "properties": { "profileId": { "const": "oran-aic-o1-pa-file/1.0.0" } } }
+          ]
+        },
+        "fileDataReportingProvider": { "$ref": "#/$defs/O1RuntimeComponent" },
+        "pmFileGenerator": { "$ref": "#/$defs/O1RuntimeComponent" },
+        "pmMeasurementMapping": { "$ref": "#/$defs/Artifact" },
+        "notificationSender": { "$ref": "#/$defs/O1RuntimeComponent" },
+        "sftpProvider": { "$ref": "#/$defs/O1RuntimeComponent" }
+      }
+    },
+    "Deployment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nearRtRicId", "e2BindAddress", "e2SctpPort", "a1ListenEndpoint", "tlsTrustRef", "tlsIdentityRef", "serviceModelLibraryDir"],
+      "properties": {
+        "nearRtRicId": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "e2BindAddress": {
+          "type": "string",
+          "anyOf": [
+            { "format": "hostname" },
+            { "format": "ipv4" },
+            { "format": "ipv6" }
+          ]
+        },
+        "e2SctpPort": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "a1ListenEndpoint": { "type": "string", "format": "uri", "pattern": "^https://" },
+        "tlsTrustRef": { "$ref": "#/$defs/SecretReference" },
+        "tlsIdentityRef": { "$ref": "#/$defs/SecretReference" },
+        "serviceModelLibraryDir": { "type": "string", "minLength": 1 }
+      }
+    },
+    "Plmn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mcc", "mnc", "mncDigitLength"],
+      "properties": {
+        "mcc": { "type": "string", "pattern": "^[0-9]{3}$" },
+        "mnc": { "type": "string", "pattern": "^[0-9]{2,3}$" },
+        "mncDigitLength": { "type": "integer", "enum": [2, 3] }
+      }
+    },
+    "BitStringIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hex", "bitLength"],
+      "properties": {
+        "hex": { "type": "string", "pattern": "^0x[0-9A-Fa-f]+$" },
+        "bitLength": { "type": "integer", "minimum": 1, "maximum": 64 }
+      }
+    },
+    "TopologyNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "nodeType", "plmn", "nodeId", "nci", "managedObjectDn", "oaiBuildArtifactManifestSha256"],
+      "properties": {
+        "role": { "type": "string", "enum": ["SOURCE_AND_ROLLBACK_TARGET", "TARGET_AND_ROLLBACK_SOURCE"] },
+        "nodeType": { "type": "string", "enum": ["GNB", "EN_GNB", "NG_ENB", "ENB"] },
+        "plmn": { "$ref": "#/$defs/Plmn" },
+        "nodeId": { "$ref": "#/$defs/BitStringIdentity" },
+        "cuDuComponentId": { "$ref": "#/$defs/BitStringIdentity" },
+        "nci": { "$ref": "#/$defs/BitStringIdentity" },
+        "managedObjectDn": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "oaiBuildArtifactManifestSha256": { "$ref": "#/$defs/Sha256" }
+      }
+    },
+    "Topology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes"],
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/TopologyNode" },
+          "allOf": [
+            { "contains": { "properties": { "role": { "const": "SOURCE_AND_ROLLBACK_TARGET" } }, "required": ["role"] }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "properties": { "role": { "const": "TARGET_AND_ROLLBACK_SOURCE" } }, "required": ["role"] }, "minContains": 1, "maxContains": 1 }
+          ]
+        }
+      }
+    }
+  }
+}

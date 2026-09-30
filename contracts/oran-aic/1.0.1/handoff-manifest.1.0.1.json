@@ -1,0 +1,71 @@
+{
+  "handoffVersion": "oran-aic-handoff/1.0.1",
+  "contractProfile": "oran-aic/1.0.1",
+  "supersedes": "oran-aic/1.0.0",
+  "issuedAt": "2026-08-07T00:00:00Z",
+  "hashAlgorithm": "SHA-256",
+  "canonicalization": "RFC8785",
+  "selfDigestExcluded": true,
+  "documents": [
+    {
+      "path": "01-agentic-intent-coordinator-oran-refactor-task.md",
+      "role": "UPPER_ORCHESTRATION_TASK",
+      "requiredFor": ["UPPER_ORCHESTRATION"],
+      "byteCount": 31533,
+      "byteSha256": "04a55ddd79fca42aa17faa8b51bd89710f9bf15de9e05e0a2e61b83b7aad43e1"
+    },
+    {
+      "path": "02-rapp-xapp-backend-mandatory-contract.1.0.1.md",
+      "role": "NORMATIVE_CROSS_TEAM_CONTRACT",
+      "requiredFor": ["UPPER_ORCHESTRATION", "BACKEND_RESEARCHER"],
+      "byteCount": 228948,
+      "byteSha256": "c8417f8ede798c546a386aa23a0a824e244fb103b952a649b991757b504e288f"
+    },
+    {
+      "path": "VERSIONING-JUDGEMENT.md",
+      "role": "RELEASE_CHANGE_NOTE",
+      "requiredFor": ["UPPER_ORCHESTRATION", "BACKEND_RESEARCHER"],
+      "byteCount": 3799,
+      "byteSha256": "354cd1a01a752332bb21cb1058ed8e55cbdcbf9e45b3dac9549c0869a7e8b16a"
+    }
+  ],
+  "bundle": {
+    "directory": "shared-contract-bundle",
+    "manifestPath": "shared-contract-bundle/bundle-manifest.1.0.1.json",
+    "manifestByteCount": 5447,
+    "manifestByteSha256": "c01dfb46518af0e6f2687e073158ae3e408f199ecd09a1405b1f162c98d7c0b1",
+    "manifestJcsSha256": "6d18be509950a17efa136971af788b607f0d67778b2a83d9f4e8f22c470867ed",
+    "regularFileCountExcludingManifest": 29,
+    "requiredFor": ["UPPER_ORCHESTRATION", "BACKEND_RESEARCHER"],
+    "copyMode": "BYTE_FOR_BYTE_WHOLE_DIRECTORY"
+  },
+  "distribution": {
+    "UPPER_ORCHESTRATION": {
+      "requiredPaths": [
+        "01-agentic-intent-coordinator-oran-refactor-task.md",
+        "02-rapp-xapp-backend-mandatory-contract.1.0.1.md",
+        "VERSIONING-JUDGEMENT.md",
+        "shared-contract-bundle",
+        "handoff-manifest.1.0.1.json"
+      ]
+    },
+    "BACKEND_RESEARCHER": {
+      "requiredPaths": [
+        "02-rapp-xapp-backend-mandatory-contract.1.0.1.md",
+        "VERSIONING-JUDGEMENT.md",
+        "shared-contract-bundle",
+        "handoff-manifest.1.0.1.json"
+      ],
+      "optionalPaths": [
+        "01-agentic-intent-coordinator-oran-refactor-task.md"
+      ]
+    }
+  },
+  "integrationPolicy": {
+    "communicationAssumption": "NO_REQUIRED_COMMUNICATION_UNTIL_FINAL_MERGE",
+    "mergeMutationPolicy": "CONFIGURATION_VALUES_ONLY_NO_SOURCE_EDIT",
+    "contractDriftPolicy": "FAIL_CLOSED_AND_REQUIRE_VERSIONED_HANDOFF_REPLACEMENT",
+    "secretPolicy": "REFERENCES_ONLY_NO_SECRET_VALUES",
+    "releaseGate": "BOTH_SIDES_PASS_PHASE_A_INDEPENDENTLY_BEFORE_PHASE_B"
+  }
+}

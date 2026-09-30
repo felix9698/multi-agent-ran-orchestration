@@ -1,0 +1,2291 @@
+{
+ "appliedRules": [
+  {
+   "declaredInCatalog": true,
+   "inputs": [
+    "/scenarios/83/rules"
+   ],
+   "observations": {
+    "acceptedPushes": 2,
+    "dmeDataJobCount": 2,
+    "evidenceCommitCount": 2,
+    "policyCount": 1
+   },
+   "ruleId": "RULE-O1-DN-BIJECTION"
+  },
+  {
+   "declaredInCatalog": true,
+   "inputs": [
+    "/scenarios/83/rules"
+   ],
+   "observations": {
+    "acceptedPushes": 2,
+    "dmeDataJobCount": 2,
+    "eventTimes": [
+     "2026-08-13T14:20:00Z"
+    ],
+    "evidenceCommitCount": 2,
+    "fileExpirationTimes": [
+     "2026-08-13T15:20:00Z"
+    ],
+    "fileReadyTimes": [
+     "2026-08-13T14:20:00Z"
+    ],
+    "policyCount": 1,
+    "retrievalCompletedAt": [
+     "2026-08-13T14:20:00.585Z"
+    ]
+   },
+   "ruleId": "RULE-O1-FILE-TEMPORAL-ORDER"
+  },
+  {
+   "declaredInCatalog": true,
+   "inputs": [
+    "/scenarios/83/rules"
+   ],
+   "observations": {
+    "acceptedPushes": 2,
+    "dmeDataJobCount": 2,
+    "evidenceCommitCount": 2,
+    "policyCount": 1,
+    "values": [
+     30,
+     40
+    ]
+   },
+   "ruleId": "RULE-O1-LIVE-VALUE-INVARIANTS"
+  },
+  {
+   "declaredInCatalog": true,
+   "inputs": [
+    "/scenarios/83/rules"
+   ],
+   "observations": {
+    "acceptedPushes": 2,
+    "dmeDataJobCount": 2,
+    "evidenceCommitCount": 2,
+    "policyCount": 1
+   },
+   "ruleId": "RULE-O1-NOTIFY-AND-RETRIEVAL"
+  },
+  {
+   "declaredInCatalog": true,
+   "inputs": [
+    "/scenarios/83/rules"
+   ],
+   "observations": {
+    "acceptedPushes": 2,
+    "dmeDataJobCount": 2,
+    "evidenceCommitCount": 2,
+    "policyCount": 1
+   },
+   "ruleId": "RULE-O1-QUALITY-PRECEDENCE"
+  },
+  {
+   "declaredInCatalog": true,
+   "inputs": [
+    "/scenarios/83/rules"
+   ],
+   "observations": {
+    "acceptedPushes": 2,
+    "dmeDataJobCount": 2,
+    "evidenceCommitCount": 2,
+    "policyCount": 1,
+    "recordSourceDigests": [
+     "627a9b0fb9e430a7ac9900c031425cc04c5cc29d1fe6e6e52bc56bcfe955634f",
+     "627a9b0fb9e430a7ac9900c031425cc04c5cc29d1fe6e6e52bc56bcfe955634f"
+    ],
+    "retrievalDigests": [
+     "627a9b0fb9e430a7ac9900c031425cc04c5cc29d1fe6e6e52bc56bcfe955634f"
+    ]
+   },
+   "ruleId": "RULE-O1-RAW-DIGEST-SELF-CONSISTENT"
+  },
+  {
+   "declaredInCatalog": true,
+   "inputs": [
+    "/scenarios/83/rules"
+   ],
+   "observations": {
+    "acceptedPushes": 2,
+    "dmeDataJobCount": 2,
+    "evidenceCommitCount": 2,
+    "ingestLatencyMs": [
+     585,
+     585
+    ],
+    "measurementAgeMs": [
+     585,
+     585
+    ],
+    "policyCount": 1,
+    "windowEnds": [
+     "2026-08-13T14:20:00Z",
+     "2026-08-13T14:20:00Z"
+    ],
+    "windowStarts": [
+     "2026-08-13T14:19:00Z",
+     "2026-08-13T14:19:00Z"
+    ]
+   },
+   "ruleId": "RULE-O1-TIME-RELATIONS"
+  },
+  {
+   "declaredInCatalog": true,
+   "inputs": [
+    "/scenarios/83/rules"
+   ],
+   "observations": {
+    "acceptedPushes": 2,
+    "dmeDataJobCount": 2,
+    "evidenceCommitCount": 2,
+    "policyCount": 1
+   },
+   "ruleId": "RULE-R1-CORRELATION"
+  },
+  {
+   "declaredInCatalog": true,
+   "inputs": [
+    "/scenarios/83/rules"
+   ],
+   "observations": {
+    "acceptedPushes": 2,
+    "dmeDataJobCount": 2,
+    "evidenceCommitCount": 2,
+    "policyCount": 1
+   },
+   "ruleId": "RULE-R1-DME-PUSH-BINDING"
+  }
+ ],
+ "authority": {
+  "authorityRecordDigest": "b0a14c63d855b6e35492459e77528b4fda50443c2a45288896966509d444c0cc",
+  "checks": [
+   {
+    "id": "G-ID-01",
+    "observedDigest": "0f28720007cba46722aee4f13fb6ce67c3d61ba27c2f264106e63b5649fbfc26",
+    "outcome": "PASS"
+   },
+   {
+    "id": "G-ID-02",
+    "observedDigest": "1895c782156227406bc3e16fcc43c7b2cdeab8db2d521952df058d4627609899",
+    "outcome": "PASS"
+   },
+   {
+    "id": "G-ID-03",
+    "observedDigest": "7a8cba9f004e7a64f0c76aa90ebd2fd5aa22e252c4e3062383d6e43391e6f639",
+    "outcome": "PASS"
+   },
+   {
+    "id": "G-ID-04",
+    "observedDigest": "b0a14c63d855b6e35492459e77528b4fda50443c2a45288896966509d444c0cc",
+    "outcome": "PASS"
+   },
+   {
+    "id": "G-ID-05",
+    "observedDigest": "c01c27565b33bf2265fa7e11b01f3c92fde1b472eb24961baff4c1da62bfd28f",
+    "outcome": "PASS"
+   },
+   {
+    "id": "G-ID-06",
+    "observedDigest": "cfbbfc0ce8f48aa1ceea09abae8d49736de94e462bdb9981f8347e6b634b9db2",
+    "outcome": "PASS"
+   },
+   {
+    "id": "G-ID-07",
+    "observedDigest": "03ccac4c2a7c9d27b00a7b57afe0ec9fca59c97e50124175e7ecf6a720666e60",
+    "outcome": "PASS"
+   },
+   {
+    "id": "G-ID-08",
+    "observedDigest": "badad48fc50df437f634cd1e57182b40ae4bfc61ee67a2c8394c540f58440cf7",
+    "outcome": "PASS"
+   },
+   {
+    "id": "G-ID-09",
+    "observedDigest": "73c50936fec8d8006ec61323873320293bfea4719d64afa58f82cf7ea8c8d8de",
+    "outcome": "PASS"
+   },
+   {
+    "id": "G-ID-10",
+    "observedDigest": "2a14845fa30aaf69a8932e0145708a625c8ca611bb1a1a6196f47083c4756153",
+    "outcome": "PASS"
+   }
+  ],
+  "deploymentVectorDigest": "c01c27565b33bf2265fa7e11b01f3c92fde1b472eb24961baff4c1da62bfd28f",
+  "gateResult": "ADMITTED",
+  "gateSpecSha256": "f69e1c64364aeedeb035cc11126fc0d90e0e983029dc4639f37602294cc22947",
+  "scope": {
+   "liveE2Control": false,
+   "liveRanWrite": false,
+   "o1Only": true,
+   "otaTransmission": false,
+   "peerInternalSourceImport": false,
+   "scenarioScope": "SC-084",
+   "upperProductionDeployment": false,
+   "usrpRadio": false
+  },
+  "selfIssued": false
+ },
+ "captureId": "81b92422-3c55-59a0-b3e4-5d0636c9c1a5",
+ "cleanup": {
+  "actions": [
+   {
+    "action": "DELETE",
+    "at": "2026-08-13T14:20:06.666Z",
+    "detail": "frozen teardown ordinals 1..4 completed",
+    "outcome": "DONE",
+    "target": "PERF_METRIC_JOB"
+   },
+   {
+    "action": "DRAIN",
+    "at": "2026-08-13T14:20:06.666Z",
+    "detail": "in-flight notification/retrieval count 0 after drain",
+    "outcome": "DONE",
+    "target": "IN_FLIGHT_WORK"
+   },
+   {
+    "action": "DELETE",
+    "at": "2026-08-13T14:20:06.686Z",
+    "detail": "absence readback confirmed",
+    "outcome": "DONE",
+    "target": "O1_SUBSCRIPTION"
+   },
+   {
+    "action": "CLOSE",
+    "at": "2026-08-13T14:20:06.686Z",
+    "detail": "run-scoped NETCONF-over-SSH session",
+    "outcome": "DONE",
+    "target": "NETCONF_SESSION"
+   },
+   {
+    "action": "CLOSE",
+    "at": "2026-08-13T14:20:06.688Z",
+    "detail": "retrieval sessions are request-scoped",
+    "outcome": "ALREADY_ABSENT",
+    "target": "SFTP_SESSION"
+   },
+   {
+    "action": "REMOVE",
+    "at": "2026-08-13T14:20:06.689Z",
+    "detail": "notification journal",
+    "outcome": "DONE",
+    "target": "TEMP_STATE"
+   },
+   {
+    "action": "CLOSE",
+    "at": "2026-08-13T14:20:06.689Z",
+    "detail": "O1 consumer listener",
+    "outcome": "DONE",
+    "target": "LISTENER"
+   },
+   {
+    "action": "DELETE",
+    "at": "2026-08-13T14:20:06.690Z",
+    "outcome": "DONE",
+    "target": "O1_SUBSCRIPTION"
+   },
+   {
+    "action": "CLOSE",
+    "at": "2026-08-13T14:20:06.732Z",
+    "outcome": "DONE",
+    "target": "LISTENER"
+   },
+   {
+    "action": "CLOSE",
+    "at": "2026-08-13T14:20:06.777Z",
+    "outcome": "DONE",
+    "target": "LISTENER"
+   },
+   {
+    "action": "CLOSE",
+    "at": "2026-08-13T14:20:06.824Z",
+    "outcome": "DONE",
+    "target": "LISTENER"
+   }
+  ],
+  "complete": true,
+  "path": "NORMAL",
+  "residual": []
+ },
+ "clock": {
+  "hiddenSleepCount": 0,
+  "mode": "LIVE_OBSERVED",
+  "monotonicOriginNs": 1226940324947792,
+  "observedEnd": "2026-08-13T14:20:06.828Z",
+  "observedStart": "2026-08-13T14:18:49.561Z",
+  "orderingViolations": [],
+  "skewProbes": [],
+  "source": "SYSTEM_UTC"
+ },
+ "contract": {
+  "bundleManifestSha256": "c01dfb46518af0e6f2687e073158ae3e408f199ecd09a1405b1f162c98d7c0b1",
+  "catalogSha256": "0f28720007cba46722aee4f13fb6ce67c3d61ba27c2f264106e63b5649fbfc26",
+  "contractProfile": "oran-aic/1.0.1",
+  "correctedHandoff": "1.0.1",
+  "deploymentVectorSchemaSha256": "eb67fc5812914d50c249460616ad1152f610494e557b5f58b333204d51301948",
+  "frozenBundleDiffFileCount": 0,
+  "handoffManifestSha256": "40c2a1b6a53058853da6f595eb7d28bfae0beb46be2b615a31c74d4476e49047",
+  "o1NetconfYangProfileSha256": "34793beca68878f83e2f8713eb866b727ec75b600c3b46aeb44a55407930151b",
+  "o1PaFileProfileSha256": "1b02bbcda0e7f2f61349cf044f8c04beb1c19d558768be0d7841bec1f7882999",
+  "policyEvidenceSchemaSha256": "c63cc82a58573a38552402d4e0440d2ffb9436d7371a92bd662357fdbc088cff",
+  "profileAssignmentSha256": "3091b8afcad362c2dffaaa97acb1a551786ca8f2d41b70edef38fcb7ee9fde2c",
+  "runnerContractSha256": "4e9a2f8c802594490c2c6f4cb71f34723b0698bf9fefc6d36eefb163fb480390"
+ },
+ "coordinator": {
+  "evidenceRecordsSuppliedFromNormalization": [
+   "adb66bf301eb23137a0ed34107061b3fa30713e71d87dd005f2d02610de8b157",
+   "739f3d16c2e2f6f0c071fb8baf365834c21fac9c2b931cd8fe9436106d8ec9b1"
+  ],
+  "executionMode": "REAL_PROCESS_INTENT",
+  "fsmHistory": [
+   {
+    "from": "S0",
+    "origin": "REAL",
+    "outcome": "FSM_EVENT",
+    "to": "S0"
+   },
+   {
+    "from": "S0",
+    "origin": "REAL",
+    "outcome": "FSM_EVENT",
+    "to": "S1"
+   },
+   {
+    "from": "S1",
+    "origin": "REAL",
+    "outcome": "FSM_EVENT",
+    "to": "S2"
+   },
+   {
+    "from": "S2",
+    "origin": "REAL",
+    "outcome": "FSM_EVENT",
+    "to": "S3"
+   },
+   {
+    "from": "S3",
+    "origin": "REAL",
+    "outcome": "FSM_EVENT",
+    "to": "S4"
+   },
+   {
+    "from": "S4",
+    "origin": "REAL",
+    "outcome": "commit_original",
+    "to": "S6"
+   },
+   {
+    "from": "S6",
+    "origin": "REAL",
+    "outcome": "FSM_EVENT",
+    "to": "S0"
+   }
+  ],
+  "ledgerReferences": [
+   "evid-8c88b9e7ec1f",
+   "r1-policy-status:4811fa7f-923f-4c54-95dd-e6d2d542177f",
+   "episode:9972b940-15a1-463d-81b2-f68df04e0e91",
+   "dme-observation:c2596d3d-fad0-57d7-bdab-a4305665bd15"
+  ],
+  "nowInput": "2026-08-13T14:20:00Z",
+  "processIntentCallsAfter": 1,
+  "processIntentCallsBefore": 0,
+  "processIntentCallsDelta": 1,
+  "requiresRealCoordinatorExecution": true,
+  "syntheticTransitionCount": 0,
+  "terminalEvidenceRef": "evid-8c88b9e7ec1f",
+  "terminalOutcome": "commit_original",
+  "terminalOutcomeCount": 1
+ },
+ "deployment": {
+  "bindingDocSha256": "1e19b90532640c1b76520e75de047ea1f1af9b5cdc6623e9fb80c782b3662a50",
+  "originOwnership": {
+   "/o1/netconf/endpoint": "LOWER_LIVE_O1_PROVIDER",
+   "/o1/sftp/allowedAuthorities": "LOWER_LIVE_O1_PROVIDER",
+   "MnSRoot": "LOWER_LIVE_O1_PROVIDER",
+   "a1ApiRoot": "LOWER_IMPLEMENTATION_UNDER_TEST",
+   "a1StatusCallbackRoot": "UPPER_HARNESS",
+   "configured.r1.dme.policyEvidencePushBaseUri": "UPPER_HARNESS",
+   "o1ConsumerRoot": "UPPER_HARNESS",
+   "r1ApiRoot": "UPPER_HARNESS",
+   "rAppCallbackRoot": "UPPER_HARNESS"
+  },
+  "placeholderFree": true,
+  "resolvedRoots": {
+   "a1ApiRoot": "https://192.0.2.50:25446",
+   "a1StatusCallbackRoot": "https://127.0.0.1:25444/a1-status",
+   "mnsRoot": "https://192.0.2.50:25448/o1",
+   "netconfEndpoint": "ssh://o1netconf@192.0.2.50:25447",
+   "o1ConsumerRoot": "https://127.0.0.1:25445/o1/file-data-reporting/notifications",
+   "policyEvidencePushBaseUri": "https://127.0.0.1:25444/dme/push",
+   "r1ApiRoot": "https://127.0.0.1:25443/r1",
+   "rAppCallbackRoot": "https://127.0.0.1:25444/rapp",
+   "sftpAuthorities": [
+    "192.0.2.50:25449"
+   ]
+  },
+  "secretRefsResolved": [
+   "secret://known",
+   "secret://netconf",
+   "secret://o1",
+   "secret://o1-mtls/client-cert",
+   "secret://o1-mtls/client-key",
+   "secret://o1-mtls/client-trust",
+   "secret://o1-mtls/server-cert",
+   "secret://o1-mtls/server-key",
+   "secret://o1-mtls/trust",
+   "secret://o1-oauth/introspection-secret",
+   "secret://o1-oauth/mns-secret",
+   "secret://r1",
+   "secret://sftp",
+   "secret://trust"
+  ],
+  "unresolvedSecretRefs": [],
+  "vectorSha256": "c01c27565b33bf2265fa7e11b01f3c92fde1b472eb24961baff4c1da62bfd28f",
+  "vectorVersion": "oran-aic-deployment-test-vector/1.0.0"
+ },
+ "deterministicStubs": {
+  "controlResults": [
+   {
+    "at": "2026-08-13T14:18:51.810Z",
+    "payloadJcsSha256": "f88534b96b1251f37148bf102057d7751a1f2e2bb40d9aa9c8a17b21759b2e69",
+    "sequence": 21,
+    "servedBy": "UPPER_DETERMINISTIC_STUB",
+    "stepId": "control"
+   }
+  ],
+  "kpmSnapshots": [
+   {
+    "at": "2026-08-13T14:18:51.767Z",
+    "payloadJcsSha256": "bfe9aeefb4d3904d297db9248c32c18ec875f64addb9469fe7c4b21e293364cf",
+    "sequence": 19,
+    "servedBy": "UPPER_DETERMINISTIC_STUB",
+    "stepId": "decision"
+   }
+  ],
+  "normalRanWrites": 1,
+  "readbacks": [
+   {
+    "at": "2026-08-13T14:18:51.853Z",
+    "payloadJcsSha256": "442f032a6e5f6061b7537c11bbada8c0fb210e22982c6d64b6cd0295a204dc0b",
+    "sequence": 23,
+    "servedBy": "UPPER_DETERMINISTIC_STUB",
+    "stepId": "readback"
+   }
+  ],
+  "rollbackRanWrites": 0,
+  "routing": "UPPER_DETERMINISTIC_STUB",
+  "writeLedger": [
+   {
+    "at": "2026-08-13T14:18:51.810Z",
+    "kind": "NORMAL",
+    "live": false,
+    "sequence": 0,
+    "targetRef": "{'cId': {'ncI': 87654321}, 'plmnId': {'mcc': '208', 'mnc': '95'}}"
+   }
+  ]
+ },
+ "exchanges": [
+  {
+   "attemptCount": 1,
+   "bindings": {},
+   "capturedOutputs": {},
+   "correlationId": null,
+   "declaredExpectedHttpStatus": 201,
+   "direction": "UPPER_INBOUND",
+   "endpointRef": "#/endpointTemplates/r1Policies",
+   "idempotencyKey": null,
+   "method": "POST",
+   "monotonicOffsetMs": 1873,
+   "observedAt": "2026-08-13T14:18:51.435Z",
+   "peer": "LOWER_RUNNER",
+   "request": {
+    "bodyByteCount": 1063,
+    "bodyCanonicalSha256": "6711c25e7da9522e9e4a8e9abe3622f688117a1318371fd94eef64a544af5ae1",
+    "bodyJcsSha256": "6711c25e7da9522e9e4a8e9abe3622f688117a1318371fd94eef64a544af5ae1",
+    "bodyRawSha256": "6711c25e7da9522e9e4a8e9abe3622f688117a1318371fd94eef64a544af5ae1",
+    "contentType": "application/json",
+    "headerBlockCanonicalSha256": "31d0bc24898d0e4e8ad59ed1d1472cae81d49de068889324785cb7dc557f61f9",
+    "headerBlockSha256": "31d0bc24898d0e4e8ad59ed1d1472cae81d49de068889324785cb7dc557f61f9",
+    "headerNamesPresent": [
+     "Accept-Encoding",
+     "Content-Length",
+     "Content-Type",
+     "Host",
+     "Version"
+    ]
+   },
+   "resolvedUri": "https://127.0.0.1:25443/r1/a1-policy-management/v1/policies",
+   "response": {
+    "bodyByteCount": 1063,
+    "bodyCanonicalSha256": "6711c25e7da9522e9e4a8e9abe3622f688117a1318371fd94eef64a544af5ae1",
+    "bodyJcsSha256": "6711c25e7da9522e9e4a8e9abe3622f688117a1318371fd94eef64a544af5ae1",
+    "bodyRawSha256": "6711c25e7da9522e9e4a8e9abe3622f688117a1318371fd94eef64a544af5ae1",
+    "contentType": "application/json",
+    "headerBlockCanonicalSha256": "2429e70348d093ca0cf2a5133ee8cc78b684d60d8bbb49e8a236d67ee5ae475b",
+    "headerBlockSha256": "2429e70348d093ca0cf2a5133ee8cc78b684d60d8bbb49e8a236d67ee5ae475b",
+    "headerNamesPresent": [
+     "Content-Length",
+     "Content-Type",
+     "Location",
+     "Version"
+    ],
+    "locationHeader": "https://127.0.0.1:25443/r1/a1-policy-management/v1/policies/4811fa7f-923f-4c54-95dd-e6d2d542177f",
+    "locationLastPathSegment": "4811fa7f-923f-4c54-95dd-e6d2d542177f",
+    "status": 201
+   },
+   "role": "SERVER",
+   "sequence": 17,
+   "stepId": "r1-create",
+   "stepIndex": 0,
+   "timedOut": false,
+   "timeoutMs": 30000,
+   "transport": {
+    "peerAuthenticated": false,
+    "peerAuthority": "127.0.0.1:49200",
+    "scheme": "https",
+    "tlsProtocol": "TLSv1.3"
+   }
+  },
+  {
+   "attemptCount": 1,
+   "bindings": {
+    "policyId": "${steps.r1-create.outputs.policyId}",
+    "policyTypeId": "AIC_UECellSteering_1.0.0"
+   },
+   "capturedOutputs": {},
+   "correlationId": null,
+   "declaredExpectedHttpStatus": 201,
+   "direction": "UPPER_OUTBOUND",
+   "endpointRef": "#/endpointTemplates/a1Policy",
+   "idempotencyKey": null,
+   "method": "PUT",
+   "monotonicOffsetMs": 2198,
+   "observedAt": "2026-08-13T14:18:51.760Z",
+   "peer": "LOWER_A1",
+   "request": {
+    "bodyByteCount": 964,
+    "bodyCanonicalSha256": "81c55ae8d20572c7adf5801cdb16e336a98b1d2a515fa213d45694eea4fbd7a4",
+    "bodyJcsSha256": "81c55ae8d20572c7adf5801cdb16e336a98b1d2a515fa213d45694eea4fbd7a4",
+    "bodyRawSha256": "81c55ae8d20572c7adf5801cdb16e336a98b1d2a515fa213d45694eea4fbd7a4",
+    "contentType": "application/json",
+    "headerBlockCanonicalSha256": "efaca3667ccc1132f9dd67d57e77cbb1351f2c11e481080f8b19cb7db5548a1f",
+    "headerBlockSha256": "efaca3667ccc1132f9dd67d57e77cbb1351f2c11e481080f8b19cb7db5548a1f",
+    "headerNamesPresent": [
+     "Accept",
+     "Content-Length",
+     "Content-Type"
+    ]
+   },
+   "resolvedUri": "https://192.0.2.50:25446/A1-P/v2/policytypes/AIC_UECellSteering_1.0.0/policies/4811fa7f-923f-4c54-95dd-e6d2d542177f?notificationDestination=https%3A%2F%2F127.0.0.1%3A25444%2Fa1-status",
+   "response": {
+    "bodyByteCount": 51,
+    "bodyCanonicalSha256": "06197b155fdb179da8639bad72c2f302c5cb5e32889add6af7b7af8d542df683",
+    "bodyJcsSha256": "06197b155fdb179da8639bad72c2f302c5cb5e32889add6af7b7af8d542df683",
+    "bodyRawSha256": "06197b155fdb179da8639bad72c2f302c5cb5e32889add6af7b7af8d542df683",
+    "contentType": "application/json",
+    "headerBlockCanonicalSha256": "3f81ea78d0bbf7b289d3a2b0c5cfb7c7f385ef1a4469f5f5723a545d35b2cf43",
+    "headerBlockSha256": "3f81ea78d0bbf7b289d3a2b0c5cfb7c7f385ef1a4469f5f5723a545d35b2cf43",
+    "headerNamesPresent": [
+     "Content-Length",
+     "Content-Type",
+     "Date",
+     "Server"
+    ],
+    "locationHeader": null,
+    "locationLastPathSegment": null,
+    "status": 201
+   },
+   "role": "CLIENT",
+   "sequence": 18,
+   "stepId": "observe-a1-put",
+   "stepIndex": 1,
+   "timedOut": false,
+   "timeoutMs": 30000,
+   "transport": {
+    "peerAuthenticated": true,
+    "peerAuthority": "192.0.2.50:25446",
+    "scheme": "https",
+    "tlsProtocol": null
+   }
+  },
+  {
+   "attemptCount": 1,
+   "bindings": {},
+   "capturedOutputs": {},
+   "correlationId": null,
+   "declaredExpectedHttpStatus": 204,
+   "direction": "UPPER_INBOUND",
+   "endpointRef": null,
+   "idempotencyKey": null,
+   "method": "POST",
+   "monotonicOffsetMs": 2334,
+   "observedAt": "2026-08-13T14:18:51.896Z",
+   "peer": "LOWER_RUNNER",
+   "request": {
+    "bodyByteCount": 973,
+    "bodyCanonicalSha256": "cb4a8f2d98fd9d19a0ab8cac2c2da39ad85b06347a8f5889cac2b30192bef2d8",
+    "bodyJcsSha256": "cb4a8f2d98fd9d19a0ab8cac2c2da39ad85b06347a8f5889cac2b30192bef2d8",
+    "bodyRawSha256": "cb4a8f2d98fd9d19a0ab8cac2c2da39ad85b06347a8f5889cac2b30192bef2d8",
+    "contentType": "application/json",
+    "headerBlockCanonicalSha256": "64d3de958a475d37b652a87cfebfbfbb1daa1d019ac8973fdb06801a256c2fd1",
+    "headerBlockSha256": "64d3de958a475d37b652a87cfebfbfbb1daa1d019ac8973fdb06801a256c2fd1",
+    "headerNamesPresent": [
+     "Accept-Encoding",
+     "Content-Length",
+     "Content-Type",
+     "Host",
+     "Version"
+    ]
+   },
+   "resolvedUri": "https://127.0.0.1:25444/a1-status",
+   "response": {
+    "bodyByteCount": 0,
+    "bodyCanonicalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bodyRawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "contentType": null,
+    "headerBlockCanonicalSha256": "b822b791f96a8fdcd7eddef1d4a4c0e6fbc0d2cedfe3937c7508f3502cb85d04",
+    "headerBlockSha256": "b822b791f96a8fdcd7eddef1d4a4c0e6fbc0d2cedfe3937c7508f3502cb85d04",
+    "headerNamesPresent": [
+     "Content-Length"
+    ],
+    "locationHeader": null,
+    "locationLastPathSegment": null,
+    "status": 204
+   },
+   "role": "SERVER",
+   "sequence": 25,
+   "stepId": "a1-status-to-framework",
+   "stepIndex": 5,
+   "timedOut": false,
+   "timeoutMs": 30000,
+   "transport": {
+    "peerAuthenticated": false,
+    "peerAuthority": "127.0.0.1:40930",
+    "scheme": "https",
+    "tlsProtocol": "TLSv1.3"
+   }
+  },
+  {
+   "attemptCount": 1,
+   "bindings": {},
+   "capturedOutputs": {},
+   "correlationId": null,
+   "declaredExpectedHttpStatus": 204,
+   "direction": "UPPER_OUTBOUND",
+   "endpointRef": "#/endpointTemplates/r1PolicyStatusDestination",
+   "idempotencyKey": null,
+   "method": "POST",
+   "monotonicOffsetMs": 3602,
+   "observedAt": "2026-08-13T14:18:53.164Z",
+   "peer": "UPPER_SELF",
+   "request": {
+    "bodyByteCount": 1101,
+    "bodyCanonicalSha256": "82065ec32d8b86a9e85d7130b3466e09a873e1cc04233417cc316f92fd46bd40",
+    "bodyJcsSha256": "82065ec32d8b86a9e85d7130b3466e09a873e1cc04233417cc316f92fd46bd40",
+    "bodyRawSha256": "82065ec32d8b86a9e85d7130b3466e09a873e1cc04233417cc316f92fd46bd40",
+    "contentType": "application/json",
+    "headerBlockCanonicalSha256": "4644c3e3064cd82fc7b23dcd5f626d1ff16a19526b7fbe15b812a7bf2f79c2a9",
+    "headerBlockSha256": "4644c3e3064cd82fc7b23dcd5f626d1ff16a19526b7fbe15b812a7bf2f79c2a9",
+    "headerNamesPresent": [
+     "Accept",
+     "Content-Length",
+     "Content-Type",
+     "Version"
+    ]
+   },
+   "resolvedUri": "https://127.0.0.1:25444/rapp/r1/a1-policy-status",
+   "response": {
+    "bodyByteCount": 0,
+    "bodyCanonicalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bodyRawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "contentType": null,
+    "headerBlockCanonicalSha256": "65efd3af041190cc62d68b52bcd2fea900482a8d1ffd0d4857f16f3c8b23fd52",
+    "headerBlockSha256": "65efd3af041190cc62d68b52bcd2fea900482a8d1ffd0d4857f16f3c8b23fd52",
+    "headerNamesPresent": [
+     "Content-Length",
+     "Date",
+     "Server",
+     "Version"
+    ],
+    "locationHeader": null,
+    "locationLastPathSegment": null,
+    "status": 204
+   },
+   "role": "CLIENT",
+   "sequence": 26,
+   "stepId": "r1-status-to-rapp",
+   "stepIndex": 6,
+   "timedOut": false,
+   "timeoutMs": 30000,
+   "transport": {
+    "peerAuthenticated": true,
+    "peerAuthority": "127.0.0.1:25444",
+    "scheme": "https",
+    "tlsProtocol": null
+   }
+  },
+  {
+   "attemptCount": 1,
+   "bindings": {
+    "policyId": "${steps.r1-create.outputs.policyId}"
+   },
+   "capturedOutputs": {},
+   "correlationId": null,
+   "declaredExpectedHttpStatus": 200,
+   "direction": "UPPER_INBOUND",
+   "endpointRef": "#/endpointTemplates/r1PolicyStatus",
+   "idempotencyKey": null,
+   "method": "GET",
+   "monotonicOffsetMs": 3649,
+   "observedAt": "2026-08-13T14:18:53.211Z",
+   "peer": "LOWER_RUNNER",
+   "request": {
+    "bodyByteCount": 0,
+    "bodyCanonicalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bodyRawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "contentType": null,
+    "headerBlockCanonicalSha256": "938869fa2352c71e9f40c6a73e3c22cfb6788b8fb8f46232cff0f971789f6353",
+    "headerBlockSha256": "938869fa2352c71e9f40c6a73e3c22cfb6788b8fb8f46232cff0f971789f6353",
+    "headerNamesPresent": [
+     "Accept-Encoding",
+     "Host",
+     "Version"
+    ]
+   },
+   "resolvedUri": "https://127.0.0.1:25443/r1/a1-policy-management/v1/policies/4811fa7f-923f-4c54-95dd-e6d2d542177f/status",
+   "response": {
+    "bodyByteCount": 973,
+    "bodyCanonicalSha256": "cb4a8f2d98fd9d19a0ab8cac2c2da39ad85b06347a8f5889cac2b30192bef2d8",
+    "bodyJcsSha256": "cb4a8f2d98fd9d19a0ab8cac2c2da39ad85b06347a8f5889cac2b30192bef2d8",
+    "bodyRawSha256": "cb4a8f2d98fd9d19a0ab8cac2c2da39ad85b06347a8f5889cac2b30192bef2d8",
+    "contentType": "application/json",
+    "headerBlockCanonicalSha256": "3909ca3129feca854df9504ae5c025d8770568faaf7055c917ebad3b6c301ee2",
+    "headerBlockSha256": "3909ca3129feca854df9504ae5c025d8770568faaf7055c917ebad3b6c301ee2",
+    "headerNamesPresent": [
+     "Content-Length",
+     "Content-Type",
+     "Version"
+    ],
+    "locationHeader": null,
+    "locationLastPathSegment": null,
+    "status": 200
+   },
+   "role": "SERVER",
+   "sequence": 28,
+   "stepId": "r1-status-query",
+   "stepIndex": 7,
+   "timedOut": false,
+   "timeoutMs": 30000,
+   "transport": {
+    "peerAuthenticated": false,
+    "peerAuthority": "127.0.0.1:56866",
+    "scheme": "https",
+    "tlsProtocol": "TLSv1.3"
+   }
+  },
+  {
+   "attemptCount": 1,
+   "bindings": {},
+   "capturedOutputs": {},
+   "correlationId": null,
+   "declaredExpectedHttpStatus": 201,
+   "direction": "UPPER_INBOUND",
+   "endpointRef": "#/endpointTemplates/r1DmeDataJobs",
+   "idempotencyKey": null,
+   "method": "POST",
+   "monotonicOffsetMs": 4019,
+   "observedAt": "2026-08-13T14:18:53.581Z",
+   "peer": "LOWER_RUNNER",
+   "request": {
+    "bodyByteCount": 461,
+    "bodyCanonicalSha256": "1cefcdbdfa20df494d30298dc4d17f3e7b4bb6c447c7a9c56a6ef3f9bbfa11d2",
+    "bodyJcsSha256": "1cefcdbdfa20df494d30298dc4d17f3e7b4bb6c447c7a9c56a6ef3f9bbfa11d2",
+    "bodyRawSha256": "1cefcdbdfa20df494d30298dc4d17f3e7b4bb6c447c7a9c56a6ef3f9bbfa11d2",
+    "contentType": "application/json",
+    "headerBlockCanonicalSha256": "c0cdc0532a93f812865489891e25602a117753810172f625f85c5f6b3702b475",
+    "headerBlockSha256": "c0cdc0532a93f812865489891e25602a117753810172f625f85c5f6b3702b475",
+    "headerNamesPresent": [
+     "Accept-Encoding",
+     "Content-Length",
+     "Content-Type",
+     "Host",
+     "Version"
+    ]
+   },
+   "resolvedUri": "https://127.0.0.1:25443/r1/data-access/v2/data-jobs",
+   "response": {
+    "bodyByteCount": 491,
+    "bodyCanonicalSha256": "101f7c48e7f9db490d65f78d67dcac14bfc9e63f5f7681d36b312407aa2fc2ab",
+    "bodyJcsSha256": "101f7c48e7f9db490d65f78d67dcac14bfc9e63f5f7681d36b312407aa2fc2ab",
+    "bodyRawSha256": "101f7c48e7f9db490d65f78d67dcac14bfc9e63f5f7681d36b312407aa2fc2ab",
+    "contentType": "application/json",
+    "headerBlockCanonicalSha256": "452ea62cfddb579e624758a693349b38b745c5239fa29339e09de3aadbde858c",
+    "headerBlockSha256": "452ea62cfddb579e624758a693349b38b745c5239fa29339e09de3aadbde858c",
+    "headerNamesPresent": [
+     "Content-Length",
+     "Content-Type",
+     "Location",
+     "Version"
+    ],
+    "locationHeader": "https://127.0.0.1:25443/r1/data-access/v2/data-jobs/0d20aed3-7d51-4a3d-a11d-2796a74065b0",
+    "locationLastPathSegment": "0d20aed3-7d51-4a3d-a11d-2796a74065b0",
+    "status": 201
+   },
+   "role": "SERVER",
+   "sequence": 30,
+   "stepId": "create-dme-job",
+   "stepIndex": 8,
+   "timedOut": false,
+   "timeoutMs": 30000,
+   "transport": {
+    "peerAuthenticated": false,
+    "peerAuthority": "127.0.0.1:56874",
+    "scheme": "https",
+    "tlsProtocol": "TLSv1.3"
+   }
+  },
+  {
+   "attemptCount": 1,
+   "bindings": {
+    "deliveryBindingId": "${deployment.r1.dme.activeDeliveryBindingId}"
+   },
+   "capturedOutputs": {},
+   "correlationId": null,
+   "declaredExpectedHttpStatus": 204,
+   "direction": "UPPER_INBOUND",
+   "endpointRef": "#/endpointTemplates/r1DmePushDestination",
+   "idempotencyKey": null,
+   "method": "POST",
+   "monotonicOffsetMs": 71124,
+   "observedAt": "2026-08-13T14:20:00.686Z",
+   "peer": "LOWER_RUNNER",
+   "request": {
+    "bodyByteCount": 1814,
+    "bodyCanonicalSha256": "adb66bf301eb23137a0ed34107061b3fa30713e71d87dd005f2d02610de8b157",
+    "bodyJcsSha256": "adb66bf301eb23137a0ed34107061b3fa30713e71d87dd005f2d02610de8b157",
+    "bodyRawSha256": "adb66bf301eb23137a0ed34107061b3fa30713e71d87dd005f2d02610de8b157",
+    "contentType": "application/json",
+    "headerBlockCanonicalSha256": "4cbaccc69a3bf861078f38f060bda9254bd2d17acbc091ec3ca462418deeb704",
+    "headerBlockSha256": "4cbaccc69a3bf861078f38f060bda9254bd2d17acbc091ec3ca462418deeb704",
+    "headerNamesPresent": [
+     "Accept-Encoding",
+     "Content-Length",
+     "Content-Type",
+     "Host"
+    ]
+   },
+   "resolvedUri": "https://127.0.0.1:25444/dme/push/binding-local-012345678901",
+   "response": {
+    "bodyByteCount": 0,
+    "bodyCanonicalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bodyRawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "contentType": null,
+    "headerBlockCanonicalSha256": "b822b791f96a8fdcd7eddef1d4a4c0e6fbc0d2cedfe3937c7508f3502cb85d04",
+    "headerBlockSha256": "b822b791f96a8fdcd7eddef1d4a4c0e6fbc0d2cedfe3937c7508f3502cb85d04",
+    "headerNamesPresent": [
+     "Content-Length"
+    ],
+    "locationHeader": null,
+    "locationLastPathSegment": null,
+    "status": 204
+   },
+   "role": "SERVER",
+   "sequence": 37,
+   "stepId": "dme-push-cell-1",
+   "stepIndex": 12,
+   "timedOut": false,
+   "timeoutMs": 30000,
+   "transport": {
+    "peerAuthenticated": false,
+    "peerAuthority": "127.0.0.1:46168",
+    "scheme": "https",
+    "tlsProtocol": "TLSv1.3"
+   }
+  },
+  {
+   "attemptCount": 1,
+   "bindings": {
+    "deliveryBindingId": "${deployment.r1.dme.activeDeliveryBindingId}"
+   },
+   "capturedOutputs": {},
+   "correlationId": null,
+   "declaredExpectedHttpStatus": 204,
+   "direction": "UPPER_INBOUND",
+   "endpointRef": "#/endpointTemplates/r1DmePushDestination",
+   "idempotencyKey": null,
+   "method": "POST",
+   "monotonicOffsetMs": 71755,
+   "observedAt": "2026-08-13T14:20:01.316Z",
+   "peer": "LOWER_RUNNER",
+   "request": {
+    "bodyByteCount": 1814,
+    "bodyCanonicalSha256": "739f3d16c2e2f6f0c071fb8baf365834c21fac9c2b931cd8fe9436106d8ec9b1",
+    "bodyJcsSha256": "739f3d16c2e2f6f0c071fb8baf365834c21fac9c2b931cd8fe9436106d8ec9b1",
+    "bodyRawSha256": "739f3d16c2e2f6f0c071fb8baf365834c21fac9c2b931cd8fe9436106d8ec9b1",
+    "contentType": "application/json",
+    "headerBlockCanonicalSha256": "4cbaccc69a3bf861078f38f060bda9254bd2d17acbc091ec3ca462418deeb704",
+    "headerBlockSha256": "4cbaccc69a3bf861078f38f060bda9254bd2d17acbc091ec3ca462418deeb704",
+    "headerNamesPresent": [
+     "Accept-Encoding",
+     "Content-Length",
+     "Content-Type",
+     "Host"
+    ]
+   },
+   "resolvedUri": "https://127.0.0.1:25444/dme/push/binding-local-012345678901",
+   "response": {
+    "bodyByteCount": 0,
+    "bodyCanonicalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bodyRawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "contentType": null,
+    "headerBlockCanonicalSha256": "b822b791f96a8fdcd7eddef1d4a4c0e6fbc0d2cedfe3937c7508f3502cb85d04",
+    "headerBlockSha256": "b822b791f96a8fdcd7eddef1d4a4c0e6fbc0d2cedfe3937c7508f3502cb85d04",
+    "headerNamesPresent": [
+     "Content-Length"
+    ],
+    "locationHeader": null,
+    "locationLastPathSegment": null,
+    "status": 204
+   },
+   "role": "SERVER",
+   "sequence": 38,
+   "stepId": "dme-push-cell-2",
+   "stepIndex": 13,
+   "timedOut": false,
+   "timeoutMs": 30000,
+   "transport": {
+    "peerAuthenticated": false,
+    "peerAuthority": "127.0.0.1:46174",
+    "scheme": "https",
+    "tlsProtocol": "TLSv1.3"
+   }
+  },
+  {
+   "attemptCount": 1,
+   "bindings": {
+    "dataJobId": "${steps.create-dme-job.outputs.dataJobId}"
+   },
+   "capturedOutputs": {},
+   "correlationId": null,
+   "declaredExpectedHttpStatus": 200,
+   "direction": "UPPER_INBOUND",
+   "endpointRef": "#/endpointTemplates/r1DmeDataJobStatus",
+   "idempotencyKey": null,
+   "method": "GET",
+   "monotonicOffsetMs": 72402,
+   "observedAt": "2026-08-13T14:20:01.964Z",
+   "peer": "LOWER_RUNNER",
+   "request": {
+    "bodyByteCount": 0,
+    "bodyCanonicalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bodyRawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "contentType": null,
+    "headerBlockCanonicalSha256": "7eac5a40c8fc2ae776f3856a1161a85a03420a63a45cb499af9ffb56dd99db24",
+    "headerBlockSha256": "7eac5a40c8fc2ae776f3856a1161a85a03420a63a45cb499af9ffb56dd99db24",
+    "headerNamesPresent": [
+     "Accept-Encoding",
+     "Host",
+     "Version"
+    ]
+   },
+   "resolvedUri": "https://127.0.0.1:25443/r1/data-access/v2/data-jobs/0d20aed3-7d51-4a3d-a11d-2796a74065b0/status",
+   "response": {
+    "bodyByteCount": 60,
+    "bodyCanonicalSha256": "e09df9d75049e81387a46573323f42b24dae3077d2e36eb02a39a55b33e71646",
+    "bodyJcsSha256": "e09df9d75049e81387a46573323f42b24dae3077d2e36eb02a39a55b33e71646",
+    "bodyRawSha256": "e09df9d75049e81387a46573323f42b24dae3077d2e36eb02a39a55b33e71646",
+    "contentType": "application/json",
+    "headerBlockCanonicalSha256": "9aeb16bcf53a5cd7fd2c58236fc9e342663a13b463c4d2b6bee1072e2e4a73e3",
+    "headerBlockSha256": "9aeb16bcf53a5cd7fd2c58236fc9e342663a13b463c4d2b6bee1072e2e4a73e3",
+    "headerNamesPresent": [
+     "Content-Length",
+     "Content-Type",
+     "Version"
+    ],
+    "locationHeader": null,
+    "locationLastPathSegment": null,
+    "status": 200
+   },
+   "role": "SERVER",
+   "sequence": 39,
+   "stepId": "dme-status-query",
+   "stepIndex": 14,
+   "timedOut": false,
+   "timeoutMs": 30000,
+   "transport": {
+    "peerAuthenticated": false,
+    "peerAuthority": "127.0.0.1:42460",
+    "scheme": "https",
+    "tlsProtocol": "TLSv1.3"
+   }
+  }
+ ],
+ "externalCalls": {
+  "approvedConnectionAttempts": 27,
+  "attemptedAuthorities": [
+   "127.0.0.1:25443",
+   "127.0.0.1:25444",
+   "127.0.0.1:40930",
+   "127.0.0.1:42460",
+   "127.0.0.1:46168",
+   "127.0.0.1:46174",
+   "127.0.0.1:49200",
+   "127.0.0.1:56866",
+   "127.0.0.1:56874",
+   "192.0.2.50:25446",
+   "192.0.2.50:25447",
+   "192.0.2.50:25448",
+   "192.0.2.50:25449",
+   "192.0.2.50:25450"
+  ],
+  "authorityAllowlist": [
+   "127.0.0.1:25443",
+   "127.0.0.1:25444",
+   "127.0.0.1:25445",
+   "192.0.2.50:25446",
+   "192.0.2.50:25447",
+   "192.0.2.50:25448",
+   "192.0.2.50:25449",
+   "192.0.2.50:25450"
+  ],
+  "connectionAttempts": 27,
+  "externalLiveTargetCalls": 0,
+  "forbiddenEgressAttempts": 0,
+  "guardArmedNow": false,
+  "guardInstalled": true,
+  "guardMethods": [
+   "DNS_RESOLVE",
+   "SFTP_CLIENT_OPEN",
+   "SOCKET_CONNECT",
+   "SSH_TRANSPORT_OPEN",
+   "SUBPROCESS_SPAWN"
+  ],
+  "hardwareCalls": 0,
+  "hardwareDefinitionSource": "release-gates.1.0.0.json#/hardwareControlSurfaces",
+  "peerAttributionAmbiguities": [],
+  "scope": "scenario",
+  "targetLedger": [
+   {
+    "allowed": true,
+    "authority": "127.0.0.1:25443",
+    "callCount": 8,
+    "firstAt": "2026-08-13T14:20:02.055Z",
+    "lastAt": "2026-08-13T14:20:04.582Z",
+    "protocol": "HTTPS",
+    "role": "UPPER_SELF"
+   },
+   {
+    "allowed": true,
+    "authority": "127.0.0.1:25444",
+    "callCount": 1,
+    "firstAt": "2026-08-13T14:18:52.536Z",
+    "lastAt": "2026-08-13T14:18:52.536Z",
+    "protocol": "HTTPS",
+    "role": "UPPER_SELF"
+   },
+   {
+    "allowed": true,
+    "authority": "192.0.2.50:25446",
+    "callCount": 4,
+    "firstAt": "2026-08-13T14:18:51.757Z",
+    "lastAt": "2026-08-13T14:20:04.584Z",
+    "protocol": "HTTPS",
+    "role": "LOWER_IMPLEMENTATION_UNDER_TEST"
+   },
+   {
+    "allowed": true,
+    "authority": "192.0.2.50:25447",
+    "callCount": 3,
+    "firstAt": "2026-08-13T14:18:50.557Z",
+    "lastAt": "2026-08-13T14:18:50.558Z",
+    "protocol": "NETCONF_SSH",
+    "role": "LOWER_LIVE_O1_PROVIDER"
+   },
+   {
+    "allowed": true,
+    "authority": "192.0.2.50:25448",
+    "callCount": 3,
+    "firstAt": "2026-08-13T14:18:50.622Z",
+    "lastAt": "2026-08-13T14:20:06.680Z",
+    "protocol": "HTTPS",
+    "role": "LOWER_LIVE_O1_PROVIDER"
+   },
+   {
+    "allowed": true,
+    "authority": "192.0.2.50:25449",
+    "callCount": 4,
+    "firstAt": "2026-08-13T14:20:00.485Z",
+    "lastAt": "2026-08-13T14:20:00.540Z",
+    "protocol": "SFTP_SSH",
+    "role": "LOWER_LIVE_O1_PROVIDER"
+   },
+   {
+    "allowed": true,
+    "authority": "192.0.2.50:25450",
+    "callCount": 4,
+    "firstAt": "2026-08-13T14:18:50.618Z",
+    "lastAt": "2026-08-13T14:20:06.677Z",
+    "protocol": "HTTPS",
+    "role": "UNATTRIBUTED"
+   }
+  ],
+  "violations": []
+ },
+ "harnessOperations": [
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "scenarioId"
+   ],
+   "component": "nonrt",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:50.555Z",
+   "op": "START_R1_A1_SERVICE",
+   "outputKeys": [
+    "ready"
+   ],
+   "sequence": 0
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "scenarioId"
+   ],
+   "component": "nonrt",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:50.555Z",
+   "op": "A1_INSTALL_POLICY_TYPE",
+   "outputKeys": [
+    "policyTypeReady"
+   ],
+   "sequence": 1
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "scenarioId"
+   ],
+   "component": "nonrt",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:50.555Z",
+   "op": "LOAD_CAPABILITY",
+   "outputKeys": [
+    "capabilityReady"
+   ],
+   "sequence": 2
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "scenarioId"
+   ],
+   "component": "nonrt",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:50.555Z",
+   "op": "SET_DEPENDENCIES",
+   "outputKeys": [
+    "dependenciesReady"
+   ],
+   "sequence": 3
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "scenarioId"
+   ],
+   "component": "nonrt",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:50.557Z",
+   "op": "INSTALL_R1_STATUS_SUBSCRIPTION",
+   "outputKeys": [
+    "subscriptionInstalled"
+   ],
+   "sequence": 4
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "scenarioId"
+   ],
+   "component": "o1_consumer",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:50.616Z",
+   "op": "LOAD_O1_PROFILE",
+   "outputKeys": [
+    "advertisedCapabilityCount",
+    "mountedYangLibraryDigest",
+    "profileLoaded",
+    "requiredCapabilitiesSatisfied",
+    "schemaMountVerified",
+    "yangClosureDigest"
+   ],
+   "sequence": 6
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "consumerReference",
+    "scenarioId",
+    "subscriptionId"
+   ],
+   "component": "o1_consumer",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:50.633Z",
+   "op": "INSTALL_O1_SUBSCRIPTION",
+   "outputKeys": [
+    "durable",
+    "subscriptionId",
+    "subscriptionInstalled"
+   ],
+   "sequence": 7
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "jobId",
+    "managedObjectDn",
+    "managedObjectUri",
+    "scenarioId"
+   ],
+   "component": "o1_consumer",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:50.711Z",
+   "op": "SET_PERF_METRIC_JOB",
+   "outputKeys": [
+    "administrativeState",
+    "operationalState",
+    "perfMetricJobPresent"
+   ],
+   "sequence": 15
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "scenarioId"
+   ],
+   "component": "nonrt",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:51.354Z",
+   "op": "INSTALL_DME_REGISTRATION",
+   "outputKeys": [
+    "registered"
+   ],
+   "sequence": 16
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "snapshot",
+    "stepId"
+   ],
+   "component": "rapp",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:51.767Z",
+   "op": "KPM_SNAPSHOT",
+   "outputKeys": [
+    "fresh",
+    "observedServingNcI",
+    "uniqueTargetNcI"
+   ],
+   "sequence": 20
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "rollback",
+    "stepId",
+    "target"
+   ],
+   "component": "rapp",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:51.810Z",
+   "op": "E2_CONTROL_RESULT",
+   "outputKeys": [
+    "effectApplied",
+    "result",
+    "resultIsEffectEvidence"
+   ],
+   "sequence": 22
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "observed",
+    "stepId"
+   ],
+   "component": "rapp",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:51.853Z",
+   "op": "READBACK",
+   "outputKeys": [
+    "quality",
+    "servingCellNcI"
+   ],
+   "sequence": 24
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [],
+   "component": "rapp",
+   "event": "ICS_STATE_READ",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:53.169Z",
+   "op": "STATE",
+   "sequence": 27
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "deliveryBindingId",
+    "job"
+   ],
+   "component": "rapp",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:53.538Z",
+   "op": "R1_DME_BINDING_PRECREATE",
+   "outputKeys": [],
+   "sequence": 29
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "dataJobId",
+    "deliveryBindingId"
+   ],
+   "component": "rapp",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:18:53.625Z",
+   "op": "R1_DME_BINDING_COMMIT",
+   "outputKeys": [],
+   "sequence": 31
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "inputFromStep"
+   ],
+   "component": "o1_consumer",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:20:00.594Z",
+   "op": "O1_RETRIEVE",
+   "outputKeys": [
+    "byteCount",
+    "byteSha256",
+    "fileInfo",
+    "rawArtifactPath"
+   ],
+   "sequence": 34
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "inputFromStep"
+   ],
+   "component": "o1_consumer",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:20:00.603Z",
+   "op": "O1_NORMALIZE",
+   "outputKeys": [
+    "commitEligibleRecords",
+    "duplicateRecords",
+    "records",
+    "rejectedRecords",
+    "samples"
+   ],
+   "sequence": 35
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [],
+   "component": "o1_consumer",
+   "event": "ICS_STATE_READ",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:20:00.643Z",
+   "op": "STATE",
+   "sequence": 36
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [],
+   "component": "rapp",
+   "event": "ICS_STATE_READ",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:20:02.007Z",
+   "op": "STATE",
+   "sequence": 40
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [
+    "evidenceRecords",
+    "identifiers",
+    "intent",
+    "now",
+    "policyContext",
+    "policyId"
+   ],
+   "component": "rapp",
+   "event": "ICS_OP",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:20:06.474Z",
+   "op": "COORDINATOR_PROCESS_INTENT",
+   "outputKeys": [
+    "fsmHistory",
+    "ledgerReferences",
+    "processIntentCalls",
+    "terminalEvidenceRef",
+    "terminalOutcome"
+   ],
+   "sequence": 41
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [],
+   "component": "rapp",
+   "event": "ICS_STATE_READ",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:20:06.477Z",
+   "op": "STATE",
+   "sequence": 42
+  },
+  {
+   "allowed": true,
+   "argumentKeys": [],
+   "component": "nonrt",
+   "event": "ICS_STATE_READ",
+   "httpStatus": 200,
+   "observedAt": "2026-08-13T14:20:06.520Z",
+   "op": "STATE",
+   "sequence": 43
+  }
+ ],
+ "netconf": {
+  "assignment": {
+   "adapterActionsAssignedToUpper": [
+    "INSTALL_O1_SUBSCRIPTION",
+    "LOAD_O1_PROFILE",
+    "SET_PERF_METRIC_JOB"
+   ],
+   "authorityRecordDigest": "b0a14c63d855b6e35492459e77528b4fda50443c2a45288896966509d444c0cc",
+   "roleTablePointer": "/initialStates"
+  },
+  "enabled": true,
+  "measuredSegment": {
+   "delta": {
+    "clientToServerChunkDelta": 0,
+    "clientToServerMessageDelta": 0,
+    "clientToServerOctetDelta": 0,
+    "measuredRpcDelta": 0,
+    "serverToClientChunkDelta": 0,
+    "serverToClientMessageDelta": 0,
+    "serverToClientOctetDelta": 0
+   },
+   "end": {
+    "captureSequence": 44,
+    "clientToServerChunkCount": 7,
+    "clientToServerMessageCount": 8,
+    "clientToServerOctetCount": 4923,
+    "monotonicNs": 1227017358437713,
+    "rpcRecordCount": 7,
+    "serverToClientChunkCount": 7,
+    "serverToClientMessageCount": 8,
+    "serverToClientOctetCount": 11112
+   },
+   "sessionId": "cd8a13dea1895c8dc8a66f39290f408419580097f01a4e5546439f2605a117cc",
+   "source": "NETCONF_SSH_SUBSYSTEM_TAP",
+   "start": {
+    "captureSequence": 14,
+    "clientToServerChunkCount": 7,
+    "clientToServerMessageCount": 8,
+    "clientToServerOctetCount": 4923,
+    "monotonicNs": 1226941472862873,
+    "rpcRecordCount": 7,
+    "serverToClientChunkCount": 7,
+    "serverToClientMessageCount": 8,
+    "serverToClientOctetCount": 11112
+   }
+  },
+  "perfMetricJob": {
+   "create": {
+    "administrativeState": "LOCKED",
+    "attempted": true,
+    "outcome": "OK",
+    "readbackConfirmedAt": "2026-08-13T14:18:50.675Z",
+    "rpcSequences": [
+     9
+    ]
+   },
+   "delete": {
+    "attempted": true,
+    "outcome": "OK",
+    "rpcSequences": [
+     47
+    ]
+   },
+   "jobId": "oran-aic-nrcelldu-60s",
+   "managedObjectDn": "SubNetwork=oran-lab,ManagedElement=oai-gnb,PerfMetricJob=oran-aic-nrcelldu-60s",
+   "read": {
+    "administrativeState": "UNLOCKED",
+    "attempted": true,
+    "operationalState": "ENABLED",
+    "outcome": "OK",
+    "readbackConfirmedAt": "2026-08-13T14:18:50.707Z",
+    "rpcSequences": [
+     10,
+     12
+    ]
+   }
+  },
+  "readiness": {
+   "complete": true,
+   "contractPointer": "/initialStates",
+   "measuredBodyAdmitted": true,
+   "orderSource": "02-rapp-xapp-backend-mandatory-contract.1.0.1.md#10.2",
+   "requiredInitialStates": [
+    "INSTALL_O1_PROFILE",
+    "INSTALL_ACTIVE_O1_SUBSCRIPTION",
+    "SET_PERF_METRIC_JOB_UNLOCKED",
+    "CONFIGURE_LIVE_O1_OK_RECORD_FOR_EACH_POLICY_CELL"
+   ],
+   "states": [
+    {
+     "at": "2026-08-13T14:18:50.538Z",
+     "confirmed": true,
+     "evidence": {
+      "lifecycleFixturesResolved": 11,
+      "paFileProfileActive": true,
+      "profilesActive": true,
+      "yangClosureDigest": "730ed4c5c47749ad2b981e604569a0eda89571ac12c80643b185186f6fdcbde3"
+     },
+     "initialStates": [
+      "INSTALL_O1_PROFILE"
+     ],
+     "owner": "UPPER_HARNESS",
+     "postconditions": [
+      "The exact file-reporting and NETCONF/YANG profiles are active; every lifecycle requestFixture resolves to the registered immutable XML bytes."
+     ],
+     "state": "PRECHECK"
+    },
+    {
+     "at": "2026-08-13T14:18:50.615Z",
+     "confirmed": true,
+     "evidence": {
+      "clientAuthMethod": "PUBLIC_KEY",
+      "endpointAuthority": "192.0.2.50:25447",
+      "hostKeyVerified": true,
+      "mountedYangLibraryDigest": "069ac82f6e7bd67ea2bfda5307fd35ae0198a39d9e179482ae06755b4494d105",
+      "notificationReceiverBound": true,
+      "requiredCapabilitiesSatisfied": true,
+      "schemaMountVerified": true
+     },
+     "initialStates": [],
+     "owner": "UPPER_HARNESS",
+     "postconditions": [],
+     "state": "TRUST_READY"
+    },
+    {
+     "at": "2026-08-13T14:18:50.631Z",
+     "confirmed": true,
+     "evidence": {
+      "createdStatus": 201,
+      "durable": true,
+      "durableStatePath": "state/o1-subscription.json",
+      "subscriptionId": "P6NQ7BDaw_oZKCZHBliP8Pb-"
+     },
+     "initialStates": [
+      "INSTALL_ACTIVE_O1_SUBSCRIPTION"
+     ],
+     "owner": "UPPER_HARNESS",
+     "postconditions": [
+      "One durable provider subscription exists."
+     ],
+     "state": "SUBSCRIBED"
+    },
+    {
+     "at": "2026-08-13T14:18:50.709Z",
+     "confirmed": true,
+     "evidence": {
+      "administrativeState": "UNLOCKED",
+      "datastoreLockedBeforeCreate": true,
+      "datastoreUnlocked": true,
+      "durableSubscriptionConfirmedBeforeUnlock": true,
+      "lockedReadbackConfirmed": true,
+      "observedStateOrder": "DATASTORE_LOCKED,JOB_CREATED_LOCKED,JOB_CONFIG_VERIFIED,SUBSCRIPTION_DURABLE,JOB_UNLOCKED,JOB_ACTIVE,DATASTORE_UNLOCKED",
+      "operationalState": "ENABLED",
+      "readbackConfirmedAt": "2026-08-13T14:18:50.707Z"
+     },
+     "initialStates": [
+      "SET_PERF_METRIC_JOB_UNLOCKED"
+     ],
+     "owner": "UPPER_HARNESS",
+     "postconditions": [
+      "Profile-pinned NETCONF readback is UNLOCKED and operationalState reaches ENABLED within the profile timeout."
+     ],
+     "state": "JOB_ACTIVE"
+    },
+    {
+     "at": "2026-08-13T14:20:00.602Z",
+     "confirmed": true,
+     "evidence": {
+      "commitEligibleRecords": 2,
+      "filesRetrieved": 1,
+      "notificationsAccepted": 1,
+      "providerAcceptanceSource": "provider-acceptance-contract#/acceptance/providerEstablishedInitialStates",
+      "providerAcceptedInitialState": true
+     },
+     "initialStates": [
+      "CONFIGURE_LIVE_O1_OK_RECORD_FOR_EACH_POLICY_CELL"
+     ],
+     "owner": "LOWER_LIVE_O1_PROVIDER",
+     "postconditions": [
+      "One commit-eligible record can be captured per policy cell without fixing values or timestamps."
+     ],
+     "state": "ASSURANCE_READY"
+    }
+   ],
+   "teardownOrder": [
+    "JOB_LOCKED",
+    "JOB_DELETED",
+    "IN_FLIGHT_DRAINED",
+    "SUBSCRIPTION_DELETED",
+    "NETCONF_SESSION_CLOSED"
+   ],
+   "unmet": []
+  },
+  "rpcs": [
+   {
+    "at": "2026-08-13T14:18:50.614Z",
+    "lifecycleOrdinal": 1,
+    "outcome": "OK",
+    "phase": "LIFECYCLE",
+    "replyRaw": {
+     "artifactPath": "raw/netconf/rpc-0005-get-schema-mount-reply.xml",
+     "byteCount": 6020,
+     "mediaType": "application/xml",
+     "sha256": "135661c6069925c81136bf7137a4a8ae29a7e98dc518b75f52e5a892294415ea",
+     "truncated": false
+    },
+    "requestFixtureRef": "golden/o1/netconf/get-schema-mount.xml",
+    "requestFixtureSha256": "f1cd6064bd49ca59535b0ed60c7e68097cf3621a5cc88c4de6ad0aa2641ae62e",
+    "requestRaw": {
+     "artifactPath": "raw/netconf/rpc-0005-get-schema-mount-request.xml",
+     "byteCount": 612,
+     "mediaType": "application/xml",
+     "sha256": "f1cd6064bd49ca59535b0ed60c7e68097cf3621a5cc88c4de6ad0aa2641ae62e",
+     "truncated": false
+    },
+    "sequence": 5
+   },
+   {
+    "at": "2026-08-13T14:18:50.636Z",
+    "lifecycleOrdinal": 2,
+    "outcome": "OK",
+    "phase": "LIFECYCLE",
+    "replyRaw": {
+     "artifactPath": "raw/netconf/rpc-0008-lock-running-reply.xml",
+     "byteCount": 93,
+     "mediaType": "application/xml",
+     "sha256": "da13f81f4d8bb4fe8f045418330322837f0af2a324e0199bae0c6505df9f45ad",
+     "truncated": false
+    },
+    "requestFixtureRef": "golden/o1/netconf/lock-running.xml",
+    "requestFixtureSha256": "1f6d80a339aafab7ebb677eaf8ba466464019e5da687ec6c1e1021a6422245a4",
+    "requestRaw": {
+     "artifactPath": "raw/netconf/rpc-0008-lock-running-request.xml",
+     "byteCount": 168,
+     "mediaType": "application/xml",
+     "sha256": "1f6d80a339aafab7ebb677eaf8ba466464019e5da687ec6c1e1021a6422245a4",
+     "truncated": false
+    },
+    "sequence": 8
+   },
+   {
+    "at": "2026-08-13T14:18:50.663Z",
+    "lifecycleOrdinal": 3,
+    "outcome": "OK",
+    "phase": "LIFECYCLE",
+    "replyRaw": {
+     "artifactPath": "raw/netconf/rpc-0009-create-perfmetricjob-locked-reply.xml",
+     "byteCount": 93,
+     "mediaType": "application/xml",
+     "sha256": "63289df6d64a2f0f1bb650b83ece692fbd1695b9f126bf1fb8ab13cf22d9ad78",
+     "truncated": false
+    },
+    "requestFixtureRef": "golden/o1/netconf/create-perfmetricjob-locked.xml",
+    "requestFixtureSha256": "2e4c580ab09665baf34e8abca3483a04316fba4eb6e9a0128106b11eef7f79a3",
+    "requestRaw": {
+     "artifactPath": "raw/netconf/rpc-0009-create-perfmetricjob-locked-request.xml",
+     "byteCount": 1267,
+     "mediaType": "application/xml",
+     "sha256": "2e4c580ab09665baf34e8abca3483a04316fba4eb6e9a0128106b11eef7f79a3",
+     "truncated": false
+    },
+    "sequence": 9
+   },
+   {
+    "at": "2026-08-13T14:18:50.674Z",
+    "lifecycleOrdinal": 4,
+    "outcome": "OK",
+    "phase": "LIFECYCLE",
+    "replyRaw": {
+     "artifactPath": "raw/netconf/rpc-0010-get-perfmetricjob-reply.xml",
+     "byteCount": 776,
+     "mediaType": "application/xml",
+     "sha256": "f738f9d941284881d4bbdbebbc013b6a13e923cb886f154c2affafb185dd41f8",
+     "truncated": false
+    },
+    "requestFixtureRef": "golden/o1/netconf/get-perfmetricjob.xml",
+    "requestFixtureSha256": "88245e9d744420c46196b07100aec39091c9537731a1125754c769ec38a295a5",
+    "requestRaw": {
+     "artifactPath": "raw/netconf/rpc-0010-get-perfmetricjob-request.xml",
+     "byteCount": 581,
+     "mediaType": "application/xml",
+     "sha256": "88245e9d744420c46196b07100aec39091c9537731a1125754c769ec38a295a5",
+     "truncated": false
+    },
+    "sequence": 10
+   },
+   {
+    "at": "2026-08-13T14:18:50.697Z",
+    "lifecycleOrdinal": 6,
+    "outcome": "OK",
+    "phase": "LIFECYCLE",
+    "replyRaw": {
+     "artifactPath": "raw/netconf/rpc-0011-unlock-perfmetricjob-reply.xml",
+     "byteCount": 93,
+     "mediaType": "application/xml",
+     "sha256": "c2458e4c139673f509af818e26ea7db2c2dd0486619691fad6c43b45bcac85d3",
+     "truncated": false
+    },
+    "requestFixtureRef": "golden/o1/netconf/unlock-perfmetricjob.xml",
+    "requestFixtureSha256": "9b97bc2669478380469e83587dd602dd8dc4f62c757d57aa0c6612a9a0954bc6",
+    "requestRaw": {
+     "artifactPath": "raw/netconf/rpc-0011-unlock-perfmetricjob-request.xml",
+     "byteCount": 942,
+     "mediaType": "application/xml",
+     "sha256": "9b97bc2669478380469e83587dd602dd8dc4f62c757d57aa0c6612a9a0954bc6",
+     "truncated": false
+    },
+    "sequence": 11
+   },
+   {
+    "at": "2026-08-13T14:18:50.707Z",
+    "lifecycleOrdinal": 7,
+    "outcome": "OK",
+    "phase": "LIFECYCLE",
+    "replyRaw": {
+     "artifactPath": "raw/netconf/rpc-0012-get-perfmetricjob-reply.xml",
+     "byteCount": 777,
+     "mediaType": "application/xml",
+     "sha256": "386aa084e26fcf49f85171e9922482ed4100412116f667102b9dfeb7172dfa42",
+     "truncated": false
+    },
+    "requestFixtureRef": "golden/o1/netconf/get-perfmetricjob.xml",
+    "requestFixtureSha256": "88245e9d744420c46196b07100aec39091c9537731a1125754c769ec38a295a5",
+    "requestRaw": {
+     "artifactPath": "raw/netconf/rpc-0012-get-perfmetricjob-request.xml",
+     "byteCount": 581,
+     "mediaType": "application/xml",
+     "sha256": "88245e9d744420c46196b07100aec39091c9537731a1125754c769ec38a295a5",
+     "truncated": false
+    },
+    "sequence": 12
+   },
+   {
+    "at": "2026-08-13T14:18:50.709Z",
+    "lifecycleOrdinal": 8,
+    "outcome": "OK",
+    "phase": "LIFECYCLE",
+    "replyRaw": {
+     "artifactPath": "raw/netconf/rpc-0013-unlock-running-reply.xml",
+     "byteCount": 93,
+     "mediaType": "application/xml",
+     "sha256": "91b982012092fce0c344ab418c21f728128eb5132e386ac5a0af92b5dd21b344",
+     "truncated": false
+    },
+    "requestFixtureRef": "golden/o1/netconf/unlock-running.xml",
+    "requestFixtureSha256": "ac84fa501438056920745e0e48bd299d0e275855beeae6ccc42aebe33503fdf2",
+    "requestRaw": {
+     "artifactPath": "raw/netconf/rpc-0013-unlock-running-request.xml",
+     "byteCount": 172,
+     "mediaType": "application/xml",
+     "sha256": "ac84fa501438056920745e0e48bd299d0e275855beeae6ccc42aebe33503fdf2",
+     "truncated": false
+    },
+    "sequence": 13
+   },
+   {
+    "at": "2026-08-13T14:20:06.632Z",
+    "lifecycleOrdinal": 1,
+    "outcome": "OK",
+    "phase": "TEARDOWN",
+    "replyRaw": {
+     "artifactPath": "raw/netconf/rpc-0045-lock-running-reply.xml",
+     "byteCount": 93,
+     "mediaType": "application/xml",
+     "sha256": "da13f81f4d8bb4fe8f045418330322837f0af2a324e0199bae0c6505df9f45ad",
+     "truncated": false
+    },
+    "requestFixtureRef": "golden/o1/netconf/lock-running.xml",
+    "requestFixtureSha256": "1f6d80a339aafab7ebb677eaf8ba466464019e5da687ec6c1e1021a6422245a4",
+    "requestRaw": {
+     "artifactPath": "raw/netconf/rpc-0045-lock-running-request.xml",
+     "byteCount": 168,
+     "mediaType": "application/xml",
+     "sha256": "1f6d80a339aafab7ebb677eaf8ba466464019e5da687ec6c1e1021a6422245a4",
+     "truncated": false
+    },
+    "sequence": 45
+   },
+   {
+    "at": "2026-08-13T14:20:06.655Z",
+    "lifecycleOrdinal": 2,
+    "outcome": "OK",
+    "phase": "TEARDOWN",
+    "replyRaw": {
+     "artifactPath": "raw/netconf/rpc-0046-lock-perfmetricjob-reply.xml",
+     "byteCount": 93,
+     "mediaType": "application/xml",
+     "sha256": "36dd2755831d2c1752ca509a73add129f68c2c00fa8336ce01d7a21915e552da",
+     "truncated": false
+    },
+    "requestFixtureRef": "golden/o1/netconf/lock-perfmetricjob.xml",
+    "requestFixtureSha256": "60993ee73e87b5ebc6dc4bbfc7f6b702d7db74cf85d44ac03d8c5d71752fa3b8",
+    "requestRaw": {
+     "artifactPath": "raw/netconf/rpc-0046-lock-perfmetricjob-request.xml",
+     "byteCount": 940,
+     "mediaType": "application/xml",
+     "sha256": "60993ee73e87b5ebc6dc4bbfc7f6b702d7db74cf85d44ac03d8c5d71752fa3b8",
+     "truncated": false
+    },
+    "sequence": 46
+   },
+   {
+    "at": "2026-08-13T14:20:06.663Z",
+    "lifecycleOrdinal": 3,
+    "outcome": "OK",
+    "phase": "TEARDOWN",
+    "replyRaw": {
+     "artifactPath": "raw/netconf/rpc-0047-delete-perfmetricjob-reply.xml",
+     "byteCount": 93,
+     "mediaType": "application/xml",
+     "sha256": "5c6c11a4d8fa91d78f2dc30cd444e4a9bb3657868335e8cc2c17241a88013e68",
+     "truncated": false
+    },
+    "requestFixtureRef": "golden/o1/netconf/delete-perfmetricjob.xml",
+    "requestFixtureSha256": "f15393ff8ec862992f595899a793cec62bfaf1e8540e6f0964c581c33061c5b0",
+    "requestRaw": {
+     "artifactPath": "raw/netconf/rpc-0047-delete-perfmetricjob-request.xml",
+     "byteCount": 812,
+     "mediaType": "application/xml",
+     "sha256": "f15393ff8ec862992f595899a793cec62bfaf1e8540e6f0964c581c33061c5b0",
+     "truncated": false
+    },
+    "sequence": 47
+   },
+   {
+    "at": "2026-08-13T14:20:06.665Z",
+    "lifecycleOrdinal": 4,
+    "outcome": "OK",
+    "phase": "TEARDOWN",
+    "replyRaw": {
+     "artifactPath": "raw/netconf/rpc-0048-unlock-running-reply.xml",
+     "byteCount": 93,
+     "mediaType": "application/xml",
+     "sha256": "91b982012092fce0c344ab418c21f728128eb5132e386ac5a0af92b5dd21b344",
+     "truncated": false
+    },
+    "requestFixtureRef": "golden/o1/netconf/unlock-running.xml",
+    "requestFixtureSha256": "ac84fa501438056920745e0e48bd299d0e275855beeae6ccc42aebe33503fdf2",
+    "requestRaw": {
+     "artifactPath": "raw/netconf/rpc-0048-unlock-running-request.xml",
+     "byteCount": 172,
+     "mediaType": "application/xml",
+     "sha256": "ac84fa501438056920745e0e48bd299d0e275855beeae6ccc42aebe33503fdf2",
+     "truncated": false
+    },
+    "sequence": 48
+   }
+  ],
+  "session": {
+   "advertisedCapabilities": [
+    "urn:ietf:params:netconf:base:1.0",
+    "urn:ietf:params:netconf:base:1.1",
+    "urn:ietf:params:netconf:capability:candidate:1.0",
+    "urn:ietf:params:netconf:capability:confirmed-commit:1.1",
+    "urn:ietf:params:netconf:capability:interleave:1.0",
+    "urn:ietf:params:netconf:capability:notification:1.0",
+    "urn:ietf:params:netconf:capability:private-candidate:1.0",
+    "urn:ietf:params:netconf:capability:rollback-on-error:1.0",
+    "urn:ietf:params:netconf:capability:startup:1.0",
+    "urn:ietf:params:netconf:capability:url:1.0?scheme=ftp,ftps,http,https,scp,sftp",
+    "urn:ietf:params:netconf:capability:validate:1.1",
+    "urn:ietf:params:netconf:capability:with-defaults:1.0?basic-mode=explicit&also-supported=report-all,report-all-tagged,trim,explicit,",
+    "urn:ietf:params:netconf:capability:writable-running:1.0",
+    "urn:ietf:params:netconf:capability:xpath:1.0",
+    "urn:ietf:params:netconf:capability:yang-library:1.1?revision=2019-01-04&content-id=3681857469",
+    "urn:ietf:params:xml:ns:netconf:base:1.0?module=ietf-netconf&revision=2013-09-29&features=writable-running,candidate,confirmed-commit,rollback-on-error,validate,startup,url,xpath",
+    "urn:ietf:params:xml:ns:netconf:notification:1.0?module=notifications&revision=2008-07-14",
+    "urn:ietf:params:xml:ns:netmod:notification?module=nc-notifications&revision=2008-07-14",
+    "urn:ietf:params:xml:ns:yang:iana-crypt-hash?module=iana-crypt-hash&revision=2014-04-04&features=crypt-hash-md5,crypt-hash-sha-256,crypt-hash-sha-512",
+    "urn:ietf:params:xml:ns:yang:ietf-inet-types?module=ietf-inet-types&revision=2025-12-22",
+    "urn:ietf:params:xml:ns:yang:ietf-netconf-acm?module=ietf-netconf-acm&revision=2018-02-14",
+    "urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring?module=ietf-netconf-monitoring&revision=2010-10-04",
+    "urn:ietf:params:xml:ns:yang:ietf-netconf-notifications?module=ietf-netconf-notifications&revision=2012-02-06",
+    "urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults?module=ietf-netconf-with-defaults&revision=2011-06-01",
+    "urn:ietf:params:xml:ns:yang:ietf-x509-cert-to-name?module=ietf-x509-cert-to-name&revision=2014-12-10",
+    "urn:ietf:params:xml:ns:yang:ietf-yang-metadata?module=ietf-yang-metadata&revision=2016-08-05",
+    "urn:ietf:params:xml:ns:yang:ietf-yang-types?module=ietf-yang-types&revision=2025-12-22",
+    "urn:sysrepo:plugind?module=sysrepo-plugind&revision=2022-08-26"
+   ],
+   "clientAdvertisedCapabilities": [
+    "urn:ietf:params:netconf:base:1.1",
+    "urn:ietf:params:netconf:capability:writable-running:1.0",
+    "urn:ietf:params:netconf:capability:validate:1.1",
+    "urn:ietf:params:netconf:capability:rollback-on-error:1.0",
+    "urn:ietf:params:netconf:capability:xpath:1.0"
+   ],
+   "clientAuthMethod": "PUBLIC_KEY",
+   "clientHelloRaw": {
+    "artifactPath": "raw/netconf/hello-client.xml",
+    "byteCount": 523,
+    "mediaType": "application/xml",
+    "sha256": "e902de837ec9be0cbe484bc94469f2656359742bf87ac2b925167cdf82f2c483",
+    "truncated": false
+   },
+   "endpointAuthority": "192.0.2.50:25447",
+   "helloRaw": {
+    "artifactPath": "raw/netconf/hello-server.xml",
+    "byteCount": 3090,
+    "mediaType": "application/xml",
+    "sha256": "2a34aebef444c206a7af1c6bd5e1985e17facfe13e909ae8c34fa79cc9b51d3c",
+    "truncated": false
+   },
+   "hostKeyPinDigest": "0cc9b94155ee146eb3c202b1ef29596028dea1ca0265f48059060c64d0c22cea",
+   "hostKeyVerified": true,
+   "mountedYangLibraryDigest": "069ac82f6e7bd67ea2bfda5307fd35ae0198a39d9e179482ae06755b4494d105",
+   "negotiatedFraming": "CHUNKED",
+   "requiredCapabilitiesSatisfied": true,
+   "schemaMountVerified": true,
+   "wireEvidence": {
+    "clientToServerChunkCount": 11,
+    "clientToServerHelloEomCount": 1,
+    "clientToServerMessageCount": 12,
+    "clientToServerPostHelloEomCount": 0,
+    "clientToServerRaw": {
+     "artifactPath": "raw/netconf/session-client-to-server.bin",
+     "byteCount": 7055,
+     "mediaType": "application/octet-stream",
+     "sha256": "ab7158b588f4943672e2347477009a3ea3060ca845e78d1cc0ede7603adf9a2a",
+     "truncated": false
+    },
+    "observationPoint": "NETCONF_SSH_SUBSYSTEM_PLAINTEXT_OCTETS",
+    "serverToClientChunkCount": 11,
+    "serverToClientHelloEomCount": 1,
+    "serverToClientMessageCount": 12,
+    "serverToClientPostHelloEomCount": 0,
+    "serverToClientRaw": {
+     "artifactPath": "raw/netconf/session-server-to-client.bin",
+     "byteCount": 11520,
+     "mediaType": "application/octet-stream",
+     "sha256": "6c22d117f5eabaf9e8b2deeb7712ae17e1c7d6913409508900f6a21ffff70e77",
+     "truncated": false
+    },
+    "sessionId": "cd8a13dea1895c8dc8a66f39290f408419580097f01a4e5546439f2605a117cc"
+   },
+   "yangClosureDigest": "730ed4c5c47749ad2b981e604569a0eda89571ac12c80643b185186f6fdcbde3"
+  }
+ },
+ "normalization": {
+  "commitEligibleCount": 2,
+  "duplicateCount": 0,
+  "invocations": 1,
+  "parserInvocations": 1,
+  "records": [
+   {
+    "aggregation": "PERIOD_MEAN",
+    "ambiguityReason": null,
+    "commitEligible": true,
+    "dnBijective": true,
+    "index": 0,
+    "ingestLatencyMs": 585,
+    "measuredObjectDn": "SubNetwork=oran-lab,ManagedElement=oai-gnb,GNBDUFunction=oai-du,NRCellDU=1",
+    "measurementAgeMs": 585,
+    "measurementName": "RRU.PrbDl",
+    "observedAt": "2026-08-13T14:20:00Z",
+    "publishedInExchangeSequence": null,
+    "quality": "OK",
+    "rawArtifactPath": "raw/o1/pm-627a9b0fb9e430a7ac9900c031425cc04c5cc29d1fe6e6e52bc56bcfe955634f.xml",
+    "readyAt": "2026-08-13T14:20:00Z",
+    "recordJcsSha256": "adb66bf301eb23137a0ed34107061b3fa30713e71d87dd005f2d02610de8b157",
+    "resolvedCellId": "{\"cId\":{\"ncI\":87654321},\"plmnId\":{\"mcc\":\"208\",\"mnc\":\"95\"}}",
+    "retrievedAt": "2026-08-13T14:20:00.585Z",
+    "sampleQualities": [
+     "OK"
+    ],
+    "sourceFileSha256": "627a9b0fb9e430a7ac9900c031425cc04c5cc29d1fe6e6e52bc56bcfe955634f",
+    "sourceRetrievalSequence": 33,
+    "unit": "percent",
+    "value": 30,
+    "window": {
+     "end": "2026-08-13T14:20:00Z",
+     "start": "2026-08-13T14:19:00Z"
+    }
+   },
+   {
+    "aggregation": "PERIOD_MEAN",
+    "ambiguityReason": null,
+    "commitEligible": true,
+    "dnBijective": true,
+    "index": 1,
+    "ingestLatencyMs": 585,
+    "measuredObjectDn": "SubNetwork=oran-lab,ManagedElement=oai-gnb,GNBDUFunction=oai-du,NRCellDU=2",
+    "measurementAgeMs": 585,
+    "measurementName": "RRU.PrbDl",
+    "observedAt": "2026-08-13T14:20:00Z",
+    "publishedInExchangeSequence": null,
+    "quality": "OK",
+    "rawArtifactPath": "raw/o1/pm-627a9b0fb9e430a7ac9900c031425cc04c5cc29d1fe6e6e52bc56bcfe955634f.xml",
+    "readyAt": "2026-08-13T14:20:00Z",
+    "recordJcsSha256": "739f3d16c2e2f6f0c071fb8baf365834c21fac9c2b931cd8fe9436106d8ec9b1",
+    "resolvedCellId": "{\"cId\":{\"ncI\":12345678},\"plmnId\":{\"mcc\":\"208\",\"mnc\":\"95\"}}",
+    "retrievedAt": "2026-08-13T14:20:00.585Z",
+    "sampleQualities": [
+     "OK"
+    ],
+    "sourceFileSha256": "627a9b0fb9e430a7ac9900c031425cc04c5cc29d1fe6e6e52bc56bcfe955634f",
+    "sourceRetrievalSequence": 33,
+    "unit": "percent",
+    "value": 40,
+    "window": {
+     "end": "2026-08-13T14:20:00Z",
+     "start": "2026-08-13T14:19:00Z"
+    }
+   }
+  ],
+  "rejectedCount": 0
+ },
+ "notAVerdict": true,
+ "notifications": [
+  {
+   "accepted": true,
+   "durablyAcceptedBeforeResponse": true,
+   "eventTime": "2026-08-13T14:20:00Z",
+   "fileInfoList": [
+    {
+     "fileDataType": "PERFORMANCE",
+     "fileExpirationTime": "2026-08-13T15:20:00Z",
+     "fileLocation": "sftp://192.0.2.50:25449/pm/B20260813.1419+0000-1420+0000_-oran-aic-nrcelldu-60s_oai-gnb.xml",
+     "fileReadyTime": "2026-08-13T14:20:00Z",
+     "fileSize": 1209,
+     "jobId": "oran-aic-nrcelldu-60s"
+    }
+   ],
+   "href": "https://192.0.2.50:25448/o1/managed-objects/SubNetwork=oran-lab,ManagedElement=oai-gnb,PerfMetricJob=oran-aic-nrcelldu-60s",
+   "peerAuthenticated": true,
+   "peerAuthority": "127.0.0.1:54470",
+   "raw": {
+    "artifactPath": "raw/o1/notification-562f4779beb0b706afebe2c06c9ff6a5fb18a10b6706201716214e6c68937718.json",
+    "byteCount": 646,
+    "sha256": "562f4779beb0b706afebe2c06c9ff6a5fb18a10b6706201716214e6c68937718"
+   },
+   "receivedAt": "2026-08-13T14:20:00.348Z",
+   "responseStatus": 204,
+   "sequence": 32,
+   "subscriptionIdMatched": true
+  }
+ ],
+ "oracleOwnership": "LOWER_SIDE_CONFORMANCE_RUNNER_UNDER_LIVE_O1_AUTHORITY",
+ "oracleSource": {
+  "assignmentPointer": "/assignments/65",
+  "expectedPointer": "/scenarios/83/expected",
+  "origin": "SCENARIO_CATALOG_1_0_1",
+  "rulesPointer": "/scenarios/83/rules",
+  "valuesCopiedIntoThisDocument": 0
+ },
+ "profile": {
+  "counterpartKind": "LIVE_O1_AUTHORITY_APPROVED_HARNESS",
+  "emulatorInUse": false,
+  "executionProfile": "live-O1",
+  "providerKind": "LIVE_O1_PROVIDER_UNDER_SEPARATE_AUTHORITY",
+  "selfTestLabel": null
+ },
+ "provider": {
+  "acceptanceRecordDigest": "e746c7e2685d677abf27bb96e1040abebd4e97a30e0e9580341c4d5c846a3ec0",
+  "ociImageManifestDigest": "sha256:7a8cba9f004e7a64f0c76aa90ebd2fd5aa22e252c4e3062383d6e43391e6f639",
+  "releaseId": "oran-aic-o1-provider",
+  "releaseManifestSha256": "ed8c2900a76b55af0592243608d343f44d1cbc3bf2a006a2fd64cf5aa41d6c14",
+  "releaseVersion": "1.0.4",
+  "runtimeOwner": "lab-operator:lower-integration",
+  "sourceCommit": "3b0d525b3e6e4eaad3482debe36aa819729ca705",
+  "sourceTree": "deebf10ee07867d3b8e47004af5b27df5bc6c2df",
+  "teardownOwner": "lab-operator:lower-integration",
+  "yangCapabilityDigest": "9788a825d5bdc5f9488de86d0ea37ed72d1011de5a54b96323645d1cdb98aca4",
+  "yangClosureDigest": "d4d55ebedc54a50beac07840b262b97d38c84066361263c60fb2d71d91170a7e"
+ },
+ "redaction": {
+  "credentialMaterialCaptured": false,
+  "policy": "oran-aic-upper-live-o1-harness-redaction/1.0.0",
+  "rawArtifactScan": {
+   "credentialMarkerHits": 0,
+   "filesScanned": 30,
+   "privateKeyBlockHits": 0
+  },
+  "redactedBodyPointers": [],
+  "redactedHeaderNames": [
+   "Authorization"
+  ],
+  "secretReferencesObserved": [
+   "secret://known",
+   "secret://netconf",
+   "secret://o1",
+   "secret://r1",
+   "secret://sftp",
+   "secret://trust"
+  ],
+  "secretValuesCaptured": false
+ },
+ "retries": {
+  "attempts": [],
+  "duplicateSuppressions": 0,
+  "idempotencyKeysUsed": [],
+  "policy": "declared-timeout-and-backoff only; no implicit retry and no hidden sleep on the request path"
+ },
+ "retrievals": [
+  {
+   "attemptCount": 1,
+   "authorityAllowed": true,
+   "byteCount": 1209,
+   "byteSha256": "627a9b0fb9e430a7ac9900c031425cc04c5cc29d1fe6e6e52bc56bcfe955634f",
+   "completedAt": "2026-08-13T14:20:00.585Z",
+   "credentialRef": "secret://sftp",
+   "hostKeyPinDigest": "aad9c095425f7eb7d6205c5a51f38a8ba78ff5c497e0e07dd59f8a08f3ab3670",
+   "hostKeyVerified": true,
+   "outcome": "RETRIEVED",
+   "rawArtifactPath": "raw/o1/pm-627a9b0fb9e430a7ac9900c031425cc04c5cc29d1fe6e6e52bc56bcfe955634f.xml",
+   "requestedAuthority": "192.0.2.50:25449",
+   "requestedLocation": "sftp://192.0.2.50:25449/pm/B20260813.1419+0000-1420+0000_-oran-aic-nrcelldu-60s_oai-gnb.xml",
+   "sequence": 33,
+   "sourceOfLocation": "CAPTURED_FILE_LOCATION",
+   "sourceStepId": "o1-notify",
+   "startedAt": "2026-08-13T14:20:00.484Z"
+  }
+ ],
+ "revisions": {
+  "artifactProvenanceRaw": {
+   "artifactPath": "raw/release/ARTIFACT-PROVENANCE.json",
+   "byteCount": 975,
+   "mediaType": "application/json",
+   "sha256": "d5e8821bd8f7d11ccb435fd884f7abc68886b3ed110aa0215d2e5de541c28a74",
+   "truncated": false
+  },
+  "identityMode": "PACKAGED_RELEASE",
+  "releaseManifestRaw": {
+   "artifactPath": "raw/release/RELEASE-MANIFEST.json",
+   "byteCount": 59611,
+   "mediaType": "application/json",
+   "sha256": "1895c782156227406bc3e16fcc43c7b2cdeab8db2d521952df058d4627609899",
+   "truncated": false
+  },
+  "sourceTreeDirty": false,
+  "testedCodeCommit": "de2c612db86bd3da248a612dad05bb8ccc174cc5",
+  "upperDeliveryArchiveSha256": "4fec91c963a35ee036fec8f6e37d6f02f71cde2ce2035b3dc3526b65128e0b94",
+  "upperOciImageManifestDigest": "sha256:333a73449566bf60fdde84d4ae60a9d44bf111b58cc49baf935037b4e7eb090c",
+  "upperReleaseContentSha256": "10367975767f41c7a0fe0a921c50715233f9a777bf5c7f2edd63ca0524a255a3",
+  "upperReleaseId": "upper-live-o1-harness",
+  "upperReleaseManifestSha256": "1895c782156227406bc3e16fcc43c7b2cdeab8db2d521952df058d4627609899",
+  "upperReleaseVersion": "1.0.9",
+  "upperSourceCommit": "de2c612db86bd3da248a612dad05bb8ccc174cc5",
+  "upperSourceTree": "91452ad1d7df5e95890d987b4d5af500068ea6e7"
+ },
+ "run": {
+  "disposition": "COMPLETED",
+  "endedAt": "2026-08-13T14:20:06.828Z",
+  "executionWindow": {
+   "approvedNotAfter": "2026-08-13T16:17:59Z",
+   "approvedNotBefore": "2026-08-13T14:12:59Z",
+   "withinWindow": true
+  },
+  "orderingRule": "MONOTONIC_OBSERVED_THEN_ARRAY_ORDER",
+  "runId": "sc084-pc1-upper-109-20260813T141759Z",
+  "scenarioId": "SC-084",
+  "sequenceHighWaterMark": 48,
+  "startedAt": "2026-08-13T14:18:49.561Z",
+  "stepIndexBase": 0
+ },
+ "scenario": {
+  "catalogPointer": "/scenarios/83",
+  "counterpartProvisioning": "LIVE_O1_AUTHORITY_APPROVED_HARNESS",
+  "declaredFaultCount": 0,
+  "declaredRuleCount": 9,
+  "declaredStepCount": 16,
+  "executionProfile": "live-O1",
+  "expectedPointer": "/scenarios/83/expected",
+  "fixtureMode": "LIVE_O1_INVARIANT",
+  "rulesPointer": "/scenarios/83/rules",
+  "scenarioId": "SC-084"
+ },
+ "schemaVersion": "oran-aic-upper-live-o1-harness-capture/2.0.0",
+ "state": {
+  "after": {
+   "acceptedPushPayloadCounts": {
+    "binding-local-012345678901": 2
+   },
+   "deliveryBindingCount": 2,
+   "dmeDataJobCount": 2,
+   "evidenceCommitCount": 2,
+   "jcsSha256": "14d6d41807fe9ef9d940679f4958a69abfcb84c9b7bce2acd754aca54b37af59",
+   "perfMetricJobPresent": true,
+   "policyCount": 1,
+   "policyIds": [
+    "4811fa7f-923f-4c54-95dd-e6d2d542177f"
+   ],
+   "retrievedFileCount": 1,
+   "statusCount": 1,
+   "subscriptionCount": 1
+  },
+  "before": {
+   "acceptedPushPayloadCounts": {},
+   "deliveryBindingCount": 0,
+   "dmeDataJobCount": 0,
+   "evidenceCommitCount": 0,
+   "jcsSha256": "72640ae42751735c6ba30b23ec02a49004639acb76669902ebdfe687c3bc7bf6",
+   "perfMetricJobPresent": false,
+   "policyCount": 0,
+   "policyIds": [],
+   "retrievedFileCount": 0,
+   "statusCount": 0,
+   "subscriptionCount": 0
+  },
+  "diffPointers": [
+   "/acceptedPushPayloadCounts",
+   "/deliveryBindingCount",
+   "/dmeDataJobCount",
+   "/evidenceCommitCount",
+   "/jcsSha256",
+   "/perfMetricJobPresent",
+   "/policyCount",
+   "/policyIds",
+   "/retrievedFileCount",
+   "/statusCount",
+   "/subscriptionCount"
+  ]
+ }
+}

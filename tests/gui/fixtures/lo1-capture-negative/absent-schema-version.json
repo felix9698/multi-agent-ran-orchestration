@@ -1,0 +1,16 @@
+{
+  "case": "absent-schema-version",
+  "expect": {
+    "detailContains": [
+      "schemaVersion"
+    ],
+    "kind": "SCHEMA_MISMATCH"
+  },
+  "mutations": [
+    {
+      "op": "remove",
+      "pointer": "/schemaVersion"
+    }
+  ],
+  "why": "Without a declared schemaVersion there is nothing to bind to; guessing from the shape is the failure mode the rule forbids."
+}

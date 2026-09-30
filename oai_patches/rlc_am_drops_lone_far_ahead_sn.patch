@@ -1,0 +1,47 @@
+diff --git a/openair2/LAYER2/nr_rlc/nr_rlc_entity_am.c b/openair2/LAYER2/nr_rlc/nr_rlc_entity_am.c
+index 62c1fa90c6..474270bc88 100644
+--- a/openair2/LAYER2/nr_rlc/nr_rlc_entity_am.c
++++ b/openair2/LAYER2/nr_rlc/nr_rlc_entity_am.c
+@@ -818,6 +818,30 @@ void nr_rlc_entity_am_recv_pdu(nr_rlc_entity_t *_entity,
+     goto discard;
+   }
+ 
++  /* aic 2026-09-25: one falsely decoded PDU far ahead of RX_Next moves the receiving window
++   * and the status we send then acknowledges SNs the peer never sent (ue1 15:2x: ACK_SN 38664
++   * vs tx_next 34934).  With 18-bit SN drop a PDU more than 4096 ahead unless it continues the
++   * far PDU dropped just before (within 64): garbage has no successor, a real jump does (a
++   * handover target).  AM retransmits anything dropped here. */
++  /* guard3 (18:5x): measured from RX_Next_Highest, not RX_Next -- RX_Next stays at the lowest hole,
++   * so a real stream 4096 past a hole (ue1 331275: sn 7848 vs rx_next 3751) alternated drop/accept. */
++  if (entity->window_size > 2048 && modulus_rx(entity, sn) < entity->window_size
++      && (sn - entity->rx_next_highest + entity->sn_modulus) % entity->sn_modulus > 4096
++      && (sn - entity->rx_next_highest + entity->sn_modulus) % entity->sn_modulus < entity->window_size) {
++    int last = entity->far_ahead_last - 1;          /* stored +1, 0 = none */
++    int step = (sn - last + entity->sn_modulus) % entity->sn_modulus;
++    if (entity->far_ahead_last && step >= 1 && step <= 64) {
++      LOG_W(RLC, "accepting far-ahead AM sn %d (continues %d)\n", sn, last);
++    } else {
++      LOG_W(RLC, "drop far-ahead AM PDU sn %d rx_next_highest %d size %d\n", sn, entity->rx_next_highest, size);
++      entity->far_ahead_last = sn + 1;
++      entity->common.stats.rxpdu_ow_pkts++;
++      entity->common.stats.rxpdu_ow_bytes += size;
++      goto discard;
++    }
++  }
++  entity->far_ahead_last = 0;
++
+   /* discard segment if all the bytes of the segment are already there */
+   if (segment_already_received(entity, sn, so, data_size)) {
+     LOG_D(RLC, "%s:%d:%s: warning: discard PDU, already received\n",
+diff --git a/openair2/LAYER2/nr_rlc/nr_rlc_entity_am.h b/openair2/LAYER2/nr_rlc/nr_rlc_entity_am.h
+index 7ae59f0b95..c2235666db 100644
+--- a/openair2/LAYER2/nr_rlc/nr_rlc_entity_am.h
++++ b/openair2/LAYER2/nr_rlc/nr_rlc_entity_am.h
+@@ -24,6 +24,7 @@ typedef struct {
+ 
+   int sn_modulus;
+   int window_size;
++  int far_ahead_last;     /* aic: SN+1 of the far-ahead data PDU dropped last, 0 = none */
+ 
+   /* runtime rx */
+   int rx_next;

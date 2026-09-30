@@ -1,0 +1,1310 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:oran-aic:upper-live-o1-harness:capture:2.0.0",
+  "title": "Upper Live-O1 Harness machine-readable capture",
+  "description": "Raw observation record produced by the upper-live-o1-harness/1.0.9 release for SC-084. It records what the upper artifact actually did and what bytes actually crossed each boundary, so the lower frozen runner can combine it with its own evidence and adjudicate against the frozen oracle. It contains NO verdict and NO copy of any oracle value: every expectation lives in scenario-catalog.1.0.1.json and is referenced here only by JSON pointer.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "captureId",
+    "notAVerdict",
+    "oracleOwnership",
+    "oracleSource",
+    "profile",
+    "run",
+    "revisions",
+    "contract",
+    "provider",
+    "authority",
+    "deployment",
+    "scenario",
+    "clock",
+    "exchanges",
+    "harnessOperations",
+    "netconf",
+    "notifications",
+    "retrievals",
+    "normalization",
+    "state",
+    "coordinator",
+    "deterministicStubs",
+    "cleanup",
+    "retries",
+    "externalCalls",
+    "appliedRules",
+    "redaction"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "oran-aic-upper-live-o1-harness-capture/2.0.0" },
+    "captureId": { "$ref": "#/$defs/uuid" },
+    "notAVerdict": {
+      "const": true,
+      "description": "The artifact never produces PASS/FAIL. This member is a machine-readable restatement of that rule."
+    },
+    "oracleOwnership": {
+      "const": "LOWER_SIDE_CONFORMANCE_RUNNER_UNDER_LIVE_O1_AUTHORITY",
+      "description": "Copied from execution-profile-assignment.1.0.1.json#/assignments/65/evidenceProducer. Final disposition belongs to the lower runner; nothing in this document is a judgement."
+    },
+    "oracleSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "expectedPointer", "rulesPointer", "assignmentPointer", "valuesCopiedIntoThisDocument"],
+      "description": "Where the oracle lives. The harness reads these pointers at run time to know which counters to MEASURE; it never stores their values here. A second source of truth is exactly what task requirement 4 forbids.",
+      "properties": {
+        "origin": { "const": "SCENARIO_CATALOG_1_0_1" },
+        "expectedPointer": { "const": "/scenarios/83/expected" },
+        "rulesPointer": { "const": "/scenarios/83/rules" },
+        "assignmentPointer": { "const": "/assignments/65" },
+        "valuesCopiedIntoThisDocument": { "const": 0 }
+      }
+    },
+
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["executionProfile", "counterpartKind", "providerKind", "emulatorInUse", "selfTestLabel"],
+      "description": "The first of the three independent places the emulator/production split is enforced (schema, gate, capture label). A capture whose providerKind is CONTRACT_FAITHFUL_EMULATOR can never be filed as SC-084 evidence, because selfTestLabel is then required and its only permitted value is the self-test label.",
+      "properties": {
+        "executionProfile": { "const": "live-O1" },
+        "counterpartKind": {
+          "enum": ["LIVE_O1_AUTHORITY_APPROVED_HARNESS", "UPPER_ARTIFACT_SELF_TEST_HARNESS"]
+        },
+        "providerKind": {
+          "enum": ["LIVE_O1_PROVIDER_UNDER_SEPARATE_AUTHORITY", "CONTRACT_FAITHFUL_EMULATOR"],
+          "description": "Set from the identity/authority gate result, never from a runtime flag the operator can flip after start."
+        },
+        "emulatorInUse": { "type": "boolean" },
+        "selfTestLabel": {
+          "type": ["string", "null"],
+          "enum": ["UPPER_LIVE_O1_HARNESS_SELF_TEST", null]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "providerKind": { "const": "CONTRACT_FAITHFUL_EMULATOR" } }, "required": ["providerKind"] },
+          "then": {
+            "properties": {
+              "emulatorInUse": { "const": true },
+              "counterpartKind": { "const": "UPPER_ARTIFACT_SELF_TEST_HARNESS" },
+              "selfTestLabel": { "const": "UPPER_LIVE_O1_HARNESS_SELF_TEST" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "providerKind": { "const": "LIVE_O1_PROVIDER_UNDER_SEPARATE_AUTHORITY" } }, "required": ["providerKind"] },
+          "then": {
+            "properties": {
+              "emulatorInUse": { "const": false },
+              "counterpartKind": { "const": "LIVE_O1_AUTHORITY_APPROVED_HARNESS" },
+              "selfTestLabel": { "const": null }
+            }
+          }
+        }
+      ]
+    },
+
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runId", "scenarioId", "startedAt", "endedAt", "sequenceHighWaterMark", "orderingRule", "stepIndexBase", "executionWindow", "disposition"],
+      "properties": {
+        "runId": { "$ref": "#/$defs/nonEmptyId" },
+        "scenarioId": { "$ref": "#/$defs/scenarioId" },
+        "startedAt": { "$ref": "#/$defs/utcInstant" },
+        "endedAt": { "$ref": "#/$defs/utcInstant" },
+        "sequenceHighWaterMark": { "type": "integer", "minimum": 0 },
+        "orderingRule": {
+          "const": "MONOTONIC_OBSERVED_THEN_ARRAY_ORDER",
+          "description": "SC-084 materialization.time.mode is LIVE_OBSERVED, so atMs is an earliest-start offset, not a schedule. Ordering is the observed monotonic sequence, ties broken by catalog array order."
+        },
+        "stepIndexBase": { "const": 0 },
+        "executionWindow": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["approvedNotBefore", "approvedNotAfter", "withinWindow"],
+          "properties": {
+            "approvedNotBefore": { "$ref": "#/$defs/utcInstant" },
+            "approvedNotAfter": { "$ref": "#/$defs/utcInstant" },
+            "withinWindow": { "type": "boolean" }
+          }
+        },
+        "disposition": {
+          "enum": ["COMPLETED", "ABORTED_PREFLIGHT", "ABORTED_GATE", "ABORTED_TIMEOUT", "ABORTED_GUARD", "ABORTED_ERROR"],
+          "description": "How the upper's own execution ended. Not a scenario verdict: the lower runner still adjudicates a COMPLETED run against the frozen oracle."
+        }
+      }
+    },
+
+    "revisions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identityMode",
+        "upperReleaseId", "upperReleaseVersion", "upperReleaseContentSha256",
+        "upperReleaseManifestSha256", "upperDeliveryArchiveSha256",
+        "upperSourceCommit", "upperSourceTree", "testedCodeCommit",
+        "upperOciImageManifestDigest", "sourceTreeDirty",
+        "artifactProvenanceRaw", "releaseManifestRaw"
+      ],
+      "description": "A packaged 1.0.9 run is bound to the exact ARTIFACT-PROVENANCE and RELEASE-MANIFEST bytes plus its out-of-band archive digest. A source-tree self-test is explicitly developmental and cannot populate release-only fields.",
+      "properties": {
+        "identityMode": {
+          "enum": ["PACKAGED_RELEASE", "SOURCE_TREE_DEVELOPMENT"]
+        },
+        "upperReleaseId": {
+          "enum": ["upper-live-o1-harness", "upper-live-o1-harness-development-self-test"]
+        },
+        "upperReleaseVersion": {
+          "type": ["string", "null"],
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+        },
+        "upperReleaseContentSha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "CONTENT SET digest: over the packaged MEMBERS (sorted relative path plus per-file digest), not the container. Never equals sha256sum of the .tar.gz."
+        },
+        "upperReleaseManifestSha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "RAW digest of RELEASE-MANIFEST.json bytes as packaged."
+        },
+        "upperDeliveryArchiveSha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "RAW ARCHIVE digest: sha256 of the .tar.gz container bytes. This is the digest that must be identical between build A and build B. It is never a packaged member -- a container cannot contain the digest of itself -- so the runtime reads it from the out-of-band record RELEASE-MANIFEST.json#/revisions/upperDeliveryArchiveSha256Publication names, and refuses to start without one."
+        },
+        "upperSourceCommit": { "$ref": "#/$defs/gitOid" },
+        "upperSourceTree": { "$ref": "#/$defs/gitOid", "description": "SOURCE TREE digest: the git tree object, not an archive digest." },
+        "testedCodeCommit": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{40}$",
+          "description": "The commit whose bytes were executed. It may differ from the commit that stores this evidence; the two must never be conflated."
+        },
+        "upperOciImageManifestDigest": {
+          "type": ["string", "null"],
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "OCI IMAGE MANIFEST digest of the upper image: the digest of the image manifest document in the OCI layout this release packages, read from RELEASE-MANIFEST.json#/provenance/oci/imageManifestDigest. A registry is where a manifest is published, not where its digest comes from, so no push is involved. A mutable tag, a local image ID and the legacy unresolved-registry token are all refused."
+        },
+        "sourceTreeDirty": { "type": "boolean" },
+        "artifactProvenanceRaw": {
+          "oneOf": [{ "$ref": "#/$defs/rawBytes" }, { "type": "null" }]
+        },
+        "releaseManifestRaw": {
+          "oneOf": [{ "$ref": "#/$defs/rawBytes" }, { "type": "null" }]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "identityMode": { "const": "PACKAGED_RELEASE" } } },
+          "then": {
+            "properties": {
+              "upperReleaseId": { "const": "upper-live-o1-harness" },
+              "upperReleaseVersion": { "const": "1.0.9" },
+              "upperReleaseContentSha256": { "$ref": "#/$defs/sha256" },
+              "upperReleaseManifestSha256": { "$ref": "#/$defs/sha256" },
+              "upperDeliveryArchiveSha256": { "$ref": "#/$defs/sha256" },
+              "testedCodeCommit": { "$ref": "#/$defs/gitOid" },
+              "upperOciImageManifestDigest": {
+                "type": "string", "pattern": "^sha256:[a-f0-9]{64}$"
+              },
+              "sourceTreeDirty": { "const": false },
+              "artifactProvenanceRaw": { "$ref": "#/$defs/rawBytes" },
+              "releaseManifestRaw": { "$ref": "#/$defs/rawBytes" }
+            }
+          },
+          "else": {
+            "properties": {
+              "upperReleaseId": { "const": "upper-live-o1-harness-development-self-test" },
+              "upperReleaseVersion": { "type": "null" },
+              "upperReleaseContentSha256": { "type": "null" },
+              "upperReleaseManifestSha256": { "type": "null" },
+              "upperDeliveryArchiveSha256": { "type": "null" },
+              "testedCodeCommit": { "type": "null" },
+              "upperOciImageManifestDigest": { "type": "null" },
+              "artifactProvenanceRaw": { "type": "null" },
+              "releaseManifestRaw": { "type": "null" }
+            }
+          }
+        }
+      ]
+    },
+
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractProfile", "correctedHandoff", "handoffManifestSha256",
+        "bundleManifestSha256", "catalogSha256", "runnerContractSha256",
+        "profileAssignmentSha256", "deploymentVectorSchemaSha256",
+        "o1NetconfYangProfileSha256", "o1PaFileProfileSha256",
+        "policyEvidenceSchemaSha256", "frozenBundleDiffFileCount"
+      ],
+      "description": "Raw byte digests of the frozen artefacts this run bound itself to. Values are MEASURED from the packaged bundle at start and compared to the repository copy; they are not literals in this schema, so a bundle change is detected rather than re-declared.",
+      "properties": {
+        "contractProfile": { "const": "oran-aic/1.0.1" },
+        "correctedHandoff": { "const": "1.0.1" },
+        "handoffManifestSha256": { "$ref": "#/$defs/sha256" },
+        "bundleManifestSha256": { "$ref": "#/$defs/sha256" },
+        "catalogSha256": { "$ref": "#/$defs/sha256" },
+        "runnerContractSha256": { "$ref": "#/$defs/sha256" },
+        "profileAssignmentSha256": { "$ref": "#/$defs/sha256" },
+        "deploymentVectorSchemaSha256": { "$ref": "#/$defs/sha256" },
+        "o1NetconfYangProfileSha256": { "$ref": "#/$defs/sha256" },
+        "o1PaFileProfileSha256": { "$ref": "#/$defs/sha256" },
+        "policyEvidenceSchemaSha256": { "$ref": "#/$defs/sha256" },
+        "frozenBundleDiffFileCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "MEASURED count of packaged contract files differing from the repository copy. Deliberately not const 0: a schema that cannot express a violation cannot prove the absence of one."
+        }
+      }
+    },
+
+    "provider": {
+      "$ref": "#/$defs/providerIdentity",
+      "description": "The lower Provider release this run bound itself to, consumed only as identity. Source, YANG and image bytes are never packaged; see provider-acceptance-contract.1.0.0.schema.json."
+    },
+
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gateSpecSha256", "gateResult", "checks", "scope", "deploymentVectorDigest", "authorityRecordDigest", "selfIssued"],
+      "properties": {
+        "gateSpecSha256": { "$ref": "#/$defs/sha256" },
+        "gateResult": { "enum": ["ADMITTED", "REFUSED"] },
+        "checks": {
+          "type": "array",
+          "minItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "outcome"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^G-ID-[0-9]{2}$" },
+              "outcome": { "enum": ["PASS", "REFUSED", "UNRESOLVED"] },
+              "reasonCode": { "$ref": "#/$defs/safeString" },
+              "observedDigest": { "$ref": "#/$defs/sha256" }
+            }
+          }
+        },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scenarioScope", "o1Only", "liveE2Control", "liveRanWrite", "otaTransmission", "usrpRadio", "upperProductionDeployment", "peerInternalSourceImport"],
+          "properties": {
+            "scenarioScope": { "const": "SC-084" },
+            "o1Only": { "const": true },
+            "liveE2Control": { "const": false },
+            "liveRanWrite": { "const": false },
+            "otaTransmission": { "const": false },
+            "usrpRadio": { "const": false },
+            "upperProductionDeployment": { "const": false },
+            "peerInternalSourceImport": { "const": false }
+          }
+        },
+        "deploymentVectorDigest": { "$ref": "#/$defs/sha256" },
+        "authorityRecordDigest": { "$ref": "#/$defs/sha256" },
+        "selfIssued": {
+          "const": false,
+          "description": "The harness may never sign its own execution authority. A run that could only produce true here must refuse to start, so the only value a written capture can carry is false."
+        }
+      }
+    },
+
+    "deployment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vectorVersion", "vectorSha256", "bindingDocSha256", "placeholderFree", "resolvedRoots", "originOwnership", "secretRefsResolved", "unresolvedSecretRefs"],
+      "properties": {
+        "vectorVersion": { "const": "oran-aic-deployment-test-vector/1.0.0" },
+        "vectorSha256": { "$ref": "#/$defs/sha256" },
+        "bindingDocSha256": { "$ref": "#/$defs/sha256" },
+        "placeholderFree": { "const": true },
+        "resolvedRoots": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["r1ApiRoot", "rAppCallbackRoot", "a1ApiRoot", "a1StatusCallbackRoot", "policyEvidencePushBaseUri", "mnsRoot", "o1ConsumerRoot", "netconfEndpoint", "sftpAuthorities"],
+          "properties": {
+            "r1ApiRoot": { "$ref": "#/$defs/httpsUri" },
+            "rAppCallbackRoot": { "$ref": "#/$defs/httpsUri" },
+            "a1ApiRoot": { "$ref": "#/$defs/httpsUri" },
+            "a1StatusCallbackRoot": { "$ref": "#/$defs/httpsUri" },
+            "policyEvidencePushBaseUri": { "$ref": "#/$defs/httpsUri" },
+            "mnsRoot": { "$ref": "#/$defs/httpsUri" },
+            "o1ConsumerRoot": { "$ref": "#/$defs/httpsUri" },
+            "netconfEndpoint": { "type": "string", "pattern": "^ssh://" },
+            "sftpAuthorities": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/authority" } }
+          }
+        },
+        "originOwnership": {
+          "type": "object",
+          "description": "Which party the gate resolved as the host of each origin, keyed by the role-table rootPlaceholder or vector pointer. A value of UNRESOLVED_AUTHORITY_ASSIGNED here is only legal for an origin the role table marks AUTHORITY_ASSIGNED.",
+          "additionalProperties": {
+            "enum": ["UPPER_HARNESS", "LOWER_LIVE_O1_PROVIDER", "LOWER_IMPLEMENTATION_UNDER_TEST", "UNRESOLVED_AUTHORITY_ASSIGNED"]
+          }
+        },
+        "secretRefsResolved": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/secretRef" },
+          "description": "Reference URIs only. Resolved filesystem paths and material are never recorded."
+        },
+        "unresolvedSecretRefs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/secretRef" },
+          "description": "MEASURED. A non-empty array means the gate refused; it can never coexist with gateResult ADMITTED."
+        }
+      }
+    },
+
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarioId", "catalogPointer", "expectedPointer", "rulesPointer", "fixtureMode", "executionProfile", "counterpartProvisioning", "declaredFaultCount", "declaredStepCount", "declaredRuleCount"],
+      "description": "Identity and shape only, all read from the frozen catalog at run time. declaredStepCount and declaredRuleCount are MEASURED from the catalog, not typed: they exist so a mutated catalog copy changes this document.",
+      "properties": {
+        "scenarioId": { "$ref": "#/$defs/scenarioId" },
+        "catalogPointer": { "const": "/scenarios/83" },
+        "expectedPointer": { "const": "/scenarios/83/expected" },
+        "rulesPointer": { "const": "/scenarios/83/rules" },
+        "fixtureMode": { "const": "LIVE_O1_INVARIANT" },
+        "executionProfile": { "const": "live-O1" },
+        "counterpartProvisioning": { "const": "LIVE_O1_AUTHORITY_APPROVED_HARNESS" },
+        "declaredFaultCount": { "type": "integer", "minimum": 0 },
+        "declaredStepCount": { "type": "integer", "minimum": 1 },
+        "declaredRuleCount": { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "clock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "source", "monotonicOriginNs", "observedStart", "observedEnd", "skewProbes", "orderingViolations", "hiddenSleepCount"],
+      "description": "SC-084 is LIVE_OBSERVED, so unlike the bilateral release wall-clock reads on the request path are legitimate and must be recorded rather than forbidden. What stays forbidden is a hidden delay standing in for an observable event.",
+      "properties": {
+        "mode": { "const": "LIVE_OBSERVED" },
+        "source": { "enum": ["SYSTEM_UTC"] },
+        "monotonicOriginNs": { "type": "integer", "minimum": 0 },
+        "observedStart": { "$ref": "#/$defs/utcInstant" },
+        "observedEnd": { "$ref": "#/$defs/utcInstant" },
+        "skewProbes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["at", "peer", "observedSkewMs"],
+            "properties": {
+              "at": { "$ref": "#/$defs/utcInstant" },
+              "peer": { "$ref": "#/$defs/safeString" },
+              "observedSkewMs": { "type": "integer" }
+            }
+          }
+        },
+        "orderingViolations": {
+          "type": "array",
+          "description": "MEASURED. One entry per pair of observations whose recorded order contradicts their timestamps.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["earlierRef", "laterRef", "deltaMs"],
+            "properties": {
+              "earlierRef": { "$ref": "#/$defs/safeString" },
+              "laterRef": { "$ref": "#/$defs/safeString" },
+              "deltaMs": { "type": "integer" }
+            }
+          }
+        },
+        "hiddenSleepCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "MEASURED count of sleeps on the request path that were not a declared timeout or backoff. timeSemantics.LIVE_OBSERVED.atMsNull forbids waiting on anything but the declared observable event."
+        }
+      }
+    },
+
+    "exchanges": { "type": "array", "items": { "$ref": "#/$defs/exchange" } },
+    "harnessOperations": { "type": "array", "items": { "$ref": "#/$defs/harnessOperation" } },
+
+    "netconf": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "assignment", "session", "rpcs", "measuredSegment", "perfMetricJob"],
+      "description": "Present in every capture. SC-084 declares INSTALL_O1_PROFILE, INSTALL_ACTIVE_O1_SUBSCRIPTION and SET_PERF_METRIC_JOB_UNLOCKED as mandatory initial states, so an admitted run always carries all three adapter actions and a readiness ledger; a capture whose readiness is absent or unconfirmed cannot be dispositioned COMPLETED. An absent member would be indistinguishable from an omitted capture, which task requirement 5 makes a falsifier.",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "assignment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["adapterActionsAssignedToUpper", "authorityRecordDigest", "roleTablePointer"],
+          "properties": {
+            "adapterActionsAssignedToUpper": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "enum": ["LOAD_O1_PROFILE", "INSTALL_O1_SUBSCRIPTION", "SET_PERF_METRIC_JOB"] }
+            },
+            "authorityRecordDigest": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+            "roleTablePointer": { "const": "/initialStates" }
+          }
+        },
+        "session": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["endpointAuthority", "hostKeyPinDigest", "hostKeyVerified", "clientAuthMethod", "helloRaw", "clientHelloRaw", "advertisedCapabilities", "clientAdvertisedCapabilities", "requiredCapabilitiesSatisfied", "negotiatedFraming", "wireEvidence", "schemaMountVerified", "mountedYangLibraryDigest", "yangClosureDigest"],
+          "properties": {
+            "endpointAuthority": { "$ref": "#/$defs/authority" },
+            "hostKeyPinDigest": { "$ref": "#/$defs/sha256" },
+            "hostKeyVerified": { "type": "boolean" },
+            "clientAuthMethod": { "const": "PUBLIC_KEY" },
+            "helloRaw": { "$ref": "#/$defs/rawBytes", "description": "The server <hello> exactly as received, plus its digest." },
+            "clientHelloRaw": { "$ref": "#/$defs/rawBytes", "description": "The client <hello> exactly as sent, plus its digest." },
+            "advertisedCapabilities": { "type": "array", "items": { "$ref": "#/$defs/safeString" } },
+            "clientAdvertisedCapabilities": { "type": "array", "items": { "$ref": "#/$defs/safeString" } },
+            "requiredCapabilitiesSatisfied": { "type": "boolean" },
+            "negotiatedFraming": { "enum": ["END_OF_MESSAGE", "CHUNKED"], "description": "The RFC 6242 framing the hello exchange settled on. The frozen profile declares NETCONF_1_1_OVER_SSH and urn:ietf:params:netconf:base:1.1, so a session advertising base:1.1 on both sides and reporting END_OF_MESSAGE here is invalid." },
+            "wireEvidence": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["observationPoint", "sessionId", "clientToServerRaw", "serverToClientRaw", "clientToServerMessageCount", "serverToClientMessageCount", "clientToServerChunkCount", "serverToClientChunkCount", "clientToServerHelloEomCount", "serverToClientHelloEomCount", "clientToServerPostHelloEomCount", "serverToClientPostHelloEomCount"],
+              "properties": {
+                "observationPoint": { "const": "NETCONF_SSH_SUBSYSTEM_PLAINTEXT_OCTETS" },
+                "sessionId": { "$ref": "#/$defs/sha256" },
+                "clientToServerRaw": { "$ref": "#/$defs/rawBytes" },
+                "serverToClientRaw": { "$ref": "#/$defs/rawBytes" },
+                "clientToServerMessageCount": { "type": "integer", "minimum": 0 },
+                "serverToClientMessageCount": { "type": "integer", "minimum": 0 },
+                "clientToServerChunkCount": { "type": "integer", "minimum": 0 },
+                "serverToClientChunkCount": { "type": "integer", "minimum": 0 },
+                "clientToServerHelloEomCount": { "type": "integer", "minimum": 0 },
+                "serverToClientHelloEomCount": { "type": "integer", "minimum": 0 },
+                "clientToServerPostHelloEomCount": { "type": "integer", "minimum": 0 },
+                "serverToClientPostHelloEomCount": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "schemaMountVerified": { "type": "boolean" },
+            "mountedYangLibraryDigest": { "$ref": "#/$defs/sha256" },
+            "yangClosureDigest": { "$ref": "#/$defs/sha256", "description": "Aggregate digest of the Provider's YANG closure, compared against the value the Provider acceptance contract pinned." }
+          }
+        },
+        "rpcs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sequence", "lifecycleOrdinal", "phase", "requestFixtureRef", "requestFixtureSha256", "requestRaw", "replyRaw", "at", "outcome"],
+            "properties": {
+              "sequence": { "type": "integer", "minimum": 0 },
+              "lifecycleOrdinal": { "type": "integer", "minimum": 1 },
+              "phase": { "enum": ["LIFECYCLE", "MEASURED", "TEARDOWN"] },
+              "requestFixtureRef": { "type": "string", "pattern": "^golden/o1/netconf/[a-z-]+\\.xml$" },
+              "requestFixtureSha256": { "$ref": "#/$defs/sha256" },
+              "requestRaw": { "$ref": "#/$defs/rawBytes" },
+              "replyRaw": { "$ref": "#/$defs/rawBytes" },
+              "at": { "$ref": "#/$defs/utcInstant" },
+              "outcome": { "enum": ["OK", "RPC_ERROR", "TIMEOUT", "REFUSED_FAIL_CLOSED"] },
+              "failClosedReason": { "$ref": "#/$defs/safeString" }
+            }
+          }
+        },
+        "measuredSegment": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["source", "sessionId", "start", "end", "delta"],
+          "properties": {
+            "source": { "const": "NETCONF_SSH_SUBSYSTEM_TAP" },
+            "sessionId": { "$ref": "#/$defs/sha256" },
+            "start": { "$ref": "#/$defs/netconfCounterSnapshot" },
+            "end": { "$ref": "#/$defs/netconfCounterSnapshot" },
+            "delta": { "$ref": "#/$defs/netconfCounterDelta" }
+          }
+        },
+        "perfMetricJob": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["jobId", "managedObjectDn", "create", "read", "delete"],
+          "properties": {
+            "jobId": { "$ref": "#/$defs/nonEmptyId" },
+            "managedObjectDn": { "$ref": "#/$defs/safeString" },
+            "create": { "$ref": "#/$defs/perfMetricJobAction" },
+            "read": { "$ref": "#/$defs/perfMetricJobAction" },
+            "delete": { "$ref": "#/$defs/perfMetricJobAction" }
+          }
+        },
+        "readiness": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/o1Readiness" }],
+          "description": "The 02-rapp-xapp-backend-mandatory-contract.1.0.1.md section 10.2 readiness ledger. null means the run never established one, which the release refuses to disposition COMPLETED."
+        }
+      }
+    },
+
+    "notifications": {
+      "type": "array",
+      "description": "Every notifyFileReady delivered to the o1ConsumerRoot, accepted or rejected, with the exact wire bytes.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sequence", "receivedAt", "peerAuthority", "peerAuthenticated", "raw", "responseStatus", "durablyAcceptedBeforeResponse", "accepted", "subscriptionIdMatched", "href", "fileInfoList"],
+        "properties": {
+          "sequence": { "type": "integer", "minimum": 0 },
+          "receivedAt": { "$ref": "#/$defs/utcInstant" },
+          "peerAuthority": { "$ref": "#/$defs/authority" },
+          "peerAuthenticated": { "type": "boolean" },
+          "raw": { "$ref": "#/$defs/rawBytes" },
+          "responseStatus": { "type": "integer", "minimum": 100, "maximum": 599 },
+          "durablyAcceptedBeforeResponse": {
+            "type": "boolean",
+            "description": "O1_NOTIFY semantics: return 204 only AFTER durable acceptance. Recorded so the ordering can be checked rather than asserted."
+          },
+          "accepted": { "type": "boolean" },
+          "rejectReason": { "$ref": "#/$defs/safeString" },
+          "subscriptionIdMatched": { "type": "boolean" },
+          "eventTime": { "$ref": "#/$defs/utcInstant" },
+          "href": { "$ref": "#/$defs/safeString" },
+          "fileInfoList": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["fileLocation", "fileReadyTime", "fileExpirationTime"],
+              "properties": {
+                "fileLocation": { "$ref": "#/$defs/safeString" },
+                "fileReadyTime": { "$ref": "#/$defs/utcInstant" },
+                "fileExpirationTime": { "$ref": "#/$defs/utcInstant" },
+                "fileSize": { "type": "integer", "minimum": 0 },
+                "fileDataType": { "$ref": "#/$defs/safeString" },
+                "jobId": { "$ref": "#/$defs/safeString" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "retrievals": {
+      "type": "array",
+      "description": "Every SFTP retrieval attempt. The retrieved bytes themselves are stored out of line under the capture root; this document carries the digest, the size and the relative path.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sequence", "sourceStepId", "requestedLocation", "requestedAuthority", "authorityAllowed", "hostKeyPinDigest", "hostKeyVerified", "credentialRef", "startedAt", "completedAt", "outcome", "byteCount", "byteSha256", "rawArtifactPath"],
+        "properties": {
+          "sequence": { "type": "integer", "minimum": 0 },
+          "sourceStepId": { "$ref": "#/$defs/nonEmptyId" },
+          "sourceOfLocation": {
+            "enum": ["CAPTURED_FILE_LOCATION", "FILES_LIST_SELECTION"],
+            "description": "RULE-O1-NOTIFY-AND-RETRIEVAL admits exactly these two concrete paths."
+          },
+          "requestedLocation": { "$ref": "#/$defs/safeString" },
+          "requestedAuthority": { "$ref": "#/$defs/authority" },
+          "authorityAllowed": { "type": "boolean" },
+          "hostKeyPinDigest": { "$ref": "#/$defs/sha256" },
+          "hostKeyVerified": { "type": "boolean" },
+          "credentialRef": { "$ref": "#/$defs/secretRef" },
+          "startedAt": { "$ref": "#/$defs/utcInstant" },
+          "completedAt": { "$ref": "#/$defs/utcInstant" },
+          "outcome": { "enum": ["RETRIEVED", "TRUST_REFUSED", "AUTHORITY_REFUSED", "NOT_FOUND", "TIMEOUT", "ERROR"] },
+          "byteCount": { "type": "integer", "minimum": 0 },
+          "byteSha256": {
+            "$ref": "#/$defs/sha256",
+            "description": "Lowercase SHA-256 of the EXACT retrieved bytes. RULE-O1-RAW-DIGEST-SELF-CONSISTENT compares this only to the bytes captured here, never to a golden sample."
+          },
+          "rawArtifactPath": {
+            "type": "string",
+            "pattern": "^raw/o1/[A-Za-z0-9._-]+$",
+            "description": "Path relative to the capture root where the exact bytes were written before parsing."
+          },
+          "attemptCount": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+
+    "normalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["invocations", "records", "commitEligibleCount", "rejectedCount", "duplicateCount", "parserInvocations"],
+      "properties": {
+        "invocations": { "type": "integer", "minimum": 0 },
+        "parserInvocations": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "MEASURED. Proves that a quarantined file was never parsed."
+        },
+        "commitEligibleCount": { "type": "integer", "minimum": 0 },
+        "rejectedCount": { "type": "integer", "minimum": 0 },
+        "duplicateCount": { "type": "integer", "minimum": 0 },
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["index", "sourceRetrievalSequence", "sourceFileSha256", "rawArtifactPath", "measuredObjectDn", "resolvedCellId", "dnBijective", "measurementName", "value", "unit", "aggregation", "window", "observedAt", "readyAt", "retrievedAt", "measurementAgeMs", "ingestLatencyMs", "quality", "commitEligible", "recordJcsSha256"],
+            "description": "One normalized policy-evidence record with its full linkage back to the exact retrieved bytes. Values are recorded as OBSERVED; the schema constrains type and range only where RULE-O1-LIVE-VALUE-INVARIANTS constrains them, and never pins a value.",
+            "properties": {
+              "index": { "type": "integer", "minimum": 0 },
+              "sourceRetrievalSequence": { "type": "integer", "minimum": 0 },
+              "sourceFileSha256": { "$ref": "#/$defs/sha256" },
+              "rawArtifactPath": { "type": "string", "pattern": "^raw/o1/[A-Za-z0-9._-]+$" },
+              "measuredObjectDn": { "$ref": "#/$defs/safeString" },
+              "resolvedCellId": { "$ref": "#/$defs/safeString" },
+              "dnBijective": { "type": "boolean" },
+              "measurementName": { "$ref": "#/$defs/safeString" },
+              "value": { "type": ["number", "null"] },
+              "unit": { "$ref": "#/$defs/safeString" },
+              "aggregation": { "$ref": "#/$defs/safeString" },
+              "window": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["start", "end"],
+                "properties": {
+                  "start": { "$ref": "#/$defs/utcInstant" },
+                  "end": { "$ref": "#/$defs/utcInstant" }
+                }
+              },
+              "observedAt": { "$ref": "#/$defs/utcInstant" },
+              "readyAt": { "$ref": "#/$defs/utcInstant" },
+              "retrievedAt": { "$ref": "#/$defs/utcInstant" },
+              "measurementAgeMs": { "type": "integer" },
+              "ingestLatencyMs": { "type": "integer" },
+              "quality": { "enum": ["OK", "SUSPECT", "STALE", "MISSING", "NOT_AVAILABLE", "AMBIGUOUS"] },
+              "ambiguityReason": { "type": ["string", "null"], "maxLength": 256 },
+              "sampleQualities": { "type": "array", "items": { "type": "string", "maxLength": 32 } },
+              "commitEligible": { "type": "boolean" },
+              "recordJcsSha256": { "$ref": "#/$defs/sha256" },
+              "publishedInExchangeSequence": { "type": ["integer", "null"], "minimum": 0 }
+            }
+          }
+        }
+      }
+    },
+
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["before", "after", "diffPointers"],
+      "properties": {
+        "before": { "$ref": "#/$defs/stateSnapshot" },
+        "after": { "$ref": "#/$defs/stateSnapshot" },
+        "diffPointers": { "type": "array", "items": { "type": "string", "pattern": "^(/[^/~]*(~[01][^/~]*)*)*$" } }
+      }
+    },
+
+    "coordinator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "processIntentCallsBefore", "processIntentCallsAfter", "processIntentCallsDelta",
+        "executionMode", "fsmHistory", "terminalOutcome", "terminalOutcomeCount",
+        "terminalEvidenceRef", "ledgerReferences", "requiresRealCoordinatorExecution",
+        "syntheticTransitionCount", "evidenceRecordsSuppliedFromNormalization", "nowInput"
+      ],
+      "properties": {
+        "processIntentCallsBefore": { "type": "integer", "minimum": 0 },
+        "processIntentCallsAfter": { "type": "integer", "minimum": 0 },
+        "processIntentCallsDelta": { "type": "integer", "minimum": 0 },
+        "executionMode": { "enum": ["REAL_PROCESS_INTENT", "NOT_INVOKED"] },
+        "fsmHistory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to", "origin"],
+            "properties": {
+              "from": { "$ref": "#/$defs/fsmState" },
+              "to": { "$ref": "#/$defs/fsmState" },
+              "outcome": { "type": ["string", "null"], "maxLength": 128 },
+              "origin": {
+                "const": "REAL",
+                "description": "COORDINATOR_TRANSITION is never accepted as evidence that the Coordinator executed, so a synthetic transition can never appear in this history. It is counted separately in syntheticTransitionCount."
+              }
+            }
+          }
+        },
+        "terminalOutcome": { "type": ["string", "null"], "maxLength": 128 },
+        "terminalOutcomeCount": { "type": "integer", "minimum": 0 },
+        "terminalEvidenceRef": { "type": ["string", "null"], "maxLength": 512 },
+        "ledgerReferences": { "type": "array", "items": { "type": "string", "maxLength": 512 } },
+        "requiresRealCoordinatorExecution": { "type": "boolean" },
+        "syntheticTransitionCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "MEASURED. Any non-zero value is a falsifier finding (LO1-ST-N01)."
+        },
+        "evidenceRecordsSuppliedFromNormalization": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sha256" },
+          "description": "recordJcsSha256 of each evidence record handed to process_intent, so the lower runner can prove the coordinator consumed the live records and not a substitute."
+        },
+        "nowInput": { "$ref": "#/$defs/utcInstant" }
+      }
+    },
+
+    "deterministicStubs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["routing", "kpmSnapshots", "controlResults", "readbacks", "writeLedger", "normalRanWrites", "rollbackRanWrites"],
+      "description": "The deterministic E2/KPM/control/readback boundary. routing records which side served it in this run; the role table marks that an integration-authority assignment.",
+      "properties": {
+        "routing": {
+          "enum": ["UPPER_DETERMINISTIC_STUB", "LOWER_IMPLEMENTATION_UNDER_TEST", "UNRESOLVED"],
+          "description": "UNRESOLVED can only appear on a capture whose run disposition is ABORTED_GATE."
+        },
+        "kpmSnapshots": { "type": "array", "items": { "$ref": "#/$defs/stubObservation" } },
+        "controlResults": { "type": "array", "items": { "$ref": "#/$defs/stubObservation" } },
+        "readbacks": { "type": "array", "items": { "$ref": "#/$defs/stubObservation" } },
+        "writeLedger": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sequence", "kind", "live", "at"],
+            "properties": {
+              "sequence": { "type": "integer", "minimum": 0 },
+              "kind": { "enum": ["NORMAL", "ROLLBACK"] },
+              "live": {
+                "const": false,
+                "description": "prohibitedTargetKinds bars LIVE_RAN_WRITE, so a live write can never be recorded; an attempt is refused by the egress guard and appears in externalCalls.violations instead."
+              },
+              "at": { "$ref": "#/$defs/utcInstant" },
+              "targetRef": { "$ref": "#/$defs/safeString" }
+            }
+          }
+        },
+        "normalRanWrites": { "type": "integer", "minimum": 0 },
+        "rollbackRanWrites": { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "complete", "actions", "residual"],
+      "description": "Lifecycle teardown on BOTH the normal and the failure path. `complete` is MEASURED as `residual` being empty, not asserted.",
+      "properties": {
+        "path": { "enum": ["NORMAL", "FAILURE"] },
+        "complete": { "type": "boolean" },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["target", "action", "outcome", "at"],
+            "properties": {
+              "target": { "enum": ["O1_SUBSCRIPTION", "PERF_METRIC_JOB", "RUNNING_DATASTORE", "IN_FLIGHT_WORK", "R1_DME_DATA_JOB", "R1_STATUS_SUBSCRIPTION", "DELIVERY_BINDING", "TEMP_STATE", "NETCONF_SESSION", "SFTP_SESSION", "LISTENER"] },
+              "action": { "enum": ["DELETE", "LOCK", "UNLOCK", "DRAIN", "CANCEL", "CLOSE", "REMOVE", "SKIPPED_NOT_OWNED"] },
+              "outcome": { "enum": ["DONE", "ALREADY_ABSENT", "FAILED", "SKIPPED"] },
+              "at": { "$ref": "#/$defs/utcInstant" },
+              "detail": { "$ref": "#/$defs/safeString" }
+            }
+          }
+        },
+        "residual": {
+          "type": "array",
+          "description": "MEASURED. Anything the harness created and could not remove. A non-empty array is an incomplete-cleanup finding.",
+          "items": { "$ref": "#/$defs/safeString" }
+        }
+      }
+    },
+
+    "retries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy", "attempts", "idempotencyKeysUsed", "duplicateSuppressions"],
+      "properties": {
+        "policy": { "$ref": "#/$defs/safeString" },
+        "attempts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["operationRef", "attemptIndex", "outcome", "at"],
+            "properties": {
+              "operationRef": { "$ref": "#/$defs/safeString" },
+              "attemptIndex": { "type": "integer", "minimum": 1 },
+              "outcome": { "$ref": "#/$defs/safeString" },
+              "at": { "$ref": "#/$defs/utcInstant" },
+              "backoffMs": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "idempotencyKeysUsed": { "type": "array", "items": { "type": "string", "maxLength": 255 } },
+        "duplicateSuppressions": { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "externalCalls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetLedger", "hardwareCalls", "externalLiveTargetCalls", "forbiddenEgressAttempts", "attemptedAuthorities", "authorityAllowlist", "guardInstalled", "guardArmedNow", "guardMethods", "scope", "hardwareDefinitionSource", "connectionAttempts", "approvedConnectionAttempts", "violations", "peerAttributionAmbiguities"],
+      "description": "MEASURED, not asserted. The guard classifies and REFUSES every outbound attempt outside the allowlist, so a violation fails the request that made it. SSH and SFTP force the guard to cover more than socket.connect: see guardMethods.",
+      "properties": {
+        "targetLedger": {
+          "type": "array",
+          "description": "One entry per distinct external target this run touched, with what it was and how many calls went to it. This is the target-call ledger task requirement 4 demands.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["authority", "protocol", "role", "allowed", "callCount", "firstAt", "lastAt"],
+            "properties": {
+              "authority": { "$ref": "#/$defs/authority" },
+              "protocol": { "enum": ["HTTPS", "NETCONF_SSH", "SFTP_SSH"] },
+              "role": { "enum": ["LOWER_LIVE_O1_PROVIDER", "LOWER_IMPLEMENTATION_UNDER_TEST", "UPPER_SELF", "CONTRACT_FAITHFUL_EMULATOR", "UNATTRIBUTED"] },
+              "allowed": { "type": "boolean" },
+              "callCount": { "type": "integer", "minimum": 0 },
+              "firstAt": { "$ref": "#/$defs/utcInstant" },
+              "lastAt": { "$ref": "#/$defs/utcInstant" }
+            }
+          }
+        },
+        "hardwareCalls": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "MEASURED against release-gates.1.0.0.json#/hardwareControlSurfaces. Counted from connection attempts AND process spawns AND library-level SSH transport opens alike. Counts attempts classified HARDWARE_CONTROL only, and is therefore NOT interchangeable with externalLiveTargetCalls."
+        },
+        "externalLiveTargetCalls": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "MEASURED. The number of outbound attempts classified EXTERNAL_LIVE_TARGET: reaching for a live target at an authority the identity/authority gate never admitted, which is not a declared hardware control surface. Distinct in meaning from hardwareCalls -- that counts reaching for a hardware surface -- and the two partition the refused attempts, so neither can be derived from the other. Read off oran/release/lo1/egress.py's counters, never written as a literal; it is zero on a clean run and increments the moment an unapproved external target is attempted."
+        },
+        "forbiddenEgressAttempts": { "type": "integer", "minimum": 0 },
+        "guardInstalled": { "type": "boolean" },
+        "guardArmedNow": { "type": "boolean" },
+        "guardMethods": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": { "enum": ["SOCKET_CONNECT", "SUBPROCESS_SPAWN", "SSH_TRANSPORT_OPEN", "SFTP_CLIENT_OPEN", "DNS_RESOLVE"] },
+          "description": "Which interception points were armed. A guard covering only SOCKET_CONNECT is insufficient once a third-party SSH library is on the path, so at least the three mandatory points must appear."
+        },
+        "scope": { "const": "scenario" },
+        "hardwareDefinitionSource": { "$ref": "#/$defs/safeString" },
+        "connectionAttempts": { "type": "integer", "minimum": 0 },
+        "approvedConnectionAttempts": { "type": "integer", "minimum": 0 },
+        "attemptedAuthorities": { "type": "array", "items": { "$ref": "#/$defs/authority" } },
+        "authorityAllowlist": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/authority" } },
+        "violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "classification"],
+            "properties": {
+              "kind": { "enum": ["CONNECT", "SPAWN", "SSH_OPEN", "RESOLVE"] },
+              "classification": { "enum": ["EXTERNAL_LIVE_TARGET", "HARDWARE_CONTROL", "OUT_OF_SCOPE_AUTHORITY"] },
+              "authority": { "$ref": "#/$defs/authority" },
+              "executable": { "$ref": "#/$defs/safeString" }
+            }
+          }
+        },
+        "peerAttributionAmbiguities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["clientAddress", "listener"],
+            "properties": {
+              "clientAddress": { "$ref": "#/$defs/authority" },
+              "listener": { "$ref": "#/$defs/authority" },
+              "liveRemotes": { "type": "array", "items": { "$ref": "#/$defs/authority" } }
+            }
+          }
+        }
+      }
+    },
+
+    "appliedRules": {
+      "type": "array",
+      "description": "One entry per rule the frozen catalog declares for this scenario, carrying the OBSERVED values the rule ranges over. Never a rule verdict.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ruleId", "declaredInCatalog", "inputs", "observations"],
+        "properties": {
+          "ruleId": { "type": "string", "pattern": "^RULE-[A-Z0-9-]+$" },
+          "declaredInCatalog": { "type": "boolean" },
+          "inputs": { "type": "array", "items": { "type": "string", "maxLength": 256 } },
+          "observations": { "type": "object", "additionalProperties": { "$ref": "#/$defs/observationValue" } }
+        }
+      }
+    },
+
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy", "redactedHeaderNames", "redactedBodyPointers", "secretReferencesObserved", "secretValuesCaptured", "credentialMaterialCaptured", "rawArtifactScan"],
+      "properties": {
+        "policy": { "const": "oran-aic-upper-live-o1-harness-redaction/1.0.0" },
+        "redactedHeaderNames": { "type": "array", "items": { "$ref": "#/$defs/headerName" } },
+        "redactedBodyPointers": { "type": "array", "items": { "type": "string", "maxLength": 256 } },
+        "secretReferencesObserved": { "type": "array", "items": { "$ref": "#/$defs/secretRef" } },
+        "secretValuesCaptured": { "const": false },
+        "credentialMaterialCaptured": { "const": false },
+        "rawArtifactScan": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["filesScanned", "credentialMarkerHits", "privateKeyBlockHits"],
+          "description": "The raw PM bytes, NETCONF frames and notification bodies are stored verbatim, so the redaction claim is only credible if the stored bytes were actually scanned. MEASURED counts, not constants.",
+          "properties": {
+            "filesScanned": { "type": "integer", "minimum": 0 },
+            "credentialMarkerHits": { "type": "integer", "minimum": 0 },
+            "privateKeyBlockHits": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "uuid": { "type": "string", "format": "uuid" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "gitOid": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "semver": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$" },
+    "nonEmptyId": { "type": "string", "minLength": 1, "maxLength": 255 },
+    "scenarioId": { "const": "SC-084" },
+    "utcInstant": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "httpsUri": { "type": "string", "format": "uri", "pattern": "^https://" },
+    "authority": { "type": "string", "pattern": "^[A-Za-z0-9._~:\\[\\]-]+:[0-9]{1,5}$" },
+    "fsmState": { "enum": ["S0", "S1", "S2", "S3", "S4", "S5", "S6"] },
+    "secretRef": {
+      "type": "string",
+      "pattern": "^(secret|vault|k8s-secret|env|file|k8s|keychain)://",
+      "description": "Reference URI only. Resolved paths and material are never recorded."
+    },
+
+    "safeString": {
+      "type": "string",
+      "maxLength": 4096,
+      "not": { "pattern": "-----BEGIN|Bearer |password=|secret=|BEGIN (RSA|EC|OPENSSH|PRIVATE)" },
+      "description": "Free-form slot that must never carry credential material."
+    },
+
+    "observationValue": {
+      "anyOf": [
+        { "type": ["integer", "number", "boolean", "null"] },
+        { "$ref": "#/$defs/safeString" },
+        { "type": "array", "items": { "$ref": "#/$defs/observationValue" } }
+      ]
+    },
+
+    "rawBytes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["byteCount", "sha256", "artifactPath"],
+      "description": "A non-HTTP wire artefact preserved verbatim. The bytes live out of line under the capture root so the document stays readable; the digest here is over the exact bytes at that path.",
+      "properties": {
+        "byteCount": { "type": "integer", "minimum": 0 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "artifactPath": { "type": "string", "pattern": "^raw/(o1|netconf|notify|release)/[A-Za-z0-9._-]+$" },
+        "mediaType": { "type": ["string", "null"], "maxLength": 128 },
+        "truncated": { "const": false }
+      }
+    },
+
+    "netconfCounterSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["captureSequence", "monotonicNs", "rpcRecordCount", "clientToServerOctetCount", "serverToClientOctetCount", "clientToServerMessageCount", "serverToClientMessageCount", "clientToServerChunkCount", "serverToClientChunkCount"],
+      "properties": {
+        "captureSequence": { "type": "integer", "minimum": 0 },
+        "monotonicNs": { "type": "integer", "minimum": 0 },
+        "rpcRecordCount": { "type": "integer", "minimum": 0 },
+        "clientToServerOctetCount": { "type": "integer", "minimum": 0 },
+        "serverToClientOctetCount": { "type": "integer", "minimum": 0 },
+        "clientToServerMessageCount": { "type": "integer", "minimum": 0 },
+        "serverToClientMessageCount": { "type": "integer", "minimum": 0 },
+        "clientToServerChunkCount": { "type": "integer", "minimum": 0 },
+        "serverToClientChunkCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "netconfCounterDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["measuredRpcDelta", "clientToServerOctetDelta", "serverToClientOctetDelta", "clientToServerMessageDelta", "serverToClientMessageDelta", "clientToServerChunkDelta", "serverToClientChunkDelta"],
+      "properties": {
+        "measuredRpcDelta": { "type": "integer", "minimum": 0 },
+        "clientToServerOctetDelta": { "type": "integer", "minimum": 0 },
+        "serverToClientOctetDelta": { "type": "integer", "minimum": 0 },
+        "clientToServerMessageDelta": { "type": "integer", "minimum": 0 },
+        "serverToClientMessageDelta": { "type": "integer", "minimum": 0 },
+        "clientToServerChunkDelta": { "type": "integer", "minimum": 0 },
+        "serverToClientChunkDelta": { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "perfMetricJobAction": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["attempted", "rpcSequences", "outcome"],
+      "properties": {
+        "attempted": { "type": "boolean" },
+        "rpcSequences": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "outcome": { "enum": ["OK", "FAILED", "NOT_ASSIGNED", "TIMEOUT"] },
+        "administrativeState": { "type": ["string", "null"], "maxLength": 32 },
+        "operationalState": { "type": ["string", "null"], "maxLength": 32 },
+        "readbackConfirmedAt": { "$ref": "#/$defs/utcInstant" }
+      }
+    },
+
+    "stubObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stepId", "sequence", "at", "payloadJcsSha256"],
+      "properties": {
+        "stepId": { "$ref": "#/$defs/nonEmptyId" },
+        "sequence": { "type": "integer", "minimum": 0 },
+        "at": { "$ref": "#/$defs/utcInstant" },
+        "payloadJcsSha256": { "$ref": "#/$defs/sha256" },
+        "servedBy": { "enum": ["UPPER_DETERMINISTIC_STUB", "LOWER_IMPLEMENTATION_UNDER_TEST"] }
+      }
+    },
+
+    "headerName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9!#$%&'*+.^_`|~-]+$"
+    },
+
+    "headerNameList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/headerName" },
+          { "not": { "pattern": "^([Aa][Uu][Tt][Hh][Oo][Rr][Ii][Zz][Aa][Tt][Ii][Oo][Nn]|[Pp][Rr][Oo][Xx][Yy]-[Aa][Uu][Tt][Hh][Oo][Rr][Ii][Zz][Aa][Tt][Ii][Oo][Nn]|[Cc][Oo][Oo][Kk][Ii][Ee]|[Ss][Ee][Tt]-[Cc][Oo][Oo][Kk][Ii][Ee])$" } },
+          { "not": { "pattern": "[Tt][Oo][Kk][Ee][Nn]|[Ss][Ee][Cc][Rr][Ee][Tt]|[Cc][Rr][Ee][Dd][Ee][Nn][Tt][Ii][Aa][Ll]|[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Aa][Pp][Ii][-_]?[Kk][Ee][Yy]" } }
+        ]
+      },
+      "description": "Header NAMES only, with credential-bearing names excluded. Header values are never recorded; only the redacted header-block digest is."
+    },
+
+    "messageDigest": {
+      "type": "object",
+      "description": "Digest of one HTTP message. The member set is closed at every use site with unevaluatedProperties: false rather than here with additionalProperties: false, so a sibling allOf branch contributing `status` stays satisfiable.",
+      "required": ["headerNamesPresent", "headerBlockSha256", "bodyByteCount", "bodyRawSha256"],
+      "properties": {
+        "headerNamesPresent": { "$ref": "#/$defs/headerNameList" },
+        "headerBlockSha256": { "$ref": "#/$defs/sha256" },
+        "contentType": { "type": ["string", "null"], "maxLength": 128 },
+        "bodyByteCount": { "type": "integer", "minimum": 0 },
+        "bodyRawSha256": { "$ref": "#/$defs/sha256", "description": "SHA-256 over the exact wire bytes of the body, before any parsing." },
+        "bodyJcsSha256": { "$ref": "#/$defs/sha256", "description": "RFC 8785 canonical JSON digest. Present only when the body parses as JSON." },
+        "headerBlockCanonicalSha256": { "$ref": "#/$defs/sha256" },
+        "bodyCanonicalSha256": { "$ref": "#/$defs/sha256" },
+        "bodyJsonPointerDigests": { "type": "object", "additionalProperties": { "$ref": "#/$defs/sha256" } }
+      }
+    },
+
+    "exchange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence", "stepId", "stepIndex", "observedAt", "monotonicOffsetMs", "direction", "role", "peer",
+        "transport", "method", "resolvedUri", "endpointRef", "bindings",
+        "request", "response", "attemptCount", "timeoutMs", "timedOut",
+        "correlationId", "idempotencyKey", "capturedOutputs", "declaredExpectedHttpStatus"
+      ],
+      "properties": {
+        "sequence": { "type": "integer", "minimum": 0 },
+        "stepId": { "$ref": "#/$defs/nonEmptyId" },
+        "stepIndex": { "type": "integer", "minimum": 0 },
+        "observedAt": { "$ref": "#/$defs/utcInstant" },
+        "monotonicOffsetMs": { "type": "integer", "minimum": 0 },
+        "direction": { "enum": ["UPPER_INBOUND", "UPPER_OUTBOUND"] },
+        "role": { "enum": ["SERVER", "CLIENT"] },
+        "peer": {
+          "enum": ["LOWER_RUNNER", "LOWER_A1", "LOWER_LIVE_O1_PROVIDER", "UPPER_SELF", "UNATTRIBUTED"],
+          "description": "UPPER_SELF is claimed only when a live connection this release opened has exactly this request's client address as its local endpoint AND this listener as its remote endpoint. UNATTRIBUTED is the fail-closed outcome; it is a finding, never a default."
+        },
+        "transport": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scheme", "peerAuthority"],
+          "properties": {
+            "scheme": { "const": "https" },
+            "peerAuthority": { "$ref": "#/$defs/authority" },
+            "tlsProtocol": { "type": ["string", "null"], "maxLength": 32 },
+            "peerAuthenticated": { "type": "boolean" }
+          }
+        },
+        "method": { "enum": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"] },
+        "resolvedUri": { "$ref": "#/$defs/httpsUri" },
+        "endpointRef": { "type": ["string", "null"], "pattern": "^#/endpointTemplates/[A-Za-z0-9]+$" },
+        "bindings": { "type": "object", "additionalProperties": { "$ref": "#/$defs/safeString" } },
+        "request": { "$ref": "#/$defs/messageDigest", "unevaluatedProperties": false },
+        "response": {
+          "allOf": [
+            { "$ref": "#/$defs/messageDigest" },
+            {
+              "type": "object",
+              "required": ["status"],
+              "properties": {
+                "status": { "type": "integer", "minimum": 100, "maximum": 599 },
+                "locationHeader": { "type": ["string", "null"], "maxLength": 2048 },
+                "locationLastPathSegment": { "type": ["string", "null"], "maxLength": 255 }
+              }
+            }
+          ],
+          "unevaluatedProperties": false
+        },
+        "attemptCount": { "type": "integer", "minimum": 1 },
+        "timeoutMs": { "type": "integer", "minimum": 1 },
+        "timedOut": { "type": "boolean" },
+        "correlationId": { "type": ["string", "null"], "maxLength": 255 },
+        "idempotencyKey": { "type": ["string", "null"], "maxLength": 255 },
+        "capturedOutputs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "policyId": { "$ref": "#/$defs/nonEmptyId" },
+            "dataJobId": { "$ref": "#/$defs/nonEmptyId" },
+            "deliveryBindingId": { "type": "string", "minLength": 22, "maxLength": 128, "pattern": "^[A-Za-z0-9._~-]+$" },
+            "registrationId": { "$ref": "#/$defs/nonEmptyId" },
+            "subscriptionId": { "$ref": "#/$defs/nonEmptyId" },
+            "intentId": { "$ref": "#/$defs/nonEmptyId" },
+            "policyObjectJcsSha256": { "$ref": "#/$defs/sha256" },
+            "evidenceRecordJcsSha256": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "declaredExpectedHttpStatus": {
+          "type": ["integer", "null"],
+          "minimum": 100,
+          "maximum": 599,
+          "description": "Read from the catalog step at run time for traceability. The comparison against response.status is performed by the lower runner, not here."
+        }
+      }
+    },
+
+    "harnessOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sequence", "observedAt", "component", "op", "allowed", "argumentKeys", "httpStatus", "event"],
+      "properties": {
+        "sequence": { "type": "integer", "minimum": 0 },
+        "observedAt": { "$ref": "#/$defs/utcInstant" },
+        "component": { "enum": ["nonrt", "rapp", "o1_consumer", "e2_stub"] },
+        "op": { "type": "string", "pattern": "^[A-Z0-9_:]+$" },
+        "allowed": { "type": "boolean" },
+        "argumentKeys": { "type": "array", "uniqueItems": true, "items": { "type": "string", "maxLength": 128 } },
+        "httpStatus": { "type": "integer", "minimum": 100, "maximum": 599 },
+        "event": { "enum": ["ICS_OP", "ICS_OP_NOT_ALLOWED", "ICS_OP_NOT_ASSIGNED", "ICS_STATE_READ"] },
+        "outputKeys": { "type": "array", "uniqueItems": true, "items": { "type": "string", "maxLength": 128 } }
+      }
+    },
+
+    "stateSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["jcsSha256", "policyCount", "statusCount", "dmeDataJobCount", "deliveryBindingCount", "acceptedPushPayloadCounts", "subscriptionCount", "evidenceCommitCount", "retrievedFileCount", "perfMetricJobPresent"],
+      "properties": {
+        "jcsSha256": { "$ref": "#/$defs/sha256" },
+        "policyCount": { "type": "integer", "minimum": 0 },
+        "statusCount": { "type": "integer", "minimum": 0 },
+        "dmeDataJobCount": { "type": "integer", "minimum": 0 },
+        "deliveryBindingCount": { "type": "integer", "minimum": 0 },
+        "acceptedPushPayloadCounts": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+        "subscriptionCount": { "type": "integer", "minimum": 0 },
+        "evidenceCommitCount": { "type": "integer", "minimum": 0 },
+        "retrievedFileCount": { "type": "integer", "minimum": 0 },
+        "perfMetricJobPresent": { "type": ["boolean", "null"] },
+        "policyIds": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/nonEmptyId" } }
+      }
+    },
+
+    "providerIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["releaseId", "releaseVersion", "sourceCommit", "sourceTree", "releaseManifestSha256", "ociImageManifestDigest", "yangClosureDigest", "yangCapabilityDigest", "acceptanceRecordDigest", "runtimeOwner", "teardownOwner"],
+      "description": "Identity ONLY. Nothing under these members is ever vendored, imported, submoduled or copied into this repository. The schema mirrors provider-acceptance-contract.1.0.0.schema.json; a member whose value is the UNRESOLVED token cannot appear on an ADMITTED run.",
+      "properties": {
+        "releaseId": { "$ref": "#/$defs/nonEmptyId" },
+        "releaseVersion": { "$ref": "#/$defs/safeString" },
+        "sourceCommit": { "$ref": "#/$defs/unresolvableGitOid" },
+        "sourceTree": { "$ref": "#/$defs/unresolvableGitOid" },
+        "releaseManifestSha256": { "$ref": "#/$defs/unresolvableSha256" },
+        "ociImageManifestDigest": {
+          "type": "string",
+          "pattern": "^(sha256:[a-f0-9]{64}|UNRESOLVED)$",
+          "description": "IMMUTABLE OCI IMAGE MANIFEST digest. A mutable tag or a local image ID is never accepted here; the pattern makes it unrepresentable."
+        },
+        "yangClosureDigest": { "$ref": "#/$defs/unresolvableSha256" },
+        "yangCapabilityDigest": { "$ref": "#/$defs/unresolvableSha256" },
+        "acceptanceRecordDigest": { "$ref": "#/$defs/unresolvableSha256" },
+        "runtimeOwner": { "$ref": "#/$defs/safeString" },
+        "teardownOwner": { "$ref": "#/$defs/safeString" }
+      }
+    },
+
+    "o1Readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractPointer", "orderSource", "requiredInitialStates", "states", "measuredBodyAdmitted", "complete", "unmet", "teardownOrder"],
+      "description": "The measured section 10.2 startup order. Every postcondition string is READ from scenario-runner-contract.1.0.1.json#/initialStates and is never restated by the release.",
+      "properties": {
+        "contractPointer": { "const": "/initialStates" },
+        "orderSource": { "const": "02-rapp-xapp-backend-mandatory-contract.1.0.1.md#10.2" },
+        "requiredInitialStates": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "enum": [
+              "INSTALL_O1_PROFILE",
+              "INSTALL_ACTIVE_O1_SUBSCRIPTION",
+              "SET_PERF_METRIC_JOB_UNLOCKED",
+              "CONFIGURE_LIVE_O1_OK_RECORD_FOR_EACH_POLICY_CELL"
+            ]
+          }
+        },
+        "states": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["state", "owner", "initialStates", "postconditions", "confirmed", "evidence"],
+            "properties": {
+              "state": { "enum": ["PRECHECK", "TRUST_READY", "SUBSCRIBED", "JOB_ACTIVE", "ASSURANCE_READY"] },
+              "owner": { "enum": ["UPPER_HARNESS", "LOWER_LIVE_O1_PROVIDER"] },
+              "initialStates": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": { "$ref": "#/$defs/safeString" }
+              },
+              "postconditions": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/safeString" },
+                "description": "Verbatim frozen runner-contract postcondition text."
+              },
+              "confirmed": { "type": "boolean" },
+              "at": { "$ref": "#/$defs/utcInstant" },
+              "evidence": {
+                "type": "object",
+                "additionalProperties": { "$ref": "#/$defs/observationValue" }
+              }
+            }
+          }
+        },
+        "measuredBodyAdmitted": {
+          "type": "boolean",
+          "description": "PRECHECK, TRUST_READY, SUBSCRIBED and JOB_ACTIVE are all confirmed. Until it is true no measured SC-084 body entry point may run."
+        },
+        "complete": { "type": "boolean" },
+        "unmet": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/safeString" }
+        },
+        "teardownOrder": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/safeString" },
+          "description": "The observed section 10.2 item 9 drain order: the job is locked and deleted, in-flight work drains, and only then is the subscription deleted."
+        }
+      }
+    },
+
+    "unresolvableSha256": { "type": "string", "pattern": "^([a-f0-9]{64}|UNRESOLVED)$" },
+    "unresolvableGitOid": { "type": "string", "pattern": "^([a-f0-9]{40}|UNRESOLVED)$" }
+  }
+}

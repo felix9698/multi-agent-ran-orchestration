@@ -1,0 +1,41 @@
+# 같은 반송파 재동기에서 UE 의 LO 주파수 보정을 누적한다 (잔여 오프셋으로 덮어쓰지 않는다).
+#
+# 근거 (2026-09-15 실측, 세 UE 모두):
+#   --ue-fo-compensation 에서 UE_synch() 는 PSS 로 잰 오프셋을 nrue_ru_set_freq() 에 절대값으로 준다.
+#   그런데 같은 반송파 재동기(RLF 후 re-sync)는 LO 를 명목값으로 되돌리지 않고 이전 보정이 걸린
+#   상태에서 탐색하므로 측정값은 '잔여'다. 결과: 재동기 두 번에 한 번은 이전 보정이 사라진다.
+#   UE 로그 'Measured Carrier Frequency offset' 순서열이 이를 그대로 보여준다:
+#     ue1 550 -36 632 -80 628 / 632 -109 621 -117 633
+#     ue2 1027 9 1023 23 1059 -44 1030 21 1027
+#     ue3 632 49 593 88 511 101 552 90 574 71
+#   LO 가 명목값 근처로 돌아간 구간에는 발진기 오차 전체(500-1000 Hz)가 상향에 실린다.
+#   gNB 는 PUSCH 를 SNR 약 14 dB 로 듣고 DTX 도 늘지 않지만 MCS 0 에서 BLER 0.99,
+#   PUCCH0 DTX 급증 -> 'Detected UL Failure' -> RRC Release -> UE 는 해제를 놓쳐 좀비.
+#   (ue1 RNTI f379, 2026-09-15 20:52-20:55: UL 1차 전송 대비 3회 재전송 비율 0.29 -> 0.92 -> 0.99)
+# cont_fo_comp 경로는 UE->freq_offset 을 디지털 보정으로 쓰므로 건드리지 않는다.
+#
+# 적용: patch -p1 < oai_patches/nr_ue_resync_fo_accumulate.w30.patch  (ue1·ue2 트리, ue3 은 ue1 바이너리 복사)
+# 상태: 적용됨 (UE initial-sync 승인 범위). 되돌림: executables/nr-ue.c.bak-cforesync 복원 후 재빌드 + 기동 가드 해시 핀 복원
+---
+diff --git a/executables/nr-ue.c b/executables/nr-ue.c
+index 1fc5b1af1c..bada0cc575 100644
+--- a/executables/nr-ue.c
++++ b/executables/nr-ue.c
+@@ -210,7 +210,16 @@ static void UE_synch(void *arg) {
+ 
+   if (ret.cell_detected) {
+     syncD->rx_offset = ret.rx_offset;
+-    const int freq_offset = UE->common_vars.freq_offset; // frequency offset computed with pss in initial sync
++    int freq_offset = UE->common_vars.freq_offset; // frequency offset computed with pss in initial sync
++    if (!get_nrUE_params()->cont_fo_comp) {
++      // A re-sync on the same carrier searches on the LO as it stands, still carrying the correction
++      // of the previous sync, so the PSS estimate is only the residual: the LO offset to set is the sum.
++      // Setting the residual alone dropped the earlier correction on every other re-sync, leaving the
++      // UL off by the whole oscillator error (500-1000 Hz on the B206mini UEs): PUSCH heard at 14 dB
++      // SNR but undecodable at MCS 0, then UL failure and release.
++      const openair0_config_t *cfg0 = &openair0_cfg[UE->rf_map.card];
++      freq_offset += (int)lround(cfg0->rx_freq[UE->rf_map.chain] - (double)dl_carrier);
++    }
+     const int hw_slot_offset =
+         ((ret.rx_offset << 1) / fp->samples_per_subframe * fp->slots_per_subframe)
+         + round((float)((ret.rx_offset << 1) % fp->samples_per_subframe) / fp->samples_per_slot0);

@@ -1,0 +1,3755 @@
+{
+  "assignmentVersion": "oran-aic-execution-profile-assignment/1.0.1",
+  "contractProfile": "oran-aic/1.0.1",
+  "schemaRef": "urn:oran-aic:schema:execution-profile-assignment:1.0.1",
+  "normative": true,
+  "contractDocumentRef": "02-rapp-xapp-backend-mandatory-contract.1.0.1.md",
+  "contractDocumentSection": "17.3",
+  "catalogRef": "scenario-catalog.1.0.1.json",
+  "runnerContractRef": "scenario-runner-contract.1.0.1.json",
+  "scenarioIdIsAuthoritative": true,
+  "catalogPointerRule": "catalogPointer는 scenarioId가 가리키는 catalog 항목의 편의 좌표다. scenarioId가 권위이며, pointer가 해당 scenarioId를 가리키지 않으면 preflight는 target call 전에 fail-closed한다. fixtureMode와 fixtureSource.mode는 standalone profile 선택을 위해 catalog 값을 복제한 fail-closed snapshot이며, runner는 두 값 모두를 catalogPointer의 scenario.fixtureMode에서 파생해 동치 검증하고 불일치 시 target call 전에 실패한다.",
+  "inferenceProhibited": true,
+  "inferenceRule": "하위 측은 profile을 추론하거나 로컬 default를 생성하지 않는다. 이 문서에 배정이 없는 scenario는 실행하지 않고 blocker로 보고한다. profile 검증(문서 digest 확인 + 배정 조회)이 끝나기 전에는 어떤 target call도 하지 않는다.",
+  "hardwareAuthorization": {
+    "usrp": "NOT_AUTHORIZED",
+    "ota": "NOT_AUTHORIZED",
+    "liveE2Control": "NOT_AUTHORIZED",
+    "liveRanWrite": "NOT_AUTHORIZED",
+    "note": "이 문서의 어떤 profile도 USRP·OTA·live E2 control·live RAN write를 승인하지 않는다. `live-O1`도 예외가 아니다."
+  },
+  "profiles": {
+    "lower-local": {
+      "semantics": "하위가 소유한 구현을 deterministic local adapter/stub/fault harness와 shared bundle fixture만으로 실행한다.",
+      "requiresUpperSuppliedCounterpart": false,
+      "requiresSeparateAuthority": false,
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "scenarioCount": 69
+    },
+    "bilateral-mock": {
+      "semantics": "양측이 합의한 mock endpoint에 실행하고 capture를 양측이 합의한다. 상위가 자신의 contract mock endpoint를 제공해야 시작할 수 있다.",
+      "requiresUpperSuppliedCounterpart": true,
+      "requiresSeparateAuthority": false,
+      "permittedTargetKinds": [
+        "AGREED_BILATERAL_MOCK_ENDPOINT",
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER_WITH_UPPER_AGREED_CAPTURE",
+      "scenarioCount": 4
+    },
+    "live-O1": {
+      "semantics": "별도 live-O1 authority가 승인한 Provider/Consumer harness로 live O1 출력을 검증한다. live 범위는 O1 NETCONF/YANG, FileDataReportingMnS, notification, SFTP와 PM file에 한정된다.",
+      "requiresUpperSuppliedCounterpart": true,
+      "requiresSeparateAuthority": true,
+      "authorityToken": "LIVE_O1_PROVIDER_VERIFICATION_AUTHORITY",
+      "liveScope": [
+        "O1_FILE_DATA_REPORTING_MNS",
+        "O1_NETCONF_YANG",
+        "O1_NOTIFICATION",
+        "O1_PM_FILE",
+        "O1_SFTP"
+      ],
+      "notAnApprovalFor": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "USRP_RADIO"
+      ],
+      "permittedTargetKinds": [
+        "AGREED_BILATERAL_MOCK_ENDPOINT",
+        "LIVE_O1_PROVIDER_UNDER_SEPARATE_AUTHORITY",
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER_UNDER_LIVE_O1_AUTHORITY",
+      "scenarioCount": 1
+    }
+  },
+  "counts": {
+    "catalogScenarioCount": 101,
+    "lowerExecutionScenarioCount": 74,
+    "notApplicableToLowerCount": 27,
+    "byProfile": {
+      "lower-local": 69,
+      "bilateral-mock": 4,
+      "live-O1": 1
+    }
+  },
+  "derivedFrom": {
+    "frozenCatalog": {
+      "path": "shared-contract-bundle/scenario-catalog.1.0.0.json",
+      "byteSha256": "051f381dc15fa951935c6913a7269714c17c40942b52b2b45b978b6a8eb795ba",
+      "rule": "하위 실행 대상 74개는 catalog suiteCatalog의 target 소유자가 하위 측인 suite (a1p-producer-conformance, end-to-end-contract, o1-lifecycle-contract, o1-provider-profile-conformance)의 합집합이다."
+    },
+    "lowerEvidence": {
+      "archive": "contract-1.0.0-failure-evidence.tar",
+      "archiveByteSha256": "5ee0e7d2938b875425d23c70609527a034a5caef71af4e4ca2f585946c9056d8",
+      "member": "contract-1.0.0-failure-evidence/scenario-implementation-matrix.json",
+      "memberByteSha256": "86027d89eb61752c5d4d9b1e73bd5fe9c6745d48d2318e68d4400dd22204f1b0",
+      "dependencyClassCounts": {
+        "HARDWARE_FREE_LOWER_PHASE_A": 67,
+        "WAIT_FOR_CORRECTED_1.0.1": 2,
+        "UPPER_CONTRACT_MOCK_OR_FINAL_INTEGRATION": 4,
+        "FINAL_INTEGRATION_LIVE_O1_INVARIANT": 1
+      }
+    },
+    "diagnosis": {
+      "path": "diagnosis/1.0.0/mismatch-matrix.json",
+      "entryScenarioId": "EXECUTION-PROFILE",
+      "jsonPointer": "/files"
+    }
+  },
+  "assignments": [
+    {
+      "scenarioId": "SC-001",
+      "catalogPointer": "/scenarios/0",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://golden",
+          "fixture://policy"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/0/expected",
+        "rulesPointer": "/scenarios/0/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-002",
+      "catalogPointer": "/scenarios/1",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/1/expected",
+        "rulesPointer": "/scenarios/1/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-003",
+      "catalogPointer": "/scenarios/2",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/2/expected",
+        "rulesPointer": "/scenarios/2/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-004",
+      "catalogPointer": "/scenarios/3",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://appliedVerifiedStatus"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/3/expected",
+        "rulesPointer": "/scenarios/3/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-005",
+      "catalogPointer": "/scenarios/4",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://appliedVerifiedStatus"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/4/expected",
+        "rulesPointer": "/scenarios/4/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-006",
+      "catalogPointer": "/scenarios/5",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/5/expected",
+        "rulesPointer": "/scenarios/5/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-007",
+      "catalogPointer": "/scenarios/6",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/6/expected",
+        "rulesPointer": "/scenarios/6/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-008",
+      "catalogPointer": "/scenarios/7",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": []
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/7/expected",
+        "rulesPointer": "/scenarios/7/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-009",
+      "catalogPointer": "/scenarios/8",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": []
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/8/expected",
+        "rulesPointer": "/scenarios/8/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-010",
+      "catalogPointer": "/scenarios/9",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/9/expected",
+        "rulesPointer": "/scenarios/9/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-011",
+      "catalogPointer": "/scenarios/10",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/10/expected",
+        "rulesPointer": "/scenarios/10/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-012",
+      "catalogPointer": "/scenarios/11",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/11/expected",
+        "rulesPointer": "/scenarios/11/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-013",
+      "catalogPointer": "/scenarios/12",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://appliedVerifiedStatus"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/12/expected",
+        "rulesPointer": "/scenarios/12/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-014",
+      "catalogPointer": "/scenarios/13",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://appliedVerifiedStatus",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/13/expected",
+        "rulesPointer": "/scenarios/13/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-017",
+      "catalogPointer": "/scenarios/16",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://noActionStatus",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/16/expected",
+        "rulesPointer": "/scenarios/16/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-018",
+      "catalogPointer": "/scenarios/17",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/17/expected",
+        "rulesPointer": "/scenarios/17/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-019",
+      "catalogPointer": "/scenarios/18",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/18/expected",
+        "rulesPointer": "/scenarios/18/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-020",
+      "catalogPointer": "/scenarios/19",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/19/expected",
+        "rulesPointer": "/scenarios/19/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-021",
+      "catalogPointer": "/scenarios/20",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/20/expected",
+        "rulesPointer": "/scenarios/20/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-022",
+      "catalogPointer": "/scenarios/21",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/21/expected",
+        "rulesPointer": "/scenarios/21/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-023",
+      "catalogPointer": "/scenarios/22",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://appliedVerifiedStatus",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/22/expected",
+        "rulesPointer": "/scenarios/22/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-024",
+      "catalogPointer": "/scenarios/23",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/23/expected",
+        "rulesPointer": "/scenarios/23/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-025",
+      "catalogPointer": "/scenarios/24",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/24/expected",
+        "rulesPointer": "/scenarios/24/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-026",
+      "catalogPointer": "/scenarios/25",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/25/expected",
+        "rulesPointer": "/scenarios/25/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-027",
+      "catalogPointer": "/scenarios/26",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/26/expected",
+        "rulesPointer": "/scenarios/26/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-028",
+      "catalogPointer": "/scenarios/27",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/27/expected",
+        "rulesPointer": "/scenarios/27/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-029",
+      "catalogPointer": "/scenarios/28",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/28/expected",
+        "rulesPointer": "/scenarios/28/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-030",
+      "catalogPointer": "/scenarios/29",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/29/expected",
+        "rulesPointer": "/scenarios/29/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-031",
+      "catalogPointer": "/scenarios/30",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/30/expected",
+        "rulesPointer": "/scenarios/30/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-032",
+      "catalogPointer": "/scenarios/31",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/31/expected",
+        "rulesPointer": "/scenarios/31/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "WAIT_FOR_CORRECTED_1.0.1",
+      "rationale": "1.0.0에서는 02 §11 prose의 `AIC_KPI_UNAVAILABLE`와 catalog/status schema의 `AIC_KPI_MISSING`이 불일치해 하위가 실행을 보류했다(dependencyClass WAIT_FOR_CORRECTED_1.0.1). 1.0.1의 §11 prose 정정으로 authoritative token이 `AIC_KPI_MISSING` 하나가 되어 hardware 없이 lower-local로 실행할 수 있다."
+    },
+    {
+      "scenarioId": "SC-033",
+      "catalogPointer": "/scenarios/32",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://appliedVerifiedStatus",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/32/expected",
+        "rulesPointer": "/scenarios/32/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "WAIT_FOR_CORRECTED_1.0.1",
+      "rationale": "1.0.0에서는 과거 성공 episode(`APPLIED_VERIFIED`)와 현재 `AIC_E2_NOT_READY`가 하나의 status에 공존해 status schema 검증이 실패했다(dependencyClass WAIT_FOR_CORRECTED_1.0.1). 1.0.1에서 historical status와 current status를 분리해 hardware 없이 lower-local로 실행할 수 있다."
+    },
+    {
+      "scenarioId": "SC-034",
+      "catalogPointer": "/scenarios/33",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/33/expected",
+        "rulesPointer": "/scenarios/33/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-035",
+      "catalogPointer": "/scenarios/34",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/34/expected",
+        "rulesPointer": "/scenarios/34/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-036",
+      "catalogPointer": "/scenarios/35",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/35/expected",
+        "rulesPointer": "/scenarios/35/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-037",
+      "catalogPointer": "/scenarios/36",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/36/expected",
+        "rulesPointer": "/scenarios/36/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-038",
+      "catalogPointer": "/scenarios/37",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/37/expected",
+        "rulesPointer": "/scenarios/37/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-039",
+      "catalogPointer": "/scenarios/38",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/38/expected",
+        "rulesPointer": "/scenarios/38/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-040",
+      "catalogPointer": "/scenarios/39",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/39/expected",
+        "rulesPointer": "/scenarios/39/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-041",
+      "catalogPointer": "/scenarios/40",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/40/expected",
+        "rulesPointer": "/scenarios/40/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-042",
+      "catalogPointer": "/scenarios/41",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/41/expected",
+        "rulesPointer": "/scenarios/41/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-043",
+      "catalogPointer": "/scenarios/42",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/42/expected",
+        "rulesPointer": "/scenarios/42/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-046",
+      "catalogPointer": "/scenarios/45",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/45/expected",
+        "rulesPointer": "/scenarios/45/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-047",
+      "catalogPointer": "/scenarios/46",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/46/expected",
+        "rulesPointer": "/scenarios/46/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-048",
+      "catalogPointer": "/scenarios/47",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/47/expected",
+        "rulesPointer": "/scenarios/47/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-051",
+      "catalogPointer": "/scenarios/50",
+      "suite": "o1-provider-profile-conformance",
+      "fixtureMode": "LIVE_O1_INVARIANT",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "LOWER_MANAGED_ELEMENT_O1_PROVIDER",
+      "selectedTargetRole": "LOWER_MANAGED_ELEMENT_O1_PROVIDER",
+      "counterpartRole": "O1_CONSUMER_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "LIVE_O1_INVARIANT",
+        "fixtureRefs": [
+          "fixture://o1Profile"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/50/expected",
+        "rulesPointer": "/scenarios/50/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "02 §21.1이 하위 release에 요구하는 '고정 profile mock o1-provider-profile-conformance'다. 실제 Managed Element가 아니라 고정 profile mock으로 실행한다."
+    },
+    {
+      "scenarioId": "SC-062",
+      "catalogPointer": "/scenarios/61",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "bilateral-mock",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "BOTH_SIDES",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "UPPER_SUPPLIED_AGREED_MOCK",
+      "permittedTargetKinds": [
+        "AGREED_BILATERAL_MOCK_ENDPOINT",
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://o1Profile",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/61/expected",
+        "rulesPointer": "/scenarios/61/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER_WITH_UPPER_AGREED_CAPTURE",
+      "evidenceLabel": "bilateral-mock",
+      "lowerDependencyClass_1_0_0": "UPPER_CONTRACT_MOCK_OR_FINAL_INTEGRATION",
+      "rationale": "통합 rApp/Non-RT RIC Framework/xApp 경계를 요구하므로 상위가 제공하고 양측이 합의한 mock endpoint가 있어야 한다. 하위 단독 deterministic stub은 상위 R1/A1 Consumer 반쪽을 대표할 수 없다(dependencyClass UPPER_CONTRACT_MOCK_OR_FINAL_INTEGRATION)."
+    },
+    {
+      "scenarioId": "SC-063",
+      "catalogPointer": "/scenarios/62",
+      "suite": "o1-lifecycle-contract",
+      "fixtureMode": "O1_LIFECYCLE_INVARIANT",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "BOTH_O1_OWNERSHIP_DIRECTIONS",
+      "selectedTargetRole": "LOWER_MANAGED_ELEMENT_O1_PROVIDER",
+      "counterpartRole": "O1_CONSUMER_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "O1_LIFECYCLE_INVARIANT",
+        "fixtureRefs": [
+          "fixture://o1Profile"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/62/expected",
+        "rulesPointer": "/scenarios/62/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "02 §21.1이 하위 release에 요구하는 'Consumer harness를 사용한 o1-lifecycle-contract' 방향이다. 모든 NETCONF/YANG lifecycle 동작을 o1-netconf-yang-profile의 등록된 RPC fixture에서 deterministic하게 실행하므로 live Provider가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-064",
+      "catalogPointer": "/scenarios/63",
+      "suite": "o1-lifecycle-contract",
+      "fixtureMode": "O1_LIFECYCLE_INVARIANT",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "BOTH_O1_OWNERSHIP_DIRECTIONS",
+      "selectedTargetRole": "LOWER_MANAGED_ELEMENT_O1_PROVIDER",
+      "counterpartRole": "O1_CONSUMER_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "O1_LIFECYCLE_INVARIANT",
+        "fixtureRefs": [
+          "fixture://o1Profile"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/63/expected",
+        "rulesPointer": "/scenarios/63/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "02 §21.1이 하위 release에 요구하는 'Consumer harness를 사용한 o1-lifecycle-contract' 방향이다. 모든 NETCONF/YANG lifecycle 동작을 o1-netconf-yang-profile의 등록된 RPC fixture에서 deterministic하게 실행하므로 live Provider가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-065",
+      "catalogPointer": "/scenarios/64",
+      "suite": "o1-lifecycle-contract",
+      "fixtureMode": "O1_LIFECYCLE_INVARIANT",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "BOTH_O1_OWNERSHIP_DIRECTIONS",
+      "selectedTargetRole": "LOWER_MANAGED_ELEMENT_O1_PROVIDER",
+      "counterpartRole": "O1_CONSUMER_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "O1_LIFECYCLE_INVARIANT",
+        "fixtureRefs": [
+          "fixture://o1Profile"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/64/expected",
+        "rulesPointer": "/scenarios/64/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "02 §21.1이 하위 release에 요구하는 'Consumer harness를 사용한 o1-lifecycle-contract' 방향이다. 모든 NETCONF/YANG lifecycle 동작을 o1-netconf-yang-profile의 등록된 RPC fixture에서 deterministic하게 실행하므로 live Provider가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-066",
+      "catalogPointer": "/scenarios/65",
+      "suite": "o1-lifecycle-contract",
+      "fixtureMode": "O1_LIFECYCLE_INVARIANT",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "BOTH_O1_OWNERSHIP_DIRECTIONS",
+      "selectedTargetRole": "LOWER_MANAGED_ELEMENT_O1_PROVIDER",
+      "counterpartRole": "O1_CONSUMER_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "O1_LIFECYCLE_INVARIANT",
+        "fixtureRefs": [
+          "fixture://o1Profile"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/65/expected",
+        "rulesPointer": "/scenarios/65/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "02 §21.1이 하위 release에 요구하는 'Consumer harness를 사용한 o1-lifecycle-contract' 방향이다. 모든 NETCONF/YANG lifecycle 동작을 o1-netconf-yang-profile의 등록된 RPC fixture에서 deterministic하게 실행하므로 live Provider가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-067",
+      "catalogPointer": "/scenarios/66",
+      "suite": "o1-lifecycle-contract",
+      "fixtureMode": "O1_NOTIFICATION_FAILURE_INVARIANT",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "BOTH_O1_OWNERSHIP_DIRECTIONS",
+      "selectedTargetRole": "LOWER_MANAGED_ELEMENT_O1_PROVIDER",
+      "counterpartRole": "O1_CONSUMER_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "O1_NOTIFICATION_FAILURE_INVARIANT",
+        "fixtureRefs": [
+          "fixture://o1Profile"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/66/expected",
+        "rulesPointer": "/scenarios/66/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "02 §21.1이 하위 release에 요구하는 'Consumer harness를 사용한 o1-lifecycle-contract' 방향이다. 모든 NETCONF/YANG lifecycle 동작을 o1-netconf-yang-profile의 등록된 RPC fixture에서 deterministic하게 실행하므로 live Provider가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-068",
+      "catalogPointer": "/scenarios/67",
+      "suite": "o1-lifecycle-contract",
+      "fixtureMode": "O1_RECOVERY_AMBIGUITY_INVARIANT",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "BOTH_O1_OWNERSHIP_DIRECTIONS",
+      "selectedTargetRole": "LOWER_MANAGED_ELEMENT_O1_PROVIDER",
+      "counterpartRole": "O1_CONSUMER_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "O1_RECOVERY_AMBIGUITY_INVARIANT",
+        "fixtureRefs": [
+          "fixture://o1Profile"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/67/expected",
+        "rulesPointer": "/scenarios/67/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "02 §21.1이 하위 release에 요구하는 'Consumer harness를 사용한 o1-lifecycle-contract' 방향이다. 모든 NETCONF/YANG lifecycle 동작을 o1-netconf-yang-profile의 등록된 RPC fixture에서 deterministic하게 실행하므로 live Provider가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-069",
+      "catalogPointer": "/scenarios/68",
+      "suite": "o1-provider-profile-conformance",
+      "fixtureMode": "O1_TLS_FAILURE_INVARIANT",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "LOWER_MANAGED_ELEMENT_O1_PROVIDER",
+      "selectedTargetRole": "LOWER_MANAGED_ELEMENT_O1_PROVIDER",
+      "counterpartRole": "O1_CONSUMER_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "O1_TLS_FAILURE_INVARIANT",
+        "fixtureRefs": [
+          "fixture://o1Profile"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/68/expected",
+        "rulesPointer": "/scenarios/68/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "02 §21.1이 하위 release에 요구하는 '고정 profile mock o1-provider-profile-conformance'다. 실제 Managed Element가 아니라 고정 profile mock으로 실행한다."
+    },
+    {
+      "scenarioId": "SC-070",
+      "catalogPointer": "/scenarios/69",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/69/expected",
+        "rulesPointer": "/scenarios/69/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-071",
+      "catalogPointer": "/scenarios/70",
+      "suite": "a1p-producer-conformance",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "A1_P_PRODUCER",
+      "selectedTargetRole": "A1_P_PRODUCER",
+      "counterpartRole": "A1_CONSUMER_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/70/expected",
+        "rulesPointer": "/scenarios/70/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위가 소유·운영하는 A1-P Producer를 shared bundle fixture와 하위가 만든 contract-faithful A1 Consumer harness만으로 실행한다. 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-072",
+      "catalogPointer": "/scenarios/71",
+      "suite": "o1-lifecycle-contract",
+      "fixtureMode": "O1_LIFECYCLE_INVARIANT",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "BOTH_O1_OWNERSHIP_DIRECTIONS",
+      "selectedTargetRole": "LOWER_MANAGED_ELEMENT_O1_PROVIDER",
+      "counterpartRole": "O1_CONSUMER_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "O1_LIFECYCLE_INVARIANT",
+        "fixtureRefs": [
+          "fixture://o1Profile"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/71/expected",
+        "rulesPointer": "/scenarios/71/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "02 §21.1이 하위 release에 요구하는 'Consumer harness를 사용한 o1-lifecycle-contract' 방향이다. 모든 NETCONF/YANG lifecycle 동작을 o1-netconf-yang-profile의 등록된 RPC fixture에서 deterministic하게 실행하므로 live Provider가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-073",
+      "catalogPointer": "/scenarios/72",
+      "suite": "o1-lifecycle-contract",
+      "fixtureMode": "O1_LIFECYCLE_INVARIANT",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "BOTH_O1_OWNERSHIP_DIRECTIONS",
+      "selectedTargetRole": "LOWER_MANAGED_ELEMENT_O1_PROVIDER",
+      "counterpartRole": "O1_CONSUMER_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "O1_LIFECYCLE_INVARIANT",
+        "fixtureRefs": [
+          "fixture://o1Profile"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/72/expected",
+        "rulesPointer": "/scenarios/72/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "02 §21.1이 하위 release에 요구하는 'Consumer harness를 사용한 o1-lifecycle-contract' 방향이다. 모든 NETCONF/YANG lifecycle 동작을 o1-netconf-yang-profile의 등록된 RPC fixture에서 deterministic하게 실행하므로 live Provider가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-074",
+      "catalogPointer": "/scenarios/73",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/73/expected",
+        "rulesPointer": "/scenarios/73/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-075",
+      "catalogPointer": "/scenarios/74",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/74/expected",
+        "rulesPointer": "/scenarios/74/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-076",
+      "catalogPointer": "/scenarios/75",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/75/expected",
+        "rulesPointer": "/scenarios/75/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-077",
+      "catalogPointer": "/scenarios/76",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/76/expected",
+        "rulesPointer": "/scenarios/76/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-078",
+      "catalogPointer": "/scenarios/77",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/77/expected",
+        "rulesPointer": "/scenarios/77/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-079",
+      "catalogPointer": "/scenarios/78",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/78/expected",
+        "rulesPointer": "/scenarios/78/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-080",
+      "catalogPointer": "/scenarios/79",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/79/expected",
+        "rulesPointer": "/scenarios/79/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-083",
+      "catalogPointer": "/scenarios/82",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "bilateral-mock",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "BOTH_SIDES",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "UPPER_SUPPLIED_AGREED_MOCK",
+      "permittedTargetKinds": [
+        "AGREED_BILATERAL_MOCK_ENDPOINT",
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://appliedVerifiedStatus",
+          "fixture://capabilityManifest",
+          "fixture://o1Profile",
+          "fixture://notifyFileReady",
+          "fixture://validPrbXml",
+          "fixture://afterEvidence",
+          "fixture://afterEvidenceCell2"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/82/expected",
+        "rulesPointer": "/scenarios/82/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER_WITH_UPPER_AGREED_CAPTURE",
+      "evidenceLabel": "bilateral-mock",
+      "lowerDependencyClass_1_0_0": "UPPER_CONTRACT_MOCK_OR_FINAL_INTEGRATION",
+      "rationale": "통합 rApp/Non-RT RIC Framework/xApp 경계를 요구하므로 상위가 제공하고 양측이 합의한 mock endpoint가 있어야 한다. 하위 단독 deterministic stub은 상위 R1/A1 Consumer 반쪽을 대표할 수 없다(dependencyClass UPPER_CONTRACT_MOCK_OR_FINAL_INTEGRATION)."
+    },
+    {
+      "scenarioId": "SC-084",
+      "catalogPointer": "/scenarios/83",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "LIVE_O1_INVARIANT",
+      "executionProfile": "live-O1",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "BOTH_SIDES",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LIVE_O1_AUTHORITY_APPROVED_HARNESS",
+      "permittedTargetKinds": [
+        "AGREED_BILATERAL_MOCK_ENDPOINT",
+        "LIVE_O1_PROVIDER_UNDER_SEPARATE_AUTHORITY",
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "LIVE_O1_INVARIANT",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest",
+          "fixture://o1Profile"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/83/expected",
+        "rulesPointer": "/scenarios/83/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER_UNDER_LIVE_O1_AUTHORITY",
+      "evidenceLabel": "live-O1",
+      "lowerDependencyClass_1_0_0": "FINAL_INTEGRATION_LIVE_O1_INVARIANT",
+      "rationale": "end-to-end trace를 고정 bytes가 아니라 live O1 Provider 출력으로 검증하는 유일한 scenario다(fixtureMode LIVE_O1_INVARIANT + dependencyClass FINAL_INTEGRATION_LIVE_O1_INVARIANT). 별도 live-O1 authority 승인이 필요하며, 이 profile은 USRP·OTA·live E2 control 승인이 아니다. E2 control과 RAN write 경로는 deterministic stub으로 유지한다."
+    },
+    {
+      "scenarioId": "SC-091",
+      "catalogPointer": "/scenarios/90",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "bilateral-mock",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "BOTH_SIDES",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "UPPER_SUPPLIED_AGREED_MOCK",
+      "permittedTargetKinds": [
+        "AGREED_BILATERAL_MOCK_ENDPOINT",
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/90/expected",
+        "rulesPointer": "/scenarios/90/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER_WITH_UPPER_AGREED_CAPTURE",
+      "evidenceLabel": "bilateral-mock",
+      "lowerDependencyClass_1_0_0": "UPPER_CONTRACT_MOCK_OR_FINAL_INTEGRATION",
+      "rationale": "통합 rApp/Non-RT RIC Framework/xApp 경계를 요구하므로 상위가 제공하고 양측이 합의한 mock endpoint가 있어야 한다. 하위 단독 deterministic stub은 상위 R1/A1 Consumer 반쪽을 대표할 수 없다(dependencyClass UPPER_CONTRACT_MOCK_OR_FINAL_INTEGRATION)."
+    },
+    {
+      "scenarioId": "SC-092",
+      "catalogPointer": "/scenarios/91",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "bilateral-mock",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "BOTH_SIDES",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "UPPER_SUPPLIED_AGREED_MOCK",
+      "permittedTargetKinds": [
+        "AGREED_BILATERAL_MOCK_ENDPOINT",
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/91/expected",
+        "rulesPointer": "/scenarios/91/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER_WITH_UPPER_AGREED_CAPTURE",
+      "evidenceLabel": "bilateral-mock",
+      "lowerDependencyClass_1_0_0": "UPPER_CONTRACT_MOCK_OR_FINAL_INTEGRATION",
+      "rationale": "통합 rApp/Non-RT RIC Framework/xApp 경계를 요구하므로 상위가 제공하고 양측이 합의한 mock endpoint가 있어야 한다. 하위 단독 deterministic stub은 상위 R1/A1 Consumer 반쪽을 대표할 수 없다(dependencyClass UPPER_CONTRACT_MOCK_OR_FINAL_INTEGRATION)."
+    },
+    {
+      "scenarioId": "SC-095",
+      "catalogPointer": "/scenarios/94",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/94/expected",
+        "rulesPointer": "/scenarios/94/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-096",
+      "catalogPointer": "/scenarios/95",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "EXACT_BUNDLE",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "EXACT_BUNDLE",
+        "fixtureRefs": [
+          "fixture://policy",
+          "fixture://capabilityManifest"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/95/expected",
+        "rulesPointer": "/scenarios/95/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-097",
+      "catalogPointer": "/scenarios/96",
+      "suite": "o1-lifecycle-contract",
+      "fixtureMode": "LIVE_O1_INVARIANT",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "BOTH_O1_OWNERSHIP_DIRECTIONS",
+      "selectedTargetRole": "LOWER_MANAGED_ELEMENT_O1_PROVIDER",
+      "counterpartRole": "O1_CONSUMER_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "LIVE_O1_INVARIANT",
+        "fixtureRefs": [
+          "fixture://o1Profile"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/96/expected",
+        "rulesPointer": "/scenarios/96/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "02 §21.1이 하위 release에 요구하는 'Consumer harness를 사용한 o1-lifecycle-contract' 방향이다. 모든 NETCONF/YANG lifecycle 동작을 o1-netconf-yang-profile의 등록된 RPC fixture에서 deterministic하게 실행하므로 live Provider가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-099",
+      "catalogPointer": "/scenarios/98",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "DEPLOYMENT_INVARIANT",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "DEPLOYMENT_INVARIANT",
+        "fixtureRefs": [
+          "fixture://e2InventorySchema"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/98/expected",
+        "rulesPointer": "/scenarios/98/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-100",
+      "catalogPointer": "/scenarios/99",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "DEPLOYMENT_INVARIANT",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "DEPLOYMENT_INVARIANT",
+        "fixtureRefs": [
+          "fixture://e2InventorySchema"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/99/expected",
+        "rulesPointer": "/scenarios/99/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    },
+    {
+      "scenarioId": "SC-101",
+      "catalogPointer": "/scenarios/100",
+      "suite": "end-to-end-contract",
+      "fixtureMode": "DEPLOYMENT_INVARIANT",
+      "executionProfile": "lower-local",
+      "executedBy": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "targetOwner": "LOWER_SIDE",
+      "suiteTargetToken": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "selectedTargetRole": "INTEGRATED_RAPP_FRAMEWORK_XAPP",
+      "counterpartRole": "R1_A1_E2_O1_BLACK_BOX_HARNESS",
+      "counterpartProvisioning": "LOWER_BUILT_FROM_SHARED_BUNDLE",
+      "permittedTargetKinds": [
+        "LOCAL_DETERMINISTIC_STUB",
+        "LOCAL_FAULT_HARNESS",
+        "LOWER_BUILT_CONTRACT_FAITHFUL_HARNESS",
+        "LOWER_OWNED_IMPLEMENTATION_UNDER_TEST"
+      ],
+      "prohibitedTargetKinds": [
+        "LIVE_E2_CONTROL",
+        "LIVE_RAN_WRITE",
+        "OTA_TRANSMISSION",
+        "PEER_INTERNAL_SOURCE_IMPORT",
+        "UPPER_PRODUCTION_DEPLOYMENT",
+        "USRP_RADIO"
+      ],
+      "fixtureSource": {
+        "origin": "SHARED_CONTRACT_BUNDLE_1_0_1",
+        "mode": "DEPLOYMENT_INVARIANT",
+        "fixtureRefs": [
+          "fixture://e2InventorySchema"
+        ]
+      },
+      "oracleSource": {
+        "origin": "SCENARIO_CATALOG_1_0_1",
+        "expectedPointer": "/scenarios/100/expected",
+        "rulesPointer": "/scenarios/100/rules"
+      },
+      "evidenceProducer": "LOWER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceLabel": "lower-local",
+      "lowerDependencyClass_1_0_0": "HARDWARE_FREE_LOWER_PHASE_A",
+      "rationale": "하위 소유 A1-P Producer·adapter·xApp·deterministic E2/RAN stub 조합을 shared bundle의 contract-faithful R1/A1/E2/O1 black-box harness로 구동한다. EXACT_BUNDLE fixture만 사용하므로 상대 배포나 hardware가 필요하지 않다."
+    }
+  ],
+  "notApplicable": [
+    {
+      "scenarioId": "SC-015",
+      "catalogPointer": "/scenarios/14",
+      "suite": "r1-service-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_NON_RT_RIC_R1_SERVICE",
+      "selectedTargetRole": "NON_RT_RIC_FRAMEWORK_R1_SERVICE",
+      "counterpartRole": "RAPP_R1_CONSUMER_PROVIDER_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "NONE",
+      "rationale": "02 §2.1에서 최소 Non-RT RIC Framework와 R1 service는 상위 소유이고 하위는 A1-P로만 접속한다. target `NON_RT_RIC_FRAMEWORK_R1_SERVICE`를 하위가 소유·운영하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-016",
+      "catalogPointer": "/scenarios/15",
+      "suite": "r1-service-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_NON_RT_RIC_R1_SERVICE",
+      "selectedTargetRole": "NON_RT_RIC_FRAMEWORK_R1_SERVICE",
+      "counterpartRole": "RAPP_R1_CONSUMER_PROVIDER_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "NONE",
+      "rationale": "02 §2.1에서 최소 Non-RT RIC Framework와 R1 service는 상위 소유이고 하위는 A1-P로만 접속한다. target `NON_RT_RIC_FRAMEWORK_R1_SERVICE`를 하위가 소유·운영하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-044",
+      "catalogPointer": "/scenarios/43",
+      "suite": "r1-service-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_NON_RT_RIC_R1_SERVICE",
+      "selectedTargetRole": "NON_RT_RIC_FRAMEWORK_R1_SERVICE",
+      "counterpartRole": "RAPP_R1_CONSUMER_PROVIDER_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "NONE",
+      "rationale": "02 §2.1에서 최소 Non-RT RIC Framework와 R1 service는 상위 소유이고 하위는 A1-P로만 접속한다. target `NON_RT_RIC_FRAMEWORK_R1_SERVICE`를 하위가 소유·운영하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-045",
+      "catalogPointer": "/scenarios/44",
+      "suite": "r1-service-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_NON_RT_RIC_R1_SERVICE",
+      "selectedTargetRole": "NON_RT_RIC_FRAMEWORK_R1_SERVICE",
+      "counterpartRole": "RAPP_R1_CONSUMER_PROVIDER_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "NONE",
+      "rationale": "02 §2.1에서 최소 Non-RT RIC Framework와 R1 service는 상위 소유이고 하위는 A1-P로만 접속한다. target `NON_RT_RIC_FRAMEWORK_R1_SERVICE`를 하위가 소유·운영하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-049",
+      "catalogPointer": "/scenarios/48",
+      "suite": "r1-service-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_NON_RT_RIC_R1_SERVICE",
+      "selectedTargetRole": "NON_RT_RIC_FRAMEWORK_R1_SERVICE",
+      "counterpartRole": "RAPP_R1_CONSUMER_PROVIDER_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "NONE",
+      "rationale": "02 §2.1에서 최소 Non-RT RIC Framework와 R1 service는 상위 소유이고 하위는 A1-P로만 접속한다. target `NON_RT_RIC_FRAMEWORK_R1_SERVICE`를 하위가 소유·운영하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-050",
+      "catalogPointer": "/scenarios/49",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-052",
+      "catalogPointer": "/scenarios/51",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-053",
+      "catalogPointer": "/scenarios/52",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-054",
+      "catalogPointer": "/scenarios/53",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-055",
+      "catalogPointer": "/scenarios/54",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-056",
+      "catalogPointer": "/scenarios/55",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-057",
+      "catalogPointer": "/scenarios/56",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-058",
+      "catalogPointer": "/scenarios/57",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-059",
+      "catalogPointer": "/scenarios/58",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-060",
+      "catalogPointer": "/scenarios/59",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-061",
+      "catalogPointer": "/scenarios/60",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-081",
+      "catalogPointer": "/scenarios/80",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-082",
+      "catalogPointer": "/scenarios/81",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-085",
+      "catalogPointer": "/scenarios/84",
+      "suite": "r1-service-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_NON_RT_RIC_R1_SERVICE",
+      "selectedTargetRole": "NON_RT_RIC_FRAMEWORK_R1_SERVICE",
+      "counterpartRole": "RAPP_R1_CONSUMER_PROVIDER_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "NONE",
+      "rationale": "02 §2.1에서 최소 Non-RT RIC Framework와 R1 service는 상위 소유이고 하위는 A1-P로만 접속한다. target `NON_RT_RIC_FRAMEWORK_R1_SERVICE`를 하위가 소유·운영하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-086",
+      "catalogPointer": "/scenarios/85",
+      "suite": "r1-service-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_NON_RT_RIC_R1_SERVICE",
+      "selectedTargetRole": "NON_RT_RIC_FRAMEWORK_R1_SERVICE",
+      "counterpartRole": "RAPP_R1_CONSUMER_PROVIDER_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "NONE",
+      "rationale": "02 §2.1에서 최소 Non-RT RIC Framework와 R1 service는 상위 소유이고 하위는 A1-P로만 접속한다. target `NON_RT_RIC_FRAMEWORK_R1_SERVICE`를 하위가 소유·운영하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-087",
+      "catalogPointer": "/scenarios/86",
+      "suite": "r1-service-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_NON_RT_RIC_R1_SERVICE",
+      "selectedTargetRole": "NON_RT_RIC_FRAMEWORK_R1_SERVICE",
+      "counterpartRole": "RAPP_R1_CONSUMER_PROVIDER_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "NONE",
+      "rationale": "02 §2.1에서 최소 Non-RT RIC Framework와 R1 service는 상위 소유이고 하위는 A1-P로만 접속한다. target `NON_RT_RIC_FRAMEWORK_R1_SERVICE`를 하위가 소유·운영하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-088",
+      "catalogPointer": "/scenarios/87",
+      "suite": "r1-service-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_NON_RT_RIC_R1_SERVICE",
+      "selectedTargetRole": "NON_RT_RIC_FRAMEWORK_R1_SERVICE",
+      "counterpartRole": "RAPP_R1_CONSUMER_PROVIDER_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "NONE",
+      "rationale": "02 §2.1에서 최소 Non-RT RIC Framework와 R1 service는 상위 소유이고 하위는 A1-P로만 접속한다. target `NON_RT_RIC_FRAMEWORK_R1_SERVICE`를 하위가 소유·운영하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-089",
+      "catalogPointer": "/scenarios/88",
+      "suite": "r1-service-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_NON_RT_RIC_R1_SERVICE",
+      "selectedTargetRole": "NON_RT_RIC_FRAMEWORK_R1_SERVICE",
+      "counterpartRole": "RAPP_R1_CONSUMER_PROVIDER_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "NONE",
+      "rationale": "02 §2.1에서 최소 Non-RT RIC Framework와 R1 service는 상위 소유이고 하위는 A1-P로만 접속한다. target `NON_RT_RIC_FRAMEWORK_R1_SERVICE`를 하위가 소유·운영하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-090",
+      "catalogPointer": "/scenarios/89",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-093",
+      "catalogPointer": "/scenarios/92",
+      "suite": "r1-service-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_NON_RT_RIC_R1_SERVICE",
+      "selectedTargetRole": "NON_RT_RIC_FRAMEWORK_R1_SERVICE",
+      "counterpartRole": "RAPP_R1_CONSUMER_PROVIDER_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "NONE",
+      "rationale": "02 §2.1에서 최소 Non-RT RIC Framework와 R1 service는 상위 소유이고 하위는 A1-P로만 접속한다. target `NON_RT_RIC_FRAMEWORK_R1_SERVICE`를 하위가 소유·운영하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-094",
+      "catalogPointer": "/scenarios/93",
+      "suite": "r1-service-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_NON_RT_RIC_R1_SERVICE",
+      "selectedTargetRole": "NON_RT_RIC_FRAMEWORK_R1_SERVICE",
+      "counterpartRole": "RAPP_R1_CONSUMER_PROVIDER_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "NONE",
+      "rationale": "02 §2.1에서 최소 Non-RT RIC Framework와 R1 service는 상위 소유이고 하위는 A1-P로만 접속한다. target `NON_RT_RIC_FRAMEWORK_R1_SERVICE`를 하위가 소유·운영하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    },
+    {
+      "scenarioId": "SC-098",
+      "catalogPointer": "/scenarios/97",
+      "suite": "o1-consumer-normalizer-conformance",
+      "applicability": "UPPER_ONLY",
+      "reasonCode": "TARGET_OWNED_BY_UPPER_SIDE_O1_CONSUMER_NORMALIZER",
+      "selectedTargetRole": "O1_CONSUMER_NORMALIZER",
+      "counterpartRole": "O1_PROVIDER_AND_DME_HARNESS",
+      "targetOwner": "UPPER_SIDE",
+      "executedBy": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "evidenceProducer": "UPPER_SIDE_CONFORMANCE_RUNNER",
+      "lowerContribution": "FIXTURE_AND_PROVIDER_SUPPORT_ONLY",
+      "rationale": "02 §2.1에서 O1 Consumer·PM normalization·assurance correlation은 상위 소유이고 하위 역할은 O1 fixture와 실제 provider로 검증을 지원하는 데 한정된다. target `O1_CONSUMER_NORMALIZER`를 하위가 소유하지 않으므로 하위 Phase A 실행 대상이 아니다."
+    }
+  ]
+}
