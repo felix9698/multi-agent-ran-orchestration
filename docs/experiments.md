@@ -9,20 +9,35 @@ For a safe local demonstration, use the [hardware-free quickcheck](reproducibili
 | Paper label | Existing implementation selection | Decision organization |
 |---|---|---|
 | 3A | `three-agent` | Target and Control agents form validated T and C; Trajectory selects trials. |
-| RM | `basic-monolith` with monolith model `rule-greedy` | Deterministic measurement-driven rule selection; no model call. |
+| RM | `internal-monolith` | One model call forms both T and C; later calls use the same selection instructions and format as 3A. |
 | MA | `basic-monolith` with the selected language-model backend | One model proposes a complete configuration directly. |
 
-RM is **not** `internal-monolith` and is not the separate historical `deterministic` method.
-`rule-greedy` is a model-selection sentinel inside the basic-monolith execution path,
+RM means **role-merged agent**, not a rule-based method. The submitted manuscript
+compares `three-agent`, `internal-monolith`, and `basic-monolith` using the same
+language-model endpoint and generation settings. The additional `rule-greedy`
+selector is a no-model baseline retained in the code, not the manuscript's RM.
+It is a model-selection sentinel inside the basic-monolith execution path,
 not a general `--methods rule-greedy` option for the hardware-free matrix runner.
 See [agents.py](../assurance/coordination/agents.py) and
 [rule_greedy.py](../assurance/coordination/rule_greedy.py).
 
-The [v5.4r campaign runner](../experiment_results/ota-20260911/ops/run_blocks_campaign_v54r.sh)
-recognizes plan entries `three-agent-qwen3`, `basic-monolith-qwen3`, and `rule-greedy`.
+The retained [v5.4r campaign runner](../experiment_results/ota-20260911/ops/run_blocks_campaign_v54r.sh)
+also recognizes plan entries `three-agent-qwen3`, `basic-monolith-qwen3`, and `rule-greedy`.
 The `-qwen3` entries select the underlying method and `local:qwen3` model alias;
 the rule entry selects `basic-monolith` with `AIC_MONOLITH_MODEL=rule-greedy`.
+These extra branches do not define the submitted manuscript's comparison.
 An alias alone does not identify model weights, quantization, serving configuration, or version.
+
+## Submitted evaluation settings
+
+The manuscript reports 56 episodes across 17 blocks: 17 for 3A, 20 for RM, and
+19 for MA, including episodes from restarted blocks. A measured reference is
+trial 0; resolution allows six additional trials within 480 seconds from input
+release. Each trial has a 15-second KPI window. All three methods use
+`claude-5.5-sonnet` through Anthropic Messages API, with 4,000-token construction
+and 2,000-token online-selection/generation response limits. These are reported
+campaign settings, not a claim that default arguments reconstruct the original
+dataset or endpoint.
 
 ## Shared execution and evaluation
 
@@ -54,8 +69,10 @@ constructs and hashes the block's intent corpus from those measurements.
 These are live-capable tools, not offline smoke commands.
 
 The runner expects a pre-existing final campaign plan and deployment settings.
-Its automatic fallback plan still names `three-agent`, `internal-monolith`, and `basic-monolith`.
-Consequently, invoking it unchanged does not reconstruct the final 3A/RM/MA experiment.
+Its automatic fallback plan names `three-agent`, `internal-monolith`, and
+`basic-monolith`, which correspond to the manuscript's three method families.
+Those identifiers alone do not reconstruct the original campaign: the frozen
+plan, deployment settings, input corpus, and recorded episodes are also required.
 Likewise, default trial/time limits are not a frozen statement of the paper's final settings.
 Prompt versions, fair-prompt selection, energy-step settings, model identity, timing mode,
 and campaign inclusion rules need the original manifest.

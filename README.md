@@ -1,74 +1,235 @@
-# Automating Multi-Intent RAN Orchestration through Multi-Agent Live Resolution
+<div align="center">
 
-**Code for multi-agent intent coordination over a programmable O-RAN testbed.**
+# Multi-Agent RAN Orchestration
+
+### Automating Multi-Intent RAN Orchestration through Multi-Agent Live Resolution
+
+*Persistent service alternatives, reusable joint controls, and evidence-driven resolution over a live O-RAN testbed.*
 
 [Wookjin Lee](https://github.com/mekdugi) ·
 [Jungbum Lee](https://github.com/felix9698) ·
 [Gun Kim](https://github.com/imgunkim99) ·
 [Seungeui Byun](https://github.com/seungeuibyun) ·
 [Won Young Kang](https://github.com/dogs0667LICS) ·
-Sang Hyun Lee  
+Sang Hyun Lee
+
 School of Electrical Engineering, Korea University
 
-[Getting started](docs/getting-started.md) ·
-[Experiments](docs/experiments.md) ·
-[Reproducibility](docs/reproducibility.md) ·
-[Model configuration](docs/models.md) ·
-[Citation](#citation)
+[Overview](#1-overview) · [Framework](#2-three-agent-live-resolution) ·
+[Testbed](#3-end-to-end-o-ran-testbed) · [Results](#4-experimental-evaluation) ·
+[Quick start](#5-getting-started) · [Citation](#8-citation-and-license)
 
-## Overview
+</div>
 
-The framework resolves competing service intents by exploring both **acceptable
-target alternatives** and **joint RAN configurations**. A Target Agent proposes
-alternatives within operator-authorized bounds; a Control Agent proposes compatible
-xApp configurations; a Trajectory Agent uses committed trial outcomes to select the
-next experiment. A deterministic assurance layer admits actions, evaluates actual
-measurements, and controls retention and recovery independently of model output.
+> **Paper:** Wookjin Lee, Jungbum Lee, Gun Kim, Seungeui Byun, Won Young Kang, and
+> Sang Hyun Lee, *“Automating Multi-Intent RAN Orchestration through Multi-Agent
+> Live Resolution,”* submitted manuscript, 2026.
+>
+> **Key result:** In the reported 5G standalone OTA experiments, the three-agent
+> method improves the initial service state in **71% of episodes within six
+> additional live trials**, compared with **50%** for role-merged reasoning and
+> **37%** for direct configuration generation.
 
-```mermaid
-flowchart LR
-  I[Operator intents] --> T[Target Agent]
-  I --> C[Control Agent]
-  T --> J[Trajectory Agent]
-  C --> J
-  J --> K[Assurance Kernel & Write Gateway]
-  K --> R[R1 → Non-RT RIC → A1-P → xApps]
-  R --> E[FlexRIC / E2SM-RC → gNBs]
-  E --> M[Readback & measurement collector]
-  M --> K
-  K -->|Committed trial records| J
-```
+This repository contains the agent coordinator, deterministic assurance and
+execution layers, O-RAN control integration, Research Operations Cockpit, and
+experiment/analysis tools. The figures below were supplied by the authors from
+the submitted manuscript; the manuscript PDF itself is not hosted here.
 
-The common evaluator checks valid observations against the authorized requirement
-region, not just the model's proposed target shortlist. The runtime retains a
-demonstrated configuration according to the configured retention rule and restores
-the predecessor when required. Missing observations and execution errors are not
-converted into evidence that a service target was violated.
+---
 
-### Included
+## 1. Overview
 
-- Three-agent coordination, monolithic comparison methods, and the rule-greedy
-  selector, sharing trial execution and measurement interfaces.
-- Assurance Kernel, execution gateway, scope-aware measurements, persistent trial
-  records, and replay/analysis tools.
-- Python Research Operations Cockpit for intent entry, agent configuration,
-  trial inspection, safety controls, and result export.
-- R1/Non-RT RIC/A1-P integration, xApp action profiles and adapters, and OAI patches.
-- Hardware-free example experiments and source for the OTA campaign and analysis.
-- A separate laboratory preparation utility; starting core/gNB/UE processes is not
-  part of the Cockpit's policy-control path.
+Multiple service intents share radio resources and interact through the controls
+used to realize them. A configuration that helps one UE may impair another, and
+an unsuccessful trial does not establish that the original service target is
+infeasible. The framework explores **both authorized service alternatives and
+compatible joint RAN configurations**, using physical-network observations to
+guide subsequent actions.
 
-**Artifact scope.** This release contains the implementation and experiment tools.
-The original final OTA campaign records and campaign-specific input corpus are not
-included in the available source snapshot. The offline example below demonstrates
-the implementation; it does **not** reproduce the paper's OTA numbers. See the
-[data inventory and reproduction requirements](docs/reproducibility.md).
+1. **Persistent resolution space.** Operator-authorized targets and reusable
+   joint controls remain available instead of being reconstructed after every trial.
+2. **Role-separated reasoning.** Target and Control agents prepare alternatives;
+   a Trajectory agent selects subsequent configurations from current context and
+   accumulated execution evidence.
+3. **Bounded live interaction.** Deterministic validation, readback, KPI windows,
+   and verified recovery connect agent proposals to the RAN. Reaching an acceptable
+   state can support further exploration toward a more preferred authorized target.
 
-## Quick start — no radio hardware or API key
+<p align="center">
+  <a href="assets/figures/fig1.pdf"><img src="assets/figures/fig1.png" width="900" alt="Coupled service intents and RAN controls: live outcomes feed back into target and control coordination."></a>
+</p>
 
-Target environment: **Ubuntu 22.04 LTS, Python 3.12**. A desktop display and Tk are
-needed only for the GUI. Use an existing Python 3.12 installation with its matching
-Tk/venv packages; Ubuntu 22.04's default Python is older.
+*Fig. 1. Coupled intent and control coordination. The numerical requirements
+illustrate the formulation, not the OTA campaign settings below.*
+
+## 2. Three-agent live resolution
+
+| Role | Responsibility | Episode output |
+|---|---|---|
+| **Target agent** | Organize original requirements and authorized adjustments by preference. | Target candidates **T**, within the full authorized space **Ω**. |
+| **Control agent** | Compose RAN-function policies using capabilities, dependencies, and expected effects. | Reusable, compatible joint-control candidates **C**. |
+| **Trajectory agent** | Relate current context to recorded outcomes and remaining service gaps. | The next applicable, untried configuration. |
+
+<p align="center">
+  <a href="assets/figures/fig2.pdf"><img src="assets/figures/fig2.png" width="1100" alt="Target and Control agents prepare persistent alternatives; the Trajectory agent selects live trials and uses their recorded outcomes."></a>
+</p>
+
+*Fig. 2. Proposed three-agent framework for live target-control resolution.*
+
+Target and Control preparation runs in parallel. **T** and **C** then remain fixed
+while the execution history grows. Proposals pass deterministic action-space and
+compatibility checks; readback confirms their application before KPI collection.
+
+Valid observations are assessed against **all authorized targets in Ω**, not only
+the shortlist **T**. A configuration is retained when its demonstrated preference
+cost is no worse than the previous best; otherwise, the gateway restores and
+verifies the preceding baseline. Recovery preserves the trial's evidence.
+Incomplete observations are not treated as valid evidence of target failure.
+
+## 3. End-to-end O-RAN testbed
+
+The Cockpit and coordinator connect through R1, the Non-RT RIC, A1-P, and control
+xApps to FlexRIC and the gNBs via E2SM-RC. Agents coordinate xApp policies above
+the near-real-time loop rather than replacing scheduler logic. KPM telemetry,
+O1 reports, configuration readback, and user-plane measurements provide the return
+path, preserving measurement scopes and timestamps.
+
+<p align="center">
+  <a href="assets/figures/fig3.pdf"><img src="assets/figures/fig3.png" width="1100" alt="Physical two-gNB, three-UE testbed, deployment floor map, O-RAN architecture, and the path from control to OTA transmission."></a>
+</p>
+
+*Fig. 3. End-to-end implementation and physical deployment.*
+
+### Hardware and radio configuration
+
+| Hosts | Components | Processor / memory | RF front end |
+|---|---|---|---|
+| PC1 | gNB1, OAI CN5G, control services, Cockpit | AMD Ryzen 7 8700G / 32 GB | NI USRP-2954R |
+| PC2 | gNB2 | AMD Ryzen 7 8700G / 32 GB | NI USRP-2974 |
+| PC3–5 | UE1–3 | AMD Ryzen 7 H 255 / 16 GB each | NI USRP-B206mini-i each |
+
+All hosts run **Ubuntu 22.04 LTS**, with OAI gNB/NR-UE stacks and OAI CN5G.
+Both cells use **n78, 30-kHz subcarrier spacing, 38 PRBs, and 15-MHz channels**,
+centered at 3349.92 MHz and 3319.68 MHz. The gNBs are 50 m apart in the indoor
+deployment. UEs remain stationary; serving-cell changes result from applied controls.
+
+### Registered controls
+
+| Scope | Control dimensions | Execution mapping |
+|---|---|---|
+| UE | Serving cell | E2SM-RC Style 3 / Action 1 |
+| UE | Downlink PRB cap; PF scheduling weight | Deployment-specific Style 2 / Actions 102–103 |
+| Cell | MCS bounds; transmit attenuation | Deployment-specific Style 2 / Actions 101 and 104 |
+| Slice | Minimum, maximum, and dedicated PRB ratios | Style 2 / Action 6 slice-quota mapping |
+
+Standard E2SM-RC operations are combined with explicitly defined deployment
+extensions, not presented as universally standardized action identifiers. The
+reported evaluation exercises serving-cell selection, UE PRB caps, PF weights,
+and gNB1 transmit attenuation. See [Control profiles](docs/control-profiles.md)
+for the broader registered repertoire and implementation boundaries.
+
+## 4. Experimental evaluation
+
+### Setup and compared methods
+
+Five simultaneous requirements cover the three UEs' downlink goodput, UE2 deadline
+satisfaction, and gNB1 transmit attenuation. UE2 and UE3 initially share gNB1;
+UE1 starts on gNB2. Each UE receives a 10-Mbps downlink offered load. UE2's
+goodput floor is protected; four other requirements permit authorized adjustments.
+
+| Setting | Reported experiment |
+|---|---|
+| Campaign | 17 blocks; **56 episodes**, including episodes from restarted blocks |
+| Trial budget | Reference trial 0, followed by at most **6 additional live trials** |
+| Time budget | **480 s** from input release, including preparation, decisions, execution, and recovery |
+| KPI window | **15 s** per trial |
+| Deadline traffic | 256-byte tagged UDP echo at 5 Hz; **35-ms** deadline |
+| Authorized targets | 21 levels per adjustable requirement: **21⁴ targets** |
+| Reported model | `claude-5.5-sonnet` through Anthropic Messages API |
+| Response limits | 4,000 tokens for candidate construction; 2,000 for online selection/generation |
+
+A trial dispatched before the time limit completes observation and any recovery.
+All methods share authorization, available controls, measurement rules, validation,
+and recovery. The software supports other model backends, but those choices
+constitute new experiments rather than the reported model setting.
+
+| Method | Candidate preparation | Live interaction | Code identifier |
+|---|---|---|---|
+| **3A — Three-agent** | Independently construct **T** and **C** in parallel. | Trajectory selects from persistent candidates using accumulated evidence. | `three-agent` |
+| **RM — Role-merged** | Construct both **T** and **C** in one model call. | Same selection instructions and input format as 3A. | `internal-monolith` |
+| **MA — Monolithic** | No reusable candidate sets. | Generate a complete joint configuration at each trial. | `basic-monolith` |
+
+### 4.1 Resolution through successive live trials
+
+<p align="center">
+  <a href="assets/figures/fig4a.pdf"><img src="assets/figures/fig4a.png" width="1100" alt="Episode timeline: parallel preparation, six live trials, model decisions, and recoveries."></a>
+</p>
+
+<table>
+  <tr>
+    <td width="57%"><a href="assets/figures/fig4b.pdf"><img src="assets/figures/fig4b.png" width="100%" alt="Requirement outcomes across the reference and six live trials."></a></td>
+    <td width="43%"><a href="assets/figures/fig4c.pdf"><img src="assets/figures/fig4c.png" width="100%" alt="Best demonstrated preference cost decreases from 619 to 598 to 580."></a></td>
+  </tr>
+</table>
+
+*Fig. 4. A 3A episode: (a) preparation and execution, (b) requirement outcomes,
+and (c) individual-trial and best demonstrated preference costs.*
+
+Preparation takes **72.4 s**, producing nine targets and ten new controls plus the
+reference configuration. Trial 1 adjusts UE2's PF weight; trial 3 combines a
+further PF adjustment with gNB1 transmit attenuation. The best cost decreases
+**619 → 598 → 580**. Poorer trials trigger recovery without erasing the history,
+and trial 5 demonstrates an authorized target outside the prepared shortlist.
+
+### 4.2 Service improvement within the live budget
+
+<p align="center">
+  <a href="assets/figures/fig5.pdf"><img src="assets/figures/fig5.png" width="1100" alt="Improvement by trial count and elapsed time, and preference-cost reductions for episodes with initial target attainment."></a>
+</p>
+
+*Fig. 5. Improvement over the initial observation: (a) additional trials,
+(b) elapsed time, and (c) preference-cost reduction.*
+
+| Method | Episodes | Improved after the first additional trial | Improved within six additional trials |
+|---|---:|---:|---:|
+| **3A** | 17 | **47.1%** | **70.6% (12/17)** |
+| **RM** | 20 | 20.0% | 50.0% (10/20) |
+| **MA** | 19 | 15.8% | 36.8% (7/19) |
+
+Improvement means at least a 21-point cost reduction when the reference already
+demonstrates an authorized target; otherwise, the first valid target attainment
+counts. The six-trial figures round to **71%, 50%, and 37%**. MA records earlier
+initial improvements without candidate preparation; 3A overtakes its improvement
+fraction at **135 s** and reaches 71% by the common 480-s horizon.
+
+For episodes already demonstrating an authorized target at the reference, mean
+cost reductions are **31.0 for 3A**, **22.1 for RM**, and **13.2 for MA**
+(7, 8, and 9 episodes, respectively). An acceptable starting state therefore need
+not end resolution toward more preferred service outcomes.
+
+### 4.3 Inference cost of candidate reuse
+
+<p align="center">
+  <a href="assets/figures/fig6.pdf"><img src="assets/figures/fig6.png" width="1000" alt="Model-call latency by role and input-prompt composition across live trials."></a>
+</p>
+
+*Fig. 6. Inference cost of candidate preparation and reuse: (a) latency and
+(b) prompt composition.*
+
+Across **441 model calls**, median latency is **24 s** for 3A target preparation,
+**63 s** for 3A control preparation, and **69 s** for RM's joint construction.
+The two 3A preparation calls run in parallel. Recurring 3A/RM selection has a
+pooled median of **16 s**, versus **33 s** for MA's direct generation. Under the
+2,000-token limit, **3/262 selection calls** reach the limit versus **37/125 MA
+calls**. Candidate reuse shifts recurring reasoning from reconstructing controls
+to selecting among existing alternatives using new live evidence.
+
+## 5. Getting started
+
+### Offline example — no radio hardware or API key
+
+Use **Ubuntu 22.04 LTS and Python 3.12**. The GUI additionally needs a display and
+the matching Tk package. Ubuntu 22.04's default Python is older.
 
 ```bash
 git clone https://github.com/felix9698/multi-agent-ran-orchestration.git
@@ -77,10 +238,8 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 
-# Inspect the available entry points.
-python main.py --help
+python scripts/test_public_artifact.py
 
-# Run a small, explicitly MOCK three-UE experiment.
 OUT="$(mktemp -d /tmp/pqc.XXXXXX)"
 python tools/campaign5/run_agent_experiments.py \
   --scenario three-ue --condition contention-boundary \
@@ -88,83 +247,66 @@ python tools/campaign5/run_agent_experiments.py \
   --repetitions 1 --budget 2 --out "$OUT"
 ```
 
-The example writes a manifest, episode records, metrics, and figures. Its model
-responses and radio measurements are simulated. No personal inference server,
-API subscription, USRP, or lab credentials are required.
+The example writes a manifest, episodes, metrics, and figures. It is an explicitly
+**MOCK implementation demonstration**, not a reproduction of the OTA results above.
+See [Reproducibility](docs/reproducibility.md) for metric rederivation and test scope.
 
-To open the Cockpit:
+### Cockpit and model selection
 
 ```bash
 python main.py
 ```
 
-The default console starts disconnected. A live run requires your own prepared
-RAN deployment and validated profile, not merely a model API key. Follow
-[Getting started](docs/getting-started.md) for GUI, replay, and live prerequisites.
+The Cockpit starts disconnected and provides intent entry, role-specific model
+selection, target/control exploration, trial and safety views, an evidence ledger,
+batch experiments, and result export. Live use requires a prepared testbed and
+validated deployment profile. A separate lab-preparation utility manages equipment
+outside the Cockpit's policy-control path.
 
-## Models
+Adapters support Anthropic, OpenAI, Google Gemini, Ollama, and OpenAI-compatible
+inference services. Agents may share a backend or use different models. Supply
+your own credentials and endpoints; the authors' local server is not required.
 
-The agents can use external model APIs or a local inference service. The code
-contains Anthropic, OpenAI, Google Gemini, Ollama, and OpenAI-compatible server
-adapters. Roles may share a backend or select different models; model identifiers
-and credentials belong to the user's configuration. Local-server installation,
-GPU sizing, and access to the authors' infrastructure are not prerequisites for
-this repository. See [Model configuration](docs/models.md).
+- [Installation, GUI operation, and live prerequisites](docs/getting-started.md)
+- [Model configuration and role selection](docs/models.md)
+- [Method mapping and experiment tools](docs/experiments.md)
 
-## RAN control surface
+## 6. Repository guide
 
-| Scope | Registered control dimensions |
+| Path | Contents |
 |---|---|
-| UE | Serving cell, downlink PRB cap, scheduling priority |
-| Cell | Downlink MCS bounds, transmit attenuation |
-| Slice | Minimum/maximum/dedicated PRB ratios |
+| [`assurance/coordination/`](assurance/coordination/) | Agents, candidates, preference evaluation, and retention |
+| [`assurance/kernel/`](assurance/kernel/), [`assurance/gateway/`](assurance/gateway/) | Deterministic admission, bounded trials, readback, and recovery |
+| [`assurance/collector/`](assurance/collector/), [`tools/liveconsole/`](tools/liveconsole/) | Observation windows, service measurements, and live composition |
+| [`assurance/actions/`](assurance/actions/), [`assurance/xapps/`](assurance/xapps/), [`oran/`](oran/) | Controls, composition constraints, and O-RAN integration |
+| [`gui/operator/`](gui/operator/) | Research Operations Cockpit |
+| [`experiments/`](experiments/), [`tools/campaign5/`](tools/campaign5/) | Experiment runners, metrics, and plots |
+| [`experiment_results/ota-20260911/`](experiment_results/ota-20260911/) | OTA campaign and analysis **source**, not the final raw dataset |
+| [`contracts/`](contracts/), [`oai_patches/`](oai_patches/) | Interface schemas, fixtures, and RAN patches |
+| [`tools/labctl/`](tools/labctl/), [`scripts/hardware/`](scripts/hardware/) | Separate lab preparation and readiness utilities |
+| [`tests/`](tests/) | Implementation and regression tests |
+| [`assets/figures/`](assets/figures/) | Author-supplied figure PDFs and README previews |
 
-These are project control profiles mapped to O-RAN interfaces, **not a claim that
-every action identifier is standardized**. Steering uses E2SM-RC Style 3 / Action 1;
-the repository also implements the Style 2 / Action 6 slice mapping and explicitly
-defined deployment extensions for other controls. Actual availability depends on
-the installed RAN functions, compatible patches, measurement sources, and readback.
-See [Control profiles](docs/control-profiles.md).
+Some older-named modules and schema versions remain as active compatibility
+dependencies, not separate published releases.
 
-The manuscript testbed uses two gNBs and three UEs, OAI RAN/CN5G, FlexRIC, and USRP
-radios. The released software does not include prebuilt OAI/FlexRIC binaries or a
-ready-to-use credentialed deployment. Laboratory setup is described separately
-from algorithm experiments so that offline use does not start equipment.
+## 7. Figures and data availability
 
-## Repository guide
+Click any figure to open its vector PDF. All eight supplied files, including the
+three panels of Fig. 4, are preserved in [the figure directory](assets/figures/README.md).
+The values above are reported manuscript results, not newly generated measurements.
 
-| Path | Purpose |
-|---|---|
-| `assurance/coordination/` | Agents, target/control representation, preference and retention |
-| `assurance/kernel/`, `assurance/gateway/` | Deterministic admission, trial lifecycle and guarded execution |
-| `assurance/collector/`, `tools/liveconsole/` | Observation windows and live composition |
-| `assurance/actions/`, `assurance/xapps/`, `oran/` | Control profiles, xApp coordination and O-RAN integration |
-| `gui/operator/` | Research Operations Cockpit |
-| `experiments/`, `tools/campaign5/` | Experiment runners, evaluators and plotting |
-| `experiment_results/ota-20260911/` | OTA runner/analysis **source**, not the final measurement dataset |
-| `contracts/` | Version-bound interface schemas and fixtures required by the implementation |
-| `oai_patches/` | RAN/core patch sources, with separate upstream licensing |
-| `tools/labctl/`, `scripts/hardware/` | Separate lab preparation and readiness utilities |
-| `tests/` | Offline implementation and regression tests |
+The release contains execution and analysis code but **not the final OTA campaign's
+raw episode records, original input corpus, or complete campaign manifest**.
+Figures can be viewed, but their numerical results cannot yet be independently
+regenerated from this checkout alone. The
+[data inventory](docs/reproducibility.md#data-availability-and-limits) lists the
+required inputs; mocks and older integration fixtures do not replace the paper dataset.
 
-Some older-named modules and schema versions remain because current modules import
-or validate against them. They are compatibility dependencies, not additional
-published releases. Historical delivery archives, development logs, and Git
-history are not part of this publication snapshot.
+## 8. Citation and license
 
-## Tests
-
-```bash
-python scripts/test_public_artifact.py
-```
-
-This runs a documented, self-contained offline suite. It does not start radios or
-call a paid model service. Tests requiring unpublished campaign inputs are not
-represented as passing; see [Reproducibility](docs/reproducibility.md).
-
-## Citation
-
-Until a final publication identifier is available, cite the software artifact:
+The manuscript has been submitted; no acceptance, venue metadata, or DOI is implied.
+For use of the software artifact:
 
 ```bibtex
 @misc{lee_multi_agent_ran_orchestration_2026,
@@ -172,20 +314,15 @@ Until a final publication identifier is available, cite the software artifact:
             and Kang, Won Young and Lee, Sang Hyun},
   title = {Automating Multi-Intent RAN Orchestration through Multi-Agent Live Resolution},
   year = {2026},
-  howpublished = {Software artifact},
+  howpublished = {Software artifact accompanying a submitted manuscript},
   url = {https://github.com/felix9698/multi-agent-ran-orchestration}
 }
 ```
 
-Machine-readable metadata is available in [CITATION.cff](CITATION.cff). No venue,
-DOI, or publication status is inferred from the working manuscript.
+See [CITATION.cff](CITATION.cff) for machine-readable metadata. Original project
+code uses the [MIT License](LICENSE); third-party code and OAI-derived patches
+retain the conditions described in [Third-party notices](THIRD_PARTY_NOTICES.md).
 
-## License and contact
-
-Original project code is released under the [MIT License](LICENSE).
-Third-party code, OAI-derived patches and configuration excerpts retain their
-respective upstream conditions; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-For questions about this artifact, use
+Questions are welcome through
 [GitHub Issues](https://github.com/felix9698/multi-agent-ran-orchestration/issues).
-Do not attach credentials, subscriber keys, or private deployment files.
+Please do not attach credentials or private deployment files.

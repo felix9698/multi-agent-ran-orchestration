@@ -1,7 +1,8 @@
 # Reproducibility
 
 This repository accompanies **Automating Multi-Intent RAN Orchestration through Multi-Agent Live Resolution**.
-It publishes the implementation, experiment tooling, and available supporting material.
+It publishes the implementation, experiment tooling, and author-supplied
+[manuscript figures](../assets/figures/README.md).
 It does **not** contain the complete frozen dataset needed to regenerate the final paper's OTA results.
 
 ## What can be checked
@@ -98,7 +99,9 @@ The analysis tools expect material absent from this snapshot:
 - corresponding event streams, stored prompts, and raw goodput/echo measurements.
 
 Existing test fixtures and any retained earlier integration witnesses are not this dataset.
-No final-paper figure/table mapping or complete final campaign selection is claimed here.
+The supplied PDFs and PNG previews show the manuscript figures, but are not a
+figure-regeneration dataset. The complete final campaign selection and original
+measurement inputs remain unavailable in this snapshot.
 Full numerical reproduction additionally needs a checksum-bound dataset manifest,
 inclusion/exclusion decisions, software/model revisions, and the actual plotting commands.
 The available analysis scripts are described in [experiments.md](experiments.md).
