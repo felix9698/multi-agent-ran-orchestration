@@ -24,12 +24,9 @@ OAI releases have used different license texts. Copies are preserved here:
 
 Use the license supplied by the actual upstream revision you build. Including
 both texts does not offer a choice of license for upstream code or assert that
-the two licenses are interchangeable. The archived patch notes identify
-`d8433e8d7fd6b44dc8ab38554caa9bd8eeeb44d7` as the coexistence base, but this
-publication has not reconstructed the complete deployed OAI source tree from
-that reference. No OAI binary is distributed here.
-
-The unused draft AMF timer patch is not included in this public snapshot.
+the two licenses are interchangeable. The patches are based
+on OAI revision `d8433e8d7fd6b44dc8ab38554caa9bd8eeeb44d7`. No OAI source tree or
+binary is distributed here.
 
 ## External dependencies
 
