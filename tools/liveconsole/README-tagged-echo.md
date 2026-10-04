@@ -7,12 +7,10 @@ UE's monotonic clock. This is **not** a one-way command-latency measurement.
 
 ## Deployment prerequisites
 
-- Three-UE association, fresh UE↔host attribution and the independent workload
-  must first be established for the formal scenario. An echo-only check is not
-  `exp_3UEscenario.md` completion.
+- For the three-UE scenario, UE association, fresh UE-to-host attribution, and
+  the per-UE goodput workload are established before the echo source is used.
 - Python 3 with its standard library on both the UE and `oai-ext-dn`; copy the
-  same source file to explicit paths on both after deployment permission is
-  available. Record its SHA-256. On Ubuntu 22.04, `python3-minimal` alone lacks
+  same source file to explicit paths on both and record its SHA-256. On Ubuntu 22.04, `python3-minimal` alone lacks
   `json`; the tested container also needed `libpython3.10-stdlib`.
 - UE client binds `oaitun_ue1` and its current IPv4. It requires permission to use
   `SO_BINDTODEVICE` (typically sudo). The server binds the ext-DN address, never
@@ -20,8 +18,9 @@ UE's monotonic clock. This is **not** a one-way command-latency measurement.
 - Client output must be a **new** file. It is exclusive-create, append-only,
   mode 0600. When launched by sudo, ownership goes to `SUDO_UID`/`SUDO_GID` so
   the ordinary SSH observer can read it; the file is not made world-readable.
-- Calibration must freeze rate/payload/deadlines/windows before comparisons.
-  The numbers below are launch examples, **not calibrated experimental targets**.
+- Rate, payload, deadlines, and windows are fixed before comparisons. The
+  reported experiments use a 256-byte payload at 5 Hz and a 35-ms deadline; the
+  commands below are launch examples.
 
 ## Explicit bounded workload
 
@@ -42,8 +41,8 @@ sudo python3 /tmp/tagged_echo.py client \
   --duration-s 90 --rate-hz 5 --payload-bytes 256 --reply-drain-s 1
 ```
 
-This lab's UPF applies SNAT: an ext-DN capture of the experiment UDP headers
-on 2026-09-09 showed source `192.168.70.134`, not the UE tun address. The example
+In the testbed, the UPF applies SNAT: an ext-DN capture of the experiment UDP
+headers showed source `192.168.70.134`, not the UE tun address. The example
 therefore explicitly permits that single UPF address. The server's default
 `12.1.1.0/24` is for a routed, non-NAT deployment. Confirm the actual source
 before changing the allowlist; do not open a wildcard network. Session/flow
@@ -128,14 +127,8 @@ nonzero. A copied or ended log is raw evidence, not a current live source.
   service-specific goodput, retain workload/flow accounting: tun totals alone
   must not be relabelled exact application goodput.
 
-On 2026-09-09, after explicit operator approval, Python plus its standard
-library and the identical source were deployed to UE1/ext-DN. A 30-second,
-5-Hz source-only OTA pilot with the verified UPF allowlist issued 150 requests
-and received 149 replies. Raw logs, source hash, launch arguments and live
-snapshots are archived under
-`experiment_results/ota-20260909/calibration/echo-20260909T205649/`.
-The earlier default-allowlist run (`echo-20260909T205308`) retained all 150
-unanswered requests; it was not discarded or reclassified as success.
-These are source-readiness measurements, not a formal four-intent coordinator
-campaign or calibrated targets. The formal three-UE service window, calibration
-and comparative campaign remain separate requirements.
+On the testbed, a 30-second, 5-Hz source-only check with the verified UPF
+allowlist issued 150 requests and received 149 replies, with raw logs, source
+hash, launch arguments, and live snapshots archived together. An earlier run
+with the default allowlist recorded all 150 requests as unanswered; such runs
+are kept as recorded outcomes rather than discarded or reclassified.
