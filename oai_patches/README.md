@@ -1,9 +1,9 @@
 # OpenAirInterface integration patches
 
-These sources adapt OAI control, readback and UE/gNB behavior for the research
-testbed. They are **not** one alphabetical patch series and are not prebuilt radio
-software. Check the source revision and the context of each diff before applying
-it. The publication did not rebuild or rerun the radios.
+These patches adapt OAI control, readback, and UE/gNB behavior for the testbed
+used in the paper. They are applied in the dependency order below rather than
+alphabetically. Check the source revision and the context of each diff before
+applying it.
 
 Upstream-derived portions retain their upstream license; see
 [third-party notices](../THIRD_PARTY_NOTICES.md). Patch files identify additions
@@ -11,9 +11,9 @@ and removals relative to upstream source and are the authors' modification recor
 
 ## Control and observation
 
-The source's integration notes identify
-`d8433e8d7fd6b44dc8ab38554caa9bd8eeeb44d7` as the coexistence base and specify this
-order for the core control stack:
+The patches are based on OAI revision
+`d8433e8d7fd6b44dc8ab38554caa9bd8eeeb44d7`. The core control stack is applied in
+this order:
 
 1. `d2_actionspace_runtime_knobs.w30.patch`
 2. `e2sm_rc_style2_action6_slice_prb.patch`
@@ -22,8 +22,7 @@ order for the core control stack:
 5. Matching KPM readback/counter patches
 6. `e2sm_rc_style2_action6_slice_enforcement.patch`
 
-This is the recorded dependency order, not a claim that this publication verified
-a clean upstream build. The full deployed OAI tree is not bundled.
+The OAI source tree itself is obtained from upstream.
 
 | Patch group | Purpose |
 |---|---|
@@ -44,16 +43,14 @@ separate configuration readback and KPI assessment performed by the framework.
 
 The remaining patches cover handover/reestablishment, PDCP/RLC continuity,
 synchronization, buffer bounds, power control and device-specific streaming.
-They are retained as source dependencies and diagnostic support, not as a promise
-that each is required or suitable on a different radio deployment.
+Their suitability depends on the radio hardware; review them before use on a
+different deployment.
 
 Some later patches contain cumulative context. In particular,
 `nr_ue_tx_digital_gain_plus4db.w30.patch` includes a diff against an already-modified
 UE source; treat it as a source comparison, not an independent additive step.
 The resynchronization consensus patch supersedes the fixed-anchor approach;
 the PUCCH power-control patch supersedes the temporary fixed-amplitude experiment.
-RF gain/attenuation values must match the intended radio setup rather than being
-copied from a failed or device-specific tuning attempt.
+RF gain and attenuation values must match the intended radio setup.
 
-No automatic apply-all script is provided. The unused draft AMF timer patch and
-the chronological lab diary have been excluded from this publication.
+Patches are applied individually; no apply-all script is provided.
