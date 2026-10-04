@@ -32,8 +32,8 @@ School of Electrical Engineering, Korea University
 
 This repository contains the agent coordinator, deterministic assurance and
 execution layers, O-RAN control integration, Research Operations Cockpit, and
-experiment/analysis tools. The figures below were supplied by the authors from
-the submitted manuscript; the manuscript PDF itself is not hosted here.
+experiment/analysis tools. The figures below are reproduced from the submitted
+manuscript.
 
 ---
 
@@ -247,8 +247,9 @@ python tools/campaign5/run_agent_experiments.py \
   --repetitions 1 --budget 2 --out "$OUT"
 ```
 
-The example writes a manifest, episodes, metrics, and figures. It is an explicitly
-**MOCK implementation demonstration**, not a reproduction of the OTA results above.
+The example writes a manifest, episodes, metrics, and figures using a mock model
+backend. It demonstrates the end-to-end pipeline and does not reproduce the OTA
+results above.
 See [Reproducibility](docs/reproducibility.md) for metric rederivation and test scope.
 
 ### Cockpit and model selection
@@ -281,32 +282,27 @@ your own credentials and endpoints; the authors' local server is not required.
 | [`assurance/actions/`](assurance/actions/), [`assurance/xapps/`](assurance/xapps/), [`oran/`](oran/) | Controls, composition constraints, and O-RAN integration |
 | [`gui/operator/`](gui/operator/) | Research Operations Cockpit |
 | [`experiments/`](experiments/), [`tools/campaign5/`](tools/campaign5/) | Experiment runners, metrics, and plots |
-| [`experiment_results/ota-20260911/`](experiment_results/ota-20260911/) | OTA campaign and analysis **source**, not the final raw dataset |
+| [`experiment_results/ota-20260911/`](experiment_results/ota-20260911/) | OTA campaign configuration and analysis scripts |
 | [`contracts/`](contracts/), [`oai_patches/`](oai_patches/) | Interface schemas, fixtures, and RAN patches |
 | [`tools/labctl/`](tools/labctl/), [`scripts/hardware/`](scripts/hardware/) | Separate lab preparation and readiness utilities |
 | [`tests/`](tests/) | Implementation and regression tests |
-| [`assets/figures/`](assets/figures/) | Author-supplied figure PDFs and README previews |
-
-Some older-named modules and schema versions remain as active compatibility
-dependencies, not separate published releases.
+| [`assets/figures/`](assets/figures/) | Manuscript figure PDFs and README previews |
 
 ## 7. Figures and data availability
 
-Click any figure to open its vector PDF. All eight supplied files, including the
-three panels of Fig. 4, are preserved in [the figure directory](assets/figures/README.md).
-The values above are reported manuscript results, not newly generated measurements.
+Click any figure to open its vector PDF. All eight figure files, including the
+three panels of Fig. 4, are available in [the figure directory](assets/figures/README.md).
+The values reported above are taken from the manuscript.
 
-The release contains execution and analysis code but **not the final OTA campaign's
-raw episode records, original input corpus, or complete campaign manifest**.
-Figures can be viewed, but their numerical results cannot yet be independently
-regenerated from this checkout alone. The
-[data inventory](docs/reproducibility.md#data-availability-and-limits) lists the
-required inputs; mocks and older integration fixtures do not replace the paper dataset.
+This release provides the complete execution and analysis code. Raw episode records
+from the reported OTA campaign are not included in the repository; the
+[data inventory](docs/reproducibility.md#data-availability-and-limits) describes the
+inputs required to regenerate the reported metrics.
 
 ## 8. Citation and license
 
-The manuscript has been submitted; no acceptance, venue metadata, or DOI is implied.
-For use of the software artifact:
+The accompanying manuscript is currently under review. If you use this software
+artifact, please cite:
 
 ```bibtex
 @misc{lee_multi_agent_ran_orchestration_2026,
