@@ -16,5 +16,5 @@ documents. `deployment/local/` and `*.local.json` are ignored by Git.
 The generic `/opt/ran-lab/` paths and `ran-node*`/`ran-ue*` SSH names in retained
 preparation helpers describe an **example** layout; they are not installed by
 cloning the repository. Radio calibration, host keys, binary/configuration hashes
-and subscriptions must correspond to your own deployment. Use an explicit labctl
-inventory rather than assuming its old 24-PRB example is the final paper setup.
+and subscriptions must correspond to your own deployment. Use a labctl
+inventory that describes your testbed; the shipped profile is an example.
