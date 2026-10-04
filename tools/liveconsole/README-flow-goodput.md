@@ -102,86 +102,35 @@ counter baseline, not a rate. The next strictly advancing valid sample computes
 the payload rate. Source configuration does not waive the actual LIVE runner's
 readiness, source preflight, Kernel, readback, recovery or evidence requirements.
 
-## Verification status
+## Verification
 
-The source/profile composition and actual LIVE malformed-profile refusal were
-included in a focused 102-test hermetic run on 2026-09-09, together with the
-existing tagged-echo/deadline/tun/metrics regressions. That is a selected suite,
-not a full-suite count or an OTA result.
+`tests/test_live_flow_goodput.py` covers source and profile composition, the
+refusal of malformed live profiles, counter handling, and terminal-source
+behavior without hardware.
 
-At 22:04 KST, both source files were deployed without starting traffic to UE1,
-UE2, UE3 and `oai-ext-dn` under:
-`/tmp/aic-flow-9140cea9b49e-beaa921ad26a/`.
-~~All four endpoints matched these hashes and passed standalone `--help`:~~
-*(sentence superseded — see the correction below; left in place as the original record)*
+On the testbed, a bounded 2 Mbps / 30 s source check through the live SSH
+`LiveFlowGoodputObserver` (no injected runner and no radio restart) gave the
+following results:
 
-- `flow_goodput.py`: `9140cea9b49e78ee9c43cddc323820ff59a2cde869d33c9421bd7a9964a0c6ef`
-- `tagged_echo.py`: `7080f0ab879d621753728b997df3142ec1c479a75fcca801c049fda52ec6e283`
+- The sender submitted and the receiver consumed exactly **7,401,164 payload
+  bytes**. Sender, receiver, and raw archival all exited 0, and the receiver
+  ended at TCP EOF.
+- One preflight established the baseline without a rate, and all 29 subsequent
+  rate samples were present. Over the **29.5253 s** source interval, payload
+  goodput was **1.97700 Mbps** and the tun aggregate was **2.05172 Mbps**; the
+  two follow their different definitions.
+- All 60 raw heartbeats retained one boot and interface identity, with
+  advancing timestamps and nondecreasing payload and tun counters.
+- After EOF, the observer returned no KPI and reported the terminal source
+  instead of repeating the last rate.
 
-> **Correction — 2026-09-14 (annotation; the lines above are left unchanged).**
-> The struck sentence is a record of the 2026-09-09 22:04 KST deployment, but the
-> `tagged_echo.py` digest listed above it is **not** the value that was deployed that
-> day. `tools/liveconsole/tagged_echo.py` was edited on 2026-09-14 (windowed cohort
-> support), moving its sha256
-> `beaa921ad26a4e42b15f1f8c4a7f6dcce38d3f2d902df1772db4b2a6eb6f4930` →
-> `7080f0ab879d621753728b997df3142ec1c479a75fcca801c049fda52ec6e283`, and the new
-> value was written into this list in place. So, as of this annotation:
->
-> - The **repo file and the source pin** in
->   `experiment_results/ota-20260911/guarded_source_process.py` are at `7080f0ab…c6e283`.
->   This much is verified from the files themselves.
-> - The **deployed copies** on UE1, UE2, UE3 and `oai-ext-dn` are **believed to be** at
->   the last known value `beaa921a…f4930` — that is what the 2026-09-09 deployment
->   manifest records. This is **unverified**: the endpoints have been powered down for a
->   thermal rest and nobody has inspected them since, so they may also hold nothing at
->   all if `/tmp` was cleared at boot.
-> - `flow_goodput.py` (`9140cea9…a0c6ef`) is unchanged and is not affected.
->
-> What is certain regardless of endpoint state is the **mismatch between the pin and
-> whatever was deployed on 2026-09-09**. Therefore: do **not** read the struck sentence
-> as evidence that redeployment can be skipped. A redeploy of `tagged_echo.py` into the
-> existing directory name `/tmp/aic-flow-9140cea9b49e-beaa921ad26a/` (the name is inert
-> provenance text and must not be renamed) is required before the next guarded run, which
-> would otherwise refuse at preflight with `SOURCE_HASH_MISMATCH:tagged_echo.py`.
-> Verify with `sha256sum` on all four endpoints after power-on. Full analysis:
-> `experiment_results/ota-20260911/SOURCE-PIN-RESUME-VERDICT-20260914T2000.md`.
+## Deployment
 
-> **Redeploy — 2026-09-15 ~01:30 KST (v3.1).** `tagged_echo.py` changed again for the
-> amendment's issued-cohort identity block: sha256 `7080f0ab…c6e283` →
-> `fc92b3f9f12660423814bd7790ac804c74539b2c6cfbf3e137d8b20256e335f9`. It was copied into the
-> existing directory `/tmp/aic-flow-9140cea9b49e-beaa921ad26a/` on UE1, UE2, UE3 and
-> `oai-ext-dn`, and `sha256sum` on all four returned `fc92b3f9…335f9` for `tagged_echo.py` and
-> the unchanged `9140cea9…a0c6ef` for `flow_goodput.py`. The pin in
-> `experiment_results/ota-20260911/guarded_source_process.py` was updated to match. `/tmp` on
-> the endpoints does not survive their reboot: after one, redeploy before a guarded run.
-
-Deployment evidence:
-`experiment_results/ota-20260909/calibration/flow-deployment-20260909T220425/manifest.json`.
-No old source/log was overwritten. Installation and hermetic tests alone do not
-establish an OTA measurement.
-
-At 22:21 KST, UE3's existing radio instance carried a bounded 2 Mbps / 30 s
-payload-source check through the real SSH `LiveFlowGoodputObserver` (no injected
-runner, no radio restart). Evidence:
-`experiment_results/ota-20260909/calibration/flow-check-20260909T222141/`.
-
-- Sender submitted and receiver consumed exactly **7,401,164 payload bytes**.
-  Sender, receiver and raw archival all exited 0; the receiver ended at TCP EOF.
-- One preflight established the baseline without a rate; all 29 subsequent rate
-  samples were present. Across the 30 snapshots' **29.5253 s** source interval,
-  payload goodput was **1.97700 Mbps** and tun aggregate was **2.05172 Mbps**.
-  These are different definitions, not inconsistent readings.
-- All 60 running raw heartbeats retained one boot/interface identity, advancing
-  timestamps and nondecreasing payload/tun counters. No source failure occurred.
-- After EOF, the real observer returned no KPI and reported the terminal source;
-  it did not replay the last rate. Raw events, observer snapshots/observations,
-  commands, hashes and `raw-reconciliation.json` are archived together.
-
-The first attempt (`flow-check-20260909T221941`) never launched its sender:
-its operational wrapper missed `ss`'s `IP%oaitun_ue1:port` listener spelling.
-The wrapper was corrected; the deployed sources were unchanged. That failed
-attempt is retained, not counted as a radio payload failure or a successful run.
-The observer key `ue3` in this source-only check is an SSH host label, not a
-fabricated AMF UE ID. This verifies the source implementation on one UE, not
-UE1/UE2 service, calibrated targets, a full three-UE common window, or a formal
-four-intent Coordinator episode.
+Deploy `flow_goodput.py` and `tagged_echo.py` to every UE and to
+`oai-ext-dn`, and confirm with `sha256sum` that each copy matches the source
+pin in
+[`experiment_results/ota-20260911/guarded_source_process.py`](../../experiment_results/ota-20260911/guarded_source_process.py);
+a guarded run refuses at preflight with `SOURCE_HASH_MISMATCH` otherwise. The
+endpoints' `/tmp` does not survive a reboot, so redeploy after one. Keep the
+deployment manifest with the campaign records. Installation and hermetic tests
+alone are not OTA measurements.
