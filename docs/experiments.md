@@ -1,114 +1,107 @@
 # Experiment methods and artifacts
 
-This page maps the paper's method names to the existing implementation.
-Code identifiers are preserved for compatibility; older names remain in historical tools.
-For a safe local demonstration, use the [hardware-free quickcheck](reproducibility.md).
+This page maps the methods in the paper to the implementation and describes the
+retained OTA procedure and analysis tools. For a local demonstration, use the
+[hardware-free quickcheck](reproducibility.md).
 
 ## Method mapping
 
-| Paper label | Existing implementation selection | Decision organization |
+| Paper label | Code identifier | Decision organization |
 |---|---|---|
-| 3A | `three-agent` | Target and Control agents form validated T and C; Trajectory selects trials. |
-| RM | `internal-monolith` | One model call forms both T and C; later calls use the same selection instructions and format as 3A. |
-| MA | `basic-monolith` with the selected language-model backend | One model proposes a complete configuration directly. |
+| 3A | `three-agent` | Target and Control agents construct T and C independently and in parallel; the Trajectory agent selects each live trial. |
+| RM | `internal-monolith` | One model call constructs both T and C; later calls use the same selection instructions and input format as 3A. |
+| MA | `basic-monolith` | One model generates a complete joint-control configuration at each live trial. |
 
-RM means **role-merged agent**, not a rule-based method. The submitted manuscript
-compares `three-agent`, `internal-monolith`, and `basic-monolith` using the same
-language-model endpoint and generation settings. The additional `rule-greedy`
-selector is a no-model baseline retained in the code, not the manuscript's RM.
-It is a model-selection sentinel inside the basic-monolith execution path,
-not a general `--methods rule-greedy` option for the hardware-free matrix runner.
+RM denotes the **role-merged agent**. All three methods use the same model
+endpoint, generation settings, authorized service levels, pre-episode evidence,
+available RAN actions, validation, execution, and recovery rules. The prompts
+are in [`orc_task/SINGLE_CALL.md`](../orc_task/SINGLE_CALL.md).
+
+The code also contains a no-model `rule-greedy` selector, used as a sanity
+baseline inside the `basic-monolith` execution path, and campaign-runner plan
+entries for other model backends (for example `three-agent-qwen3`). These are
+not part of the comparison reported in the paper. A model alias alone does not
+identify model weights, quantization, serving configuration, or version.
 See [agents.py](../assurance/coordination/agents.py) and
 [rule_greedy.py](../assurance/coordination/rule_greedy.py).
 
-The retained [v5.4r campaign runner](../experiment_results/ota-20260911/ops/run_blocks_campaign_v54r.sh)
-also recognizes plan entries `three-agent-qwen3`, `basic-monolith-qwen3`, and `rule-greedy`.
-The `-qwen3` entries select the underlying method and `local:qwen3` model alias;
-the rule entry selects `basic-monolith` with `AIC_MONOLITH_MODEL=rule-greedy`.
-These extra branches do not define the submitted manuscript's comparison.
-An alias alone does not identify model weights, quantization, serving configuration, or version.
+## Reported evaluation settings
 
-## Submitted evaluation settings
+| Setting | Value |
+|---|---|
+| Campaign | 17 blocks with varying method order; 56 recorded episodes (17 for 3A, 20 for RM, 19 for MA), including episodes from restarted blocks |
+| Trials | Measured reference as trial 0, then at most 6 additional live trials |
+| Time budget | 480 s from input release, including candidate preparation, model calls, execution, and recovery |
+| KPI window | 15 s per trial |
+| Requirements | Goodput of UE1-3, UE2 deadline success (256-byte tagged UDP echo at 5 Hz, 35-ms deadline), and gNB1 transmit attenuation; UE2 goodput is protected |
+| Authorized targets | 21 levels for each of the four adjustable requirements: 21⁴ targets |
+| Model | `claude-5.5-sonnet` through the Anthropic Messages API |
+| Response limits | 4,000 tokens per candidate-construction call; 2,000 tokens per online selection or generation call |
 
-The manuscript reports 56 episodes across 17 blocks: 17 for 3A, 20 for RM, and
-19 for MA, including episodes from restarted blocks. A measured reference is
-trial 0; resolution allows six additional trials within 480 seconds from input
-release. Each trial has a 15-second KPI window. All three methods use
-`claude-5.5-sonnet` through Anthropic Messages API, with 4,000-token construction
-and 2,000-token online-selection/generation response limits. These are reported
-campaign settings, not a claim that default arguments reconstruct the original
-dataset or endpoint.
+These are the settings of the reported campaign; default command-line
+arguments of individual tools are not a substitute for them.
 
 ## Shared execution and evaluation
 
 All methods use the shared [agent sitting](../tools/liveconsole/agent.py),
 [Assurance Kernel](../assurance/kernel/), [Write Gateway](../assurance/gateway/),
-and [measurement collector](../assurance/collector/).
-Agent proposals do not bypass deterministic admission, measurement validation, or recovery.
-The coordination code preserves protected requirements and separates missing evidence
-from observed predicate failure.
+and [measurement collector](../assurance/collector/). Agent proposals do not
+bypass deterministic admission, measurement validation, or recovery. Protected
+requirements are preserved, and missing evidence is kept separate from an
+observed requirement failure.
 
-The [concession evaluator](../assurance/coordination/concession.py) implements
-the common evaluation independent of a method's selected target list.
-The v5.1 weighted rule uses `p = 25 kE + 13 k1 + 7 k2 + 3 k3`, with lower better;
-its four adjustable coordinates have 20 steps, while the UE2 goodput floor is protected.
-The exact evaluation rule must be read from the episode/corpus records;
-older lexicographic variants also remain in the code.
-Transmit attenuation is a control/measurement proxy, not a measurement of electrical power consumption.
+The [concession evaluator](../assurance/coordination/concession.py) evaluates
+each valid observation against all authorized targets, independent of a
+method's prepared target list. The preference cost is
+`p = 25 kE + 13 k1 + 7 k2 + 3 k3`, where `kE`, `k1`, `k2`, and `k3` index the
+adjustments of gNB1 transmit attenuation, UE1 goodput, UE2 deadline success,
+and UE3 goodput (0 = original requirement, 20 = authorized limit). A lower cost
+is preferred, and each episode record stores the evaluation rule it used.
+Transmit attenuation is a control setting, not a measurement of electrical
+power consumption.
 
-## OTA procedure retained in the source
+## OTA procedure
 
-The campaign runs methods in blocks and records interruptions and attempt outcomes.
-Its chain is `run_blocks_campaign_v54r.sh` → `run_case.sh` → `run_formal_v3.sh`
-→ `run_episode.py` → `atomic_formal_run_guarded.py` → the shared sitting.
-These files remain under [experiment_results/ota-20260911/](../experiment_results/ota-20260911/).
+The campaign runs methods in blocks and records interruptions and attempt
+outcomes. The execution chain is
+`ops/run_blocks_campaign_v54r.sh` → `ops/run_case.sh` → `ops/run_formal_v3.sh`
+→ `ops/run_episode.py` → `atomic_formal_run_guarded.py` → the shared sitting,
+all under [experiment_results/ota-20260911/](../experiment_results/ota-20260911/).
 
-`ops/reference_dl.py` measures block reference traffic; `ops/make_v47_corpus.py`
-constructs and hashes the block's intent corpus from those measurements.
-`ops/keeper.py` and related operational helpers maintain the laboratory between trials.
-These are live-capable tools, not offline smoke commands.
+`ops/reference_dl.py` measures the per-block reference traffic, and
+`ops/make_v47_corpus.py` constructs and hashes the block's intent corpus from
+those measurements. `ops/keeper.py` and related helpers maintain the testbed
+between trials. These tools drive live equipment.
 
-The runner expects a pre-existing final campaign plan and deployment settings.
-Its automatic fallback plan names `three-agent`, `internal-monolith`, and
-`basic-monolith`, which correspond to the manuscript's three method families.
-Those identifiers alone do not reconstruct the original campaign: the frozen
-plan, deployment settings, input corpus, and recorded episodes are also required.
-Likewise, default trial/time limits are not a frozen statement of the paper's final settings.
-Prompt versions, fair-prompt selection, energy-step settings, model identity, timing mode,
-and campaign inclusion rules need the original manifest.
-
-A new OTA run requires prepared OAI gNB/UE and core deployments, RIC/xApps,
-measurement sources, validated live profiles, model serving for model-based methods,
-and independent equipment authorization. The repository does not provision these automatically.
-[OAI patches](../oai_patches/) and [xApp source](../src/xapp/) describe implementation pieces;
-they do not supply all external software, hardware, or deployment state.
+The runner takes a campaign plan and deployment settings; its default plan names
+`three-agent`, `internal-monolith`, and `basic-monolith`. A new OTA run requires
+prepared OAI gNB/UE and core deployments, the RIC and xApps, measurement
+sources, validated live profiles, model serving for model-based methods, and
+authorized equipment access. [OAI patches](../oai_patches/) and
+[xApp source](../src/xapp/) contain the RAN-side modifications; external
+software and hardware are obtained separately.
 
 ## Analysis scripts
 
-The [analysis_v53 directory](../experiment_results/ota-20260911/ops/analysis_v53/)
-contains the retained exports. Names reflect development history.
+[`ops/analysis_v53/`](../experiment_results/ota-20260911/ops/analysis_v53/)
+contains the export and analysis scripts used on the campaign records.
 
-| Script | Reads/writes | Important boundary |
-|---|---|---|
-| `common.py` | Discovers completed boards from campaign logs and loads echo records. | Requires missing final board/log inputs. |
-| `export_history.py` | Board, trial, model-call CSVs and raw trial JSONL. | Exports saved observations; does not regenerate them. |
-| `export_board_detail.py` | Calls, T/C definitions, preparation, rollback CSVs. | Requires episode records and event streams. |
-| `export_profile.py` | Prompt/call, gateway, observation-window, UE-event CSVs. | Requires original prompts and execution evidence. |
-| `v53_report.py` | Historical deadline sweeps and comparative summaries. | Assumes populated three-method data; not the complete final figure recipe. |
-| `rejudge_deadline.py` | Historical deadline reassessment. | Hard-coded historical campaign/path assumptions. |
-| `replay_fair_prompts.py` | Sends stored prompts to a model again. | Radio-free but **not offline**; makes model-service calls. |
+| Script | Reads and writes |
+|---|---|
+| `common.py` | Discovers completed episodes from campaign logs and loads echo records. |
+| `export_history.py` | Episode, trial, and model-call CSVs and raw trial JSONL. |
+| `export_board_detail.py` | Model calls, T/C definitions, preparation, and recovery CSVs. |
+| `export_profile.py` | Prompt and call, gateway, observation-window, and UE-event CSVs. |
+| `v53_report.py` | Deadline sweeps and comparative summaries across the three methods. |
+| `rejudge_deadline.py` | Deadline reassessment of recorded echo data. |
+| `replay_fair_prompts.py` | Sends stored prompts to a model again; this makes model-service calls. |
 
-The three `export_*.py` scripts use the standard library and are file-only.
-Their working directory must be `experiment_results/ota-20260911/`.
-Set `AIC_ANALYSIS_CAMPAIGNS` explicitly from the original dataset manifest;
-the loader defaults to earlier v5.3 campaigns, not an asserted final-paper selection.
-Use fresh output directories. A zero-board export is not a reproduced result.
+The three `export_*.py` scripts use only the standard library and work on files.
+Run them from `experiment_results/ota-20260911/`, set `AIC_ANALYSIS_CAMPAIGNS`
+to the campaigns to analyze, and use fresh output directories.
+`common.boards()` includes episodes with a recorded termination marker and
+episode file; reconcile this selection with interrupted blocks and excluded
+attempts before computing summary statistics.
 
-`common.boards()` includes only boards with a recorded termination marker and episode file.
-Before numerical comparison, reconcile this selection with failed formations,
-interrupted blocks, excluded attempts, and the paper's denominator.
-No unavailable records should be filled with zeros, mock samples, or inferred successes.
-
-The [data-availability statement](reproducibility.md#data-availability-and-limits)
-lists the missing originals. Without them, these scripts document the extraction procedure
-but cannot independently regenerate the final paper's numerical results.
+The [data availability section](reproducibility.md#data-availability-and-limits)
+lists the campaign records these scripts read.
