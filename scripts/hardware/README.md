@@ -1,171 +1,168 @@
-# scripts/hardware — the hardware bring-up lane (separate from the GUI)
+# scripts/hardware — testbed bring-up
 
-This is the **hardware lane**: bringing the near-RT RIC, the gNBs, the UEs and
-the xApp control path up so intents can run *over the air*.  It is deliberately
-separate from the experiment lane — the GUI and the hardware-free experiments in
-[`docs/user/09-hardware-free-experiments.md`](../../docs/user/09-hardware-free-experiments.md)
-never call anything here, and nothing here is needed to run a paper experiment
-hardware-free.
+These scripts bring up the near-RT RIC, the gNBs, the UEs, and the xApp control
+path for over-the-air experiments on the testbed described in the paper (two
+gNBs and three UEs, band n78, 38 PRBs, OAI gNB/NR-UE and CN5G, FlexRIC). They
+are separate from the Cockpit and from the hardware-free experiments in
+[`docs/reproducibility.md`](../../docs/reproducibility.md); neither calls
+anything here, and nothing here is needed to run the offline examples.
 
-Two tools do hardware preparation, for two purposes:
+Two tools prepare the hardware:
 
 | Tool | Purpose |
 |---|---|
-| `bin/labctl` (see [`tools/labctl/README.md`](../../tools/labctl/README.md)) | the **supported** Lab Setup Utility: inventory-driven status / preflight / prepare / apply-config / stop / receipt for the PIN_TO_CELL 24-PRB dual-cell profile. Use this first. |
-| `scripts/hardware/*.sh` (this directory) | the **campaign** bring-up used for the live xApp / E2SM-RC over-the-air runs (38-PRB dual-cell, `our_rc_xapp` Style-2 controls, FlexRIC handover). These encode the procedure that was verified over the air; they are thin, parameterised wrappers, not a substitute for labctl's receipt. |
+| `bin/labctl` (see [`tools/labctl/README.md`](../../tools/labctl/README.md)) | Inventory-driven status, preflight, prepare, apply-config, stop, and readiness receipt for the core, RIC, and gNB hosts. |
+| `scripts/hardware/*.sh` (this directory) | Campaign bring-up for the live xApp and E2SM-RC experiments: 38-PRB dual-cell gNB restarts, UE attachment, A1-P re-pin, and the action producer. Thin, parameterized wrappers around the procedure used for the OTA campaign. |
 
-> **Nothing here belongs to the GUI.**  The Cockpit imports no transport,
-> actuator or lab tool; the boundary is enforced by
-> `tests/gui/test_cockpit_acceptance.py`.  Run these on the lab hosts, by the
+> **These scripts do not belong to the Cockpit.** The Cockpit imports no
+> transport, actuator, or lab tool; the boundary is enforced by
+> `tests/gui/test_cockpit_acceptance.py`. Run these on the lab hosts as the
 > operator, never from the console.
 
 ## Environment
 
-These scripts read every machine-specific path from environment variables so no
-absolute path or secret is baked into the repository.  Copy and edit:
+Every machine-specific path is read from environment variables, so no absolute
+path or secret is stored in the repository. Copy and edit:
 
 ```bash
 cp scripts/hardware/env.sh.example scripts/hardware/env.sh
-$EDITOR scripts/hardware/env.sh        # set RIC/OAI/xapp paths for your lab
+$EDITOR scripts/hardware/env.sh        # set RIC/OAI/xApp paths for your lab
 source scripts/hardware/env.sh
 ```
 
-No SIM key (Ki/OPc), IMSI, subscriber value or SSH password ever goes in these
-files or in `env.sh`.  `env.sh` is git-ignored.
+No SIM key (Ki/OPc), IMSI, subscriber value, or SSH password belongs in these
+files or in `env.sh`. `env.sh` is git-ignored. Set `HW_REQUIRED_UES` to every UE
+that must be attached for a run (`ue1,ue2,ue3` for the three-UE scenario).
 
 ## Safety and privilege
 
 - **PC1 (gNB1) needs local `sudo`** for the softmodem's real-time threads; the
-  operator runs `restart_gnb.sh` there.  The near-RT RIC comes up **non-root**.
-- USRP power is the operator's manual step.  A gNB restart waits ~15 s for the
-  X310 to release before re-acquiring it.
-- DL load in a run must originate **inside** the `oai-ext-dn` container; a
-  host-originated ping to a UE IP leaks to the internet.
+  operator runs `restart_gnb.sh` there. The near-RT RIC runs as a non-root user.
+- Powering the USRPs is a manual operator step. A gNB restart waits about 15 s
+  for the X310-class radio to be released before re-acquiring it.
+- Downlink load must originate **inside** the `oai-ext-dn` container; a
+  host-originated ping to a UE IP leaves through the host's default route
+  instead of the 5G core.
 
-## Runbook (working live order)
+## Bring-up order
 
 ```bash
 source scripts/hardware/env.sh
 
-# 1) Bring the CN up with the approved local Lab Setup procedure and confirm
-#    its user plane before attaching any radio node.  Do not treat this as
-#    Kernel evidence.
+# 1) Bring the core up with the lab procedure and confirm its user plane
+#    before attaching any radio node.
 bin/labctl status
 
-# 2) near-RT RIC (non-root), with the connection witness enabled
+# 2) Near-RT RIC (non-root), with the connection witness enabled.
 bash scripts/hardware/bringup_ric.sh
 
-# 3) gNBs: gNB1 is an operator action on PC1; gNB2 is an operator sudo action
-#    on enb2.  Complete *all* gNB/gate changes before the single re-pin below.
+# 3) gNBs: gNB1 on PC1, gNB2 on its own host. Complete all gNB and gate
+#    changes before the single re-pin in step 6.
 sudo -E bash scripts/hardware/restart_gnb.sh gnb1
 ssh -t enb2 'sudo -E bash scripts/hardware/restart_gnb.sh gnb2'
 
-# 4) The UEs immediately before the run.  The wrapper selects the 24-PRB B206mini
-#    launcher, stops an old UE, shows its tun IP, and reports the UL prime.
-bash scripts/hardware/attach_ue.sh ue1 24
-#    Or, with the start flags the radio actually needs (see "UE start flags"):
-#    ssh ue<n> 'sudo env UE_RTPRIO=99 UE_FRAMES=2048 bash ~/ue-start-rt.sh gnb1'
-#    Then prove the downlink before trusting the address:
+# 4) Attach the UEs immediately before the run (38 PRB by default). The wrapper
+#    stops an old UE instance, shows its tun IP, and reports the uplink prime.
+bash scripts/hardware/attach_ue.sh ue1
+bash scripts/hardware/attach_ue.sh ue2
+bash scripts/hardware/attach_ue.sh ue3
+#    Verify the downlink before relying on the address:
 #    docker exec oai-ext-dn ping -c3 <tun-ip>
 
 # 5) Read-only readiness receipt.
 bash scripts/hardware/readiness.sh --output /tmp/oran-live-readiness.json
 
-# 6) One staged re-pin after every gNB/gate change.  It has five discovery and
-#    validation steps, then rApp capability/inventory propagation and KPM JSONL
-#    rotation; inspect the no-write plan first.
+# 6) One staged re-pin after all gNB and gate changes. It runs five discovery
+#    and validation steps, then rApp capability/inventory propagation and KPM
+#    JSONL rotation; inspect the no-write plan first.
 bash scripts/hardware/repin_a1p.sh --dry-run
 bash scripts/hardware/repin_a1p.sh
 
-# 7) Start the Campaign-5 supplementary-action producer in a separate,
-#    supervised terminal. Its preflight exits 4 if the KPM gate is not
-#    appending, and it stays in the foreground after a successful preflight.
-#    Configure the HW_CAMPAIGN5_* file references in env.sh first; never put
-#    their secret contents in env.sh.
+# 7) Start the supplementary-action producer in a separate, supervised
+#    terminal. Its preflight exits 4 if the KPM gate is not appending, and it
+#    stays in the foreground after a successful preflight. Configure the
+#    HW_CAMPAIGN5_* file references in env.sh first.
 bash scripts/hardware/run_campaign5_producer.sh
 
-# 8) A fresh receipt must say READY before starting the Cockpit.
+# 8) Review a fresh readiness receipt, then start the Cockpit.
 bash scripts/hardware/readiness.sh --output /tmp/oran-live-readiness.json
 python3 main.py --live --profile deployment/liveconsole-profile.json
 # Or headless:
 python3 main.py --live --profile deployment/liveconsole-profile.json --no-gui
 ```
 
-`HW_LIVE_ARTIFACT_ROOT` is the operator-facing root for the live capability,
-inventory, KPM JSONL, and release artifacts. Its default remains
-`$HOME/oran-deploy/session-20260819/lower-live`; set the current name in new
-`env.sh` files.
+`HW_LIVE_ARTIFACT_ROOT` is the root for the live capability, inventory, KPM
+JSONL, and release artifacts; set it in `env.sh`.
 
-`readiness.sh` is read-only and reports why an observation is missing.  The
-re-pin writes staged files with backups and publishes last; it is Lab Setup,
-never Kernel evidence.  The Cockpit profile is the 24-PRB dual-cell profile.
-`run_campaign5_producer.sh` is deliberately fail-closed: exit 4 means its KPM
-JSONL did not append during the probe window, so it did not start a writer.
+`readiness.sh` is read-only and reports why an observation is missing. The
+re-pin writes staged files with backups and publishes them last; it is a
+preparation step, not trial evidence. `run_campaign5_producer.sh` fails closed:
+exit 4 means its KPM JSONL did not append during the probe window, so it did not
+start a writer.
 
-## The three UE machines
+## UE hosts
 
-| host alias | machine | USRP (B206mini) | slice |
-|---|---|---|---|
-| `ue1` | ran-ue1 | 35DA62D | sst 1 / sd FFFFFF |
-| `ue2` | ran-ue2 | 35D5F42 | sst 1 / sd FFFFFF |
-| `ue3` | ran-ue3 (192.168.0.54, added 2026-09-08) | 352F0C1 | sst 222 / sd 00007B |
+| Host alias | Radio | Slice |
+|---|---|---|
+| `ue1` | NI USRP-B206mini-i | SST 1 / SD FFFFFF |
+| `ue2` | NI USRP-B206mini-i | SST 1 / SD FFFFFF |
+| `ue3` | NI USRP-B206mini-i | SST 222 / SD 00007B |
 
-UE3 was provisioned by copying UE1's software: UHD 4.9.0.0 in `/opt`, the OAI UE binary and its
-libraries, the runtime profile, the seven `ai-ran-*` launchers (paths and serial rewritten for this
-host), Ettus' udev rule, and an `ld.so.conf.d` entry so `libuhd` resolves without `LD_LIBRARY_PATH`.
-Its subscriber reuses an identity the core already carries with both credentials and session data, so
-no core database change was needed; **the IMSI and its keys live in the lab's own configuration and in
-`~/ai-ran-stage/runtime/phase-b/nr-ue.conf` on that machine, never in this repository.**
+Each UE host runs UHD 4.9.0, the OAI NR-UE binary and its runtime profile, the
+UE launchers, the Ettus udev rule, and an `ld.so.conf.d` entry so `libuhd`
+resolves without `LD_LIBRARY_PATH`. Subscriber identities and keys are kept in
+the lab's own core and UE configuration, never in this repository.
 
-UE3's slice is deliberately different from UE1's and UE2's: with two groups, the
-`slicePrbQuota@<sst>` axis is a real group control (sst 1 moves UE1 and UE2 together) rather than a
-duplicate of the per-UE cap.  `HW_UE3_HOST` is registered in `env.sh`; the live KPI observer maps UEs
-to hosts positionally, so three UEs resolve without a code change.  `HW_REQUIRED_UES` still names
-`ue1,ue2` -- add `ue3` once it has actually attached on the radio, which needs the USRPs back.
+UE3 uses a different slice from UE1 and UE2, so the `slicePrbQuota@<sst>` axis
+acts as a group control (SST 1 moves UE1 and UE2 together) rather than
+duplicating the per-UE cap. The live KPI observer maps UEs to hosts through
+`HW_UE<n>_HOST`.
 
-## UE start flags (paid for on 2026-09-08)
+## UE start flags
 
-The softmodem needs real-time priority and nothing else added:
+The NR-UE softmodem needs real-time priority and nothing else added:
 
-| flag | verdict |
+| Flag | Recommendation |
 |---|---|
-| `chrt -f 99` | **required** — without it the UE dies of USB overflow within minutes |
-| `taskset -c 4-11` | **never** — eight cores starve the transmit thread, the log fills with `L` (late), the PRACH leaves its occasion and the gNB never sees it. The symptom is a perfect downlink with random access that never succeeds, which looks exactly like a dead antenna |
-| `--agc` | **never** — the stock launchers do not pass it; receive gain climbs and the frequency correction oscillates |
-| `UE_FRAMES=2048` | recommended — 512 receive/transmit frames is not enough to survive an RRC drop |
+| `chrt -f 99` | **Required**; without it the UE can stop on USB overflow within minutes. |
+| `taskset -c 4-11` | **Avoid**; restricting cores starves the transmit thread, so PRACH misses its occasion and random access fails while the downlink looks healthy. |
+| `--agc` | **Avoid**; receive gain climbs and the frequency correction oscillates. |
+| `UE_FRAMES=2048` | Recommended; 512 frames is not enough to survive an RRC drop. |
 
-After an `ERROR_CODE_OVERFLOW` crash the B2xx needs one `uhd_usrp_probe` before the next start; a USB
-unbind/rebind does not restore it. `~/ue-start-rt.sh` now does this automatically and takes
-`UE_RTPRIO`, `UE_CPUS`, `UE_AGC`, `UE_NOFO`, `UE_FRAMES`, `UE_CARRIER`, `UE_SSB` and an optional
+After an `ERROR_CODE_OVERFLOW` exit, the B2xx radio needs one `uhd_usrp_probe`
+before the next start; a USB unbind/rebind does not restore it. The UE start
+script runs this probe automatically and accepts `UE_RTPRIO`, `UE_CPUS`,
+`UE_AGC`, `UE_NOFO`, `UE_FRAMES`, `UE_CARRIER`, `UE_SSB`, and an optional
 second argument naming the profile.
 
-## Known traps
+## Troubleshooting
 
-| Situation | Discriminating symptom and operator rule |
+| Situation | Symptom and remedy |
 |---|---|
-| KPM gate removal | `docker rm -f` can SIGKILL the gate and leave the RIC at exit 139.  After a RIC restart, neither agent re-sends E2 SETUP; restart both gNBs. |
-| gNB2 restart | A non-sudo `pkill` cannot stop enb2's root softmodem.  A new PID that immediately reports a busy USRP or `socket closed` is not a restart; use sudo, verify the PID changed, and wait at least 15 seconds. |
-| SCTP association churn | Shutting down one association can drop the other (`SCTP_SHUTDOWN_EVENT` / SETUP timeout).  Make every gNB and gate change first, then re-pin once. |
-| UE1 at 24 PRB | The generic launcher returns `UNSUPPORTED_PRB=24`; use `ai-ran-nrue-start-gnb1-prb24`.  `ERROR_CODE_OVERFLOW` / `readBlockSize == tmp` means USB overflow: reattach immediately before the run.  Prove DL only with `docker exec oai-ext-dn ping <tun-ip>`. |
-| Campaign capability | Campaign-5 gNB capability changes require re-pin step 4 refresh.  Never edit release inputs inside a bundle; restore pinned content before `finalize`. |
-| Docker timestamps | `docker logs --since` with a bare time is local time.  Pass a RFC3339 timestamp ending in `Z`. |
-| Header refresh | Never run `refresh_headers.sh` without `--from-live` while the gate container is up: a second KPM gate xApp is churn that has crashed the RIC (exit 139) and dropped both E2 associations. Add `--confirm-hosts` to join each header to its physical host through the AMF's UE table. |
-| iperf3 hangs on 5201 | A leftover TCP sink (`/tmp/srv.py`) from an earlier session holds 5201 on the UE hosts. It accepts the connection and speaks nothing, so an iperf3 client hangs until its timeout. Use port 5202. |
+| KPM gate removal | `docker rm -f` can stop the gate abruptly and leave the RIC at exit 139. After a RIC restart, neither agent re-sends E2 SETUP; restart both gNBs. |
+| gNB2 restart | A non-sudo `pkill` cannot stop a root softmodem. A new PID that immediately reports a busy USRP or `socket closed` is not a restart; use sudo, verify the PID changed, and wait at least 15 s. |
+| SCTP association churn | Shutting down one association can drop the other (`SCTP_SHUTDOWN_EVENT` or SETUP timeout). Make every gNB and gate change first, then re-pin once. |
+| USB overflow on a UE | `ERROR_CODE_OVERFLOW` or `readBlockSize == tmp` indicates USB overflow; reattach immediately before the run and verify DL with `docker exec oai-ext-dn ping <tun-ip>`. |
+| Capability changes | gNB capability changes require the capability refresh in re-pin step 4. Do not edit release inputs inside a bundle; restore pinned content before `finalize`. |
+| Docker timestamps | `docker logs --since` interprets a bare time as local time; pass an RFC 3339 timestamp ending in `Z`. |
+| Header refresh | Run `refresh_headers.sh` with `--from-live` while the gate container is up; a second KPM gate xApp can crash the RIC (exit 139) and drop both E2 associations. Add `--confirm-hosts` to join each header to its physical host through the AMF's UE table. |
+| iperf3 hangs on 5201 | A leftover TCP sink can hold port 5201 on the UE hosts and accept connections without responding. Use port 5202. |
 | Sitting refuses every trial | `prepare: REJECTED_CONFIG_MISMATCH` means a manual probe left an axis off its baseline. Restore every axis before starting a sitting. |
-| Sitting measures nothing | A live sitting started without `source scripts/hardware/env.sh` has no `HW_UE<n>_HOST`, so the tun-rate observer resolves no hosts and every KPI reads UNKNOWN while the run still completes. |
-| A1-P recovery wedge | Cockpit shows `SAFETY_STOPPED`, R1 returns 503, and the producer log says `xApp worker stopped`.  Restart with `docker restart oran-aic-a1p-producer`, then re-run readiness.  The root cause is in the carried-over stage bundle, not this repository. |
+| Sitting measures nothing | A sitting started without `source scripts/hardware/env.sh` has no `HW_UE<n>_HOST`, so the observer resolves no hosts and every KPI reads UNKNOWN. |
+| A1-P producer stopped | The Cockpit shows `SAFETY_STOPPED`, R1 returns 503, and the producer log reports `xApp worker stopped`. Restart with `docker restart oran-aic-a1p-producer`, then re-run readiness. |
 
-## Field gotchas (paid for the hard way)
+## Measurement practice
 
-- **UE liveness is `ip -4 -o addr show up dev oaitun_ue1`, not `pgrep`** — a
-  released UE keeps its IPv4 address while its DL is dead.
-- **After UE attach, prime the uplink once** (`ping -I oaitun_ue1 <ext-dn>`) or
-  DL reads 0.
-- **Measure throughput from the UE tun `rx_bytes` delta**, not iperf3's receiver
-  report (it depends on the control channel and often reads 0).
-- **Never `pkill -f iperf3` inside an ssh command** — it matches and kills the
-  ssh shell itself; use `pkill -x iperf3`.  Start iperf3 servers with `setsid`.
-- **Freshly power-cycled USRPs need to warm up** before SSB/SIB1 decode is
-  reliable (PBCH decode fails and the timing offset is large until the TCXO
-  settles); do **not** ice them.
-- Config in `configs/oai/` is not auto-deployed; the restart scripts stage it.
+- **Check UE liveness with `ip -4 -o addr show up dev oaitun_ue1`**, not
+  `pgrep`; a released UE keeps its IPv4 address while its downlink is down.
+- **Prime the uplink once after attachment** (`ping -I oaitun_ue1 <ext-dn>`);
+  otherwise the downlink can read 0.
+- **Measure goodput at the UE** from the application payload counters (see
+  [`tools/liveconsole/README-flow-goodput.md`](../../tools/liveconsole/README-flow-goodput.md))
+  rather than from iperf3's receiver report.
+- **Use `pkill -x iperf3`**, not `pkill -f iperf3`, inside an ssh command, and
+  start iperf3 servers with `setsid`.
+- **Let freshly powered USRPs warm up** before relying on SSB/SIB1 decoding;
+  PBCH decoding and timing offset stabilize once the oscillator settles.
+- Configuration in `configs/oai/` is not deployed automatically; the restart
+  scripts stage it.
