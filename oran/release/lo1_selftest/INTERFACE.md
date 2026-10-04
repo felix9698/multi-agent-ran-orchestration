@@ -1,8 +1,9 @@
-# Seam S4 — the Provider emulator interface, published for W1 and W2
+# O1 Provider emulator interface
 
-`work-split.1.0.0.json#/sequencing` puts this at order 2 and calls it *the
-acceptance precondition for W1 and W2*. This file is the human-readable form;
-the machine-readable form is
+This document describes the contract-faithful O1 Provider emulator used by the
+live O1 harness self-test, and the interface that O1 consumer implementations
+are tested against. This file is the human-readable form; the machine-readable
+form is
 
 ```
 python3 -m oran.release.lo1_selftest interface
@@ -89,7 +90,7 @@ class ProviderEmulator:
 | `advertised_capabilities()` | The capability list read from the frozen NETCONF profile. |
 | `emitted_files()` / `netconf_observations` | Provider-side observations for reporting. |
 
-## 3. The contract W1 and W2 are accepted against
+## 3. The contract consumers are tested against
 
 1. **NETCONF is byte-exact.** A request is answered only if the message the
    framing layer reassembles is byte-equal to one of the eight registered
@@ -97,7 +98,7 @@ class ProviderEmulator:
    `operation-not-supported` and increments `unknown_route_count`.
    `unknown_route_count` must be `0` on a clean run (`G-EMU-1`).
 
-   **NETCONF framing is RFC 6242, implemented here and shared with nobody.**
+   **NETCONF framing is RFC 6242, implemented independently here.**
    The frozen profile declares `NETCONF_1_1_OVER_SSH` and requires
    `urn:ietf:params:netconf:base:1.1`, so the `<hello>` exchange is framed with
    `]]>]]>` and **every** message after it is chunked
@@ -105,10 +106,8 @@ class ProviderEmulator:
    deliberately emitted in several 512-octet chunks, so a consumer's reassembly
    path is exercised on every exchange rather than only on a large payload.
    This emulator implements the framing from the RFC on its own — it does not
-   import the consumer's codec, and the consumer does not import this one —
-   because 1.0.1 was withdrawn for the opposite arrangement: the emulator
-   mirrored the consumer's non-conformant `]]>]]>` framing and the pair passed
-   while both were wrong. A post-hello `]]>]]>`, a malformed or leading-zero
+   import the consumer's codec, and the consumer does not import this one — so
+   that a shared non-conformant framing cannot make both sides pass together. A post-hello `]]>]]>`, a malformed or leading-zero
    chunk size, a truncated stream and a missing end-of-chunks are refused with
    `LO1-PFRAME-001..006`; the session then ends **unanswered**.
 2. **PM values diverge from golden, by requirement.**
@@ -135,7 +134,7 @@ class ProviderEmulator:
    the `live-O1` profile**, and refuses one whose step vector declares no
    `O1_NOTIFY` / `O1_RETRIEVE` pair.
 
-## 4. Faults W1 and W2 may arm in their own tests
+## 4. Faults consumers may arm in their own tests
 
 Provider-side, via `inject(...)`; none is reachable on a clean run:
 
@@ -171,15 +170,14 @@ defect rather than "something failed".
 | `determinism --a DIR --b DIR [--negative-control]` | 0 · 65 |
 | `falsify [--id ID] [--report FILE]` | 0 all falsified · 65 otherwise |
 
-## 7. Open question for W1/W2
+## 7. Core-runtime capture sections
 
-The core-runtime capture sections (`exchanges`, `coordinator`,
-`deterministicStubs`, `state`) have no producer until `oran/release/lo1/**`
-exists. Until then the self-test labels them
-`SYNTHETIC_FALSIFIER_SUBSTRATE` in the bundle sidecar and the driver reports
-`RUNTIME_ABSENT` (exit 69) under `--require-runtime`. When the runtime lands,
-it should hand those four sections to the driver and the sidecar's
-`coreSectionsOrigin` becomes `RUNTIME_UNDER_TEST`. The O1 sub-graph —
-notifications, retrievals, normalization, raw artefacts, the external-target
-ledger, cleanup and the redaction scan — is already produced from real sockets
-and needs no change.
+In a self-test run, the core-runtime capture sections (`exchanges`,
+`coordinator`, `deterministicStubs`, `state`) are built by the self-test
+itself and labelled `SYNTHETIC_FALSIFIER_SUBSTRATE` in the bundle sidecar, so
+they can never be mistaken for runtime output. `RUNTIME_UNDER_TEST` is reserved
+for sections produced by the runtime in `oran/release/lo1/`. Under
+`--require-runtime`, the driver reports `RUNTIME_ABSENT` (exit 69) when that
+runtime is unavailable. The O1 sub-graph — notifications, retrievals,
+normalization, raw artefacts, the external-target ledger, cleanup, and the
+redaction scan — is produced from real sockets in every run.
