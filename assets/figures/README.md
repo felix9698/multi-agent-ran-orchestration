@@ -1,10 +1,9 @@
 # Manuscript figures
 
-These figures were supplied by the authors with the submitted manuscript
+These are the figures of the manuscript
 **Automating Multi-Intent RAN Orchestration through Multi-Agent Live Resolution**.
-The PDFs are unchanged originals; PNG previews are direct page renderings,
-not recreated plots or synthetic results. The full manuscript PDF is not
-distributed in this repository.
+The PDFs are the original vector files, and the PNG previews used in the
+repository README are direct renderings of them.
 
 | Figure | Vector PDF | Description |
 |---|---|---|
@@ -17,7 +16,8 @@ distributed in this repository.
 | 5 | [fig5.pdf](fig5.pdf) | Service improvement by trial budget and time; cost reduction |
 | 6 | [fig6.pdf](fig6.pdf) | Inference latency and prompt composition |
 
-Figures 1–2 explain the framework; their illustrative values are not campaign
-parameters. Figures 4–6 report the manuscript's OTA results. Figure availability
-does not imply availability of the raw dataset; see
-[Reproducibility](../../docs/reproducibility.md).
+Figures 1–2 illustrate the framework, and their numerical values are
+illustrative rather than campaign parameters. Figure 3 shows the testbed, and
+Figures 4–6 report the OTA results of Section IV. See
+[Reproducibility](../../docs/reproducibility.md) for the experiment settings and
+data availability.
